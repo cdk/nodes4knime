@@ -4,7 +4,7 @@
       label="KNIME CDK Integration (based on CDK 1.3)"
       version="0.9.0.qualifier"
       provider-name="University Konstanz and EBI"
-      plugin="org.knime.ext.chem.cdk2">
+      plugin="org.openscience.cdk.knime">
 
    <description url="http://www.knime.org/downloads/extensions">
       This feature contains several nodes that are suitable for processing chemical data, among others nodes that integrate some of the functionality in the CDK, the Chemistry Development Kit.
@@ -732,7 +732,7 @@ propagated with or for interoperation with KNIME.
    </license>
 
    <plugin
-         id="org.knime.ext.chem.cdk2"
+         id="org.openscience.cdk.knime"
          download-size="0"
          install-size="0"
          version="0.0.0"/>
