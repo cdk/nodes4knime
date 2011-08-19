@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./mol2cdk.png" type="Manipulator">
+    <name>Molecule to CDK</name>
+    <shortDescription>
+        Translates various string representations into a specialized CDK type for further processing in CDK based nodes.
+    </shortDescription>
+    <fullDescription>
+        <intro>
+            <p>
+                Converts the elements in one of the input table's columns into an internal format (CDKCell), which can
+                then be rendered as molecule or used for further computations. The target column must contain string
+                representations of molecules (SDF, Mol2, Smiles, CML).
+            </p>
+            <p>
+                This node uses
+                <a href="http://cdk.sf.net">CDK</a>
+                classes to parse and display structures.
+            </p>
+            <br />
+            <i>
+                This node can process the input table in parallel. However, by default the usage of threads is disabled
+                in the CDK plugin, because the CDK code may not be thread-safe in all places. If you want to enable
+                multi-threading, change the setting in the KNIME preferences.
+            </i>
+        </intro>
+        <option name="Molecule Column">The column that contains the molecules.</option>
+        <option name="Replace Column">
+            Select this to replace the molecule column with the column containing the converted CDK molecules. Otherwise
+            a new column will be appended.
+        </option>
+        <option name="New column name">
+            Enter the name of the new column here if the original column is not replaced (see option above).
+        </option>
+        <option name="Generate 2D coordinates">
+            Enabling this option will generate 2D coordinates for the converted molecules so that they can be
+            visualized.
+        </option>
+        <option name="Force 2D generation">
+            Without this option, 2D coordinates will only be generated for molecules that do not only have any (usually
+            detected by an all zero z-coordinate). If this options is enabled the coordinates will be generated in any
+            case.
+        </option>
+        <option name="Add explicit hydrogens">
+            Enabling this option will add missing explicit hydrogens to the converted molecules.
+        </option>
+        <option name="Parse timeout in ms">
+            Parsing Smiles and generating 2D coordinates can take very long for certain molecules. Here you can set a
+            timeout after which the conversion of the current molecules will be aborted. A missing value will be
+            inserted in the output table instead of the converted molecule.
+        </option>
+    </fullDescription>
+    <ports>
+        <inPort index="0" name="Molecules to parse">Table containing molecules to parse</inPort>
+        <outPort index="0" name="Parsed molecules">Table with the parsed molecules</outPort>
+    </ports>
+</knimeNode>

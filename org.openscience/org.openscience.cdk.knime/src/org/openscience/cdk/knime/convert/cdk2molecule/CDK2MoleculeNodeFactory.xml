@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./cdk2mol.png" type="Manipulator">
+    <name>CDK to Molecule</name>
+    <shortDescription>Converts CDK molecules into various string representations</shortDescription>
+    <fullDescription>
+        <intro>
+            <p>
+                Converts the CDK molecules in one of the input table's columns into various string representations (SDF,
+                Mol2, Smiles, CML).
+            </p>
+            <p>
+                This node uses
+                <a href="http://cdk.sf.net">CDK</a>
+                classes to parse and display structures.
+            </p>
+        </intro>
+        <option name="CDK Column">The column that contains the CDK molecules.</option>
+        <option name="Replace Column">
+            Select this to replace the CDK column with the column containing the converted string representations.
+            Otherwise a new column will be appended.
+        </option>
+        <option name="New column name">
+            Enter the name of the new column here if the original column is not replaced (see option above).
+        </option>
+        <option name="Destination format">Select the destination format here.</option>
+    </fullDescription>
+    <ports>
+        <inPort index="0" name="CDK molecules">Table containing CDK molecules</inPort>
+        <outPort index="0" name="Converted string representations">
+            Table with the molecules' converted string representations
+        </outPort>
+    </ports>
+</knimeNode>

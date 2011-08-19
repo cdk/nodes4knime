@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./structure_sketcher.png" type="Source">
+    <name>Structure Sketcher</name>
+    <shortDescription>Sketch a molecular structure</shortDescription>
+    <fullDescription>
+        <intro>
+            <p>
+            	Allows to sketch molecular structure in the dialog. Upon
+            	execute, the structure is available in the output table, i.e.
+            	the table contains one row and one column.
+            </p>
+        </intro>
+        <option name="Sketcher">Use the control options to assemble a structure.</option>
+    </fullDescription>
+    <ports>
+        <outPort index="0" name="Structure Output">Table with a single structure cell.
+        </outPort>
+    </ports>
+</knimeNode>

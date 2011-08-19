@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode type="Other" icon="./molProps.png">
+    <name>Molecular Properties</name>
+    <shortDescription>Calculates molecular properties using CDK</shortDescription>
+    <fullDescription>
+        <intro>Create new columns holding molecular properties, computed for each
+            structure. The computations are based on the
+            <a href="http://cdk.sf.net">CDK</a> toolkit and include logP, molecular weight,
+            number of aromatic bonds, and many others.
+            <br />
+            <i>
+                This node can process the input table in parallel. However, by default the usage of threads is disabled
+                in the CDK plugin, because the CDK code may not be thread-safe in all places. If you want to enable
+                multi-threading, change the setting in the KNIME preferences.
+            </i>            
+        </intro>
+        <option name="Column Selection">Select the column containing the molecular
+            structure.
+        </option>
+        <option name="Properties">Move the available properties into the INCLUDE (right)
+            list.
+        </option>
+    </fullDescription>
+    <ports>
+        <inPort index="0" name="Molecule input">Table containing molecular structure based on which the
+            properties should be calculated.
+        </inPort>
+        <outPort index="0" name="Input with calculated properties">As input but with additional columns (one for each 
+            calculated property).
+        </outPort>
+    </ports>
+</knimeNode>
+
+

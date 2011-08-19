@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode type="Other" icon="./hydrogenAdder.png">
+    <name>Hydrogen Adder</name>
+    <shortDescription>Adds hydrogens to CDK molecules</shortDescription>
+    <fullDescription>
+        <intro>This node adds missing hydrogens to CDK molecules. You can choose if you want to add
+        explicit hydrogens to fulfill the valencies or only implicit ones.
+            <br />
+            <i>
+                This node can process the input table in parallel. However, by default the usage of threads is disabled
+                in the CDK plugin, because the CDK code may not be thread-safe in all places. If you want to enable
+                multi-threading, change the setting in the KNIME preferences.
+            </i>        
+        </intro>
+        <option name="Column with molecules">Select the column containing the molecular structure</option>
+        <option name="Add explicit hydrogens">Adds explicit hydrogens if checked, only implicit ones otherwise</option>
+        <option name="Append Column">Appends a new molecule column (with the name as specified in the text field) if checked, replaces the original column otherwise.</option>
+    </fullDescription>
+    <ports>
+        <inPort index="0" name="Molecule input">
+            Table containing molecular structures
+        </inPort>
+        <outPort index="0" name="Input with hydrogens added">As input but with added hydrogens</outPort>
+    </ports>
+</knimeNode>
+
+

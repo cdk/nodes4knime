@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./jmol.png" type="Visualizer">
+    <name>3D Viewer</name>
+    <shortDescription>3D Molecular Viewer using Jmol.</shortDescription>
+    <fullDescription>
+        <intro>
+            <p> 
+            	View to display 3D depictions of molecular structures. The 
+            	input table needs to contain a column containing either CDK or
+            	SDF values. The structures also need to have 
+            	3D coordinates attached. (Due to problems with the 3D generation 
+            	in the CDK libraries the coordinates must be available in the input file, 
+            	for instance must be contained in the SDF file.)
+            </p>
+            <p>
+            	This node uses the <a href="http://sourceforge.net/projects/jmol/">
+            	JMol library</a> as rendering engine.
+            </p>
+        </intro>
+    </fullDescription>
+    <ports>
+        <inPort index="0" name="Molecular input">Table to display</inPort>
+    </ports>
+    <views>
+	    <view name="3D View" index="0">
+               	Select any structure in the table view at the top and see
+            	the 3D representation at the bottom. The bottom view may
+            	be empty if the structure being selected does not carry
+            	3D coordinate information.
+	    </view>
+    </views>
+</knimeNode>

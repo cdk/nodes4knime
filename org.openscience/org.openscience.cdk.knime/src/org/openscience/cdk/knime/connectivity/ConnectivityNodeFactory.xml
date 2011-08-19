@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode type="Other" icon="./connectivity.png">
+    <name>Connectivity</name>
+    <shortDescription>Handles unconnected molecules</shortDescription>
+    <fullDescription>
+        <intro>
+            This node lets you handle CDK molecules which are fragmented into different parts. This is useful because
+            some algorithms won't work with unconnected structures. You have either the choice to completely remove the
+            rows that contain fragmented molecules, or to remove all fragments except the biggest one.
+            <br />
+            <i>
+                This node can process the input table in parallel. However, by default the usage of threads is disabled
+                in the CDK plugin, because the CDK code may not be thread-safe in all places. If you want to enable
+                multi-threading, change the setting in the KNIME preferences.
+            </i>
+        </intro>
+        <option name="Column with molecules">Select the column containing the molecular structure</option>
+        <option name="Remove complete row">
+            Removes all rows completely that contain a molecule with multiple fragments
+        </option>
+        <option name="Leave biggest fragment">
+            Removes all fragments except the biggest from unconnected molecules
+        </option>
+        <option name="Add column with all fragments">
+            Adds a collection column that contains all fragments a molecule
+            consists of
+        </option>
+    </fullDescription>
+    <ports>
+        <inPort index="0" name="Molecule input">Table containing molecular structures</inPort>
+        <outPort index="0" name="Input without fragmemts">As input but without unconnected molecules</outPort>
+    </ports>
+</knimeNode>
+
+

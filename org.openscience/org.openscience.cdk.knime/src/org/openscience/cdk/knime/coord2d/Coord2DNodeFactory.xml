@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode type="Other" icon="./2D.png">
+    <name>2D Coordinates</name>
+    <shortDescription>Generates 2D coordinates for CDK cells</shortDescription>
+    <fullDescription>
+        <intro>
+        	Generates 2D coordinates and attaches them to the input CDK cells, 
+        	enabling them to be displayed in a 2D viewer.
+            <br />
+            <i>
+                This node can process the input table in parallel. However, by default the usage of threads is disabled
+                in the CDK plugin, because the CDK code may not be thread-safe in all places. If you want to enable
+                multi-threading, change the setting in the KNIME preferences.
+            </i>            
+        </intro>
+    </fullDescription>
+    <ports>
+        <inPort index="0" name="CDK Molecule input">Table containing molecular structure (CDK)
+        </inPort>
+        <outPort index="0" name="Input with 2D coordinates">Same as input but with 2D coordinates
+        </outPort>
+    </ports>
+</knimeNode>
+
+
