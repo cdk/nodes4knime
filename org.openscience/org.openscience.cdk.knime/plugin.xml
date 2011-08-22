@@ -7,67 +7,79 @@
             category-path="/community/cdk/io"
             expert-flag="false"
             factory-class="org.openscience.cdk.knime.convert.cdk2molecule.CDK2MoleculeNodeFactory"
-            id="org.knime.ext.chem.cdk.convert.cdk2molecule.CDK2MoleculeNodeFactory">
+            id="org.openscience.cdk.knime.convert.cdk2molecule.CDK2MoleculeNodeFactory">
       </node>
       <node
             category-path="/community/cdk/io"
             expert-flag="false"
             factory-class="org.openscience.cdk.knime.convert.molecule2cdk.Molecule2CDKNodeFactory"
-            id="org.knime.ext.chem.cdk.convert.molecule2cdk.Molecule2CDKNodeFactory">
+            id="org.openscience.cdk.knime.convert.molecule2cdk.Molecule2CDKNodeFactory">
       </node>
       <node
             category-path="/community/cdk"
             expert-flag="false"
             factory-class="org.openscience.cdk.knime.connectivity.ConnectivityNodeFactory"
-            id="org.knime.ext.chem.cdk.connectivity.ConnectivityNodeFactory">
+            id="org.openscience.cdk.knime.connectivity.ConnectivityNodeFactory">
       </node>
       <node
             category-path="/community/cdk"
             expert-flag="false"
             factory-class="org.openscience.cdk.knime.coord2d.Coord2DNodeFactory"
-            id="org.knime.ext.chem.cdk.coord2d.Coord2DNodeFactory">
+            id="org.openscience.cdk.knime.coord2d.Coord2DNodeFactory">
       </node>
       <node
             category-path="/community/cdk"
             expert-flag="false"
             factory-class="org.openscience.cdk.knime.fingerprints.FingerprintNodeFactory"
-            id="org.knime.ext.chem.cdk.fingerprints.FingerprintNodeFactory">
+            id="org.openscience.cdk.knime.fingerprints.FingerprintNodeFactory">
       </node>
       <node
             category-path="/community/cdk"
             expert-flag="false"
             factory-class="org.openscience.cdk.knime.lipinski.LipinskiNodeFactory"
-            id="org.knime.ext.chem.cdk.lipinski.LipinskiNodeFactory">
+            id="org.openscience.cdk.knime.lipinski.LipinskiNodeFactory">
       </node>
       <node
             category-path="/community/cdk"
             expert-flag="false"
             factory-class="org.openscience.cdk.knime.molprops.MolPropsNodeFactory"
-            id="org.knime.ext.chem.cdk.molprops.MolPropsNodeFactory">
+            id="org.openscience.cdk.knime.molprops.MolPropsNodeFactory">
       </node>
       <node
             category-path="/community/cdk"
             expert-flag="false"
             factory-class="org.openscience.cdk.knime.hydrogen.HydrogenAdderNodeFactory"
-            id="org.knime.ext.chem.cdk.hydrogen.HydrogenAdderNodeFactory">
+            id="org.openscience.cdk.knime.hydrogen.HydrogenAdderNodeFactory">
       </node>
       <node
             category-path="/community/cdk"
             expert-flag="false"
             factory-class="org.openscience.cdk.knime.view3d.JmolViewerNodeFactory"
-            id="org.knime.ext.chem.cdk.view3d.JmolViewerNodeFactory">
+            id="org.openscience.cdk.knime.view3d.JmolViewerNodeFactory">
       </node>
       <node
             category-path="/community/cdk"
             expert-flag="false"
             factory-class="org.openscience.cdk.knime.xlogp.XLogPNodeFactory"
-            id="org.knime.ext.chem.cdk.xlogp.XLogPNodeFactory">
+            id="org.openscience.cdk.knime.xlogp.XLogPNodeFactory">
       </node>
       <node
             category-path="/community/cdk"
             expert-flag="false"
             factory-class="org.openscience.cdk.knime.sketcher.SketcherNodeFactory"
-            id="org.knime.ext.chem.cdk.sketcher.SketcherNodeFactory">
+            id="org.openscience.cdk.knime.sketcher.SketcherNodeFactory">
+      </node>
+      <node
+            category-path="/community/cdk"
+            expert-flag="false"
+            factory-class="org.chemspider.knime.ChemSpiderNodeFactory"
+            id="org.chemspider.knime.ChemSpiderNodeFactory">
+      </node>
+      <node
+            category-path="/community/cdk"
+            expert-flag="false"
+            factory-class="org.openscience.cdk.knime.sssearch.SSSearchNodeFactory"
+            id="org.openscience.cdk.knime.sssearch.SSSearchNodeFactory">
       </node>
    </extension>
    <extension

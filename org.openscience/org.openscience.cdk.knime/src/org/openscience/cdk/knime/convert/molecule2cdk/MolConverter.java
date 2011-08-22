@@ -75,7 +75,6 @@ import org.openscience.cdk.Molecule;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.geometry.GeometryTools;
 import org.openscience.cdk.graph.ConnectivityChecker;
-import org.openscience.cdk.interfaces.IChemObject;
 import org.openscience.cdk.interfaces.IMolecule;
 import org.openscience.cdk.interfaces.IMoleculeSet;
 import org.openscience.cdk.io.CMLReader;
@@ -132,7 +131,7 @@ class MolConverter implements ExtendedCellFactory {
             String mol = ((MolValue)cell).getMolValue();
 
             MDLReader reader = new MDLReader(new StringReader(mol));
-            return (IMolecule) reader.read((IChemObject) new Molecule());
+            return (IMolecule) reader.read(new Molecule());
         }
     }
 
@@ -159,7 +158,7 @@ class MolConverter implements ExtendedCellFactory {
 
             CMLReader reader =
                     new CMLReader(new ByteArrayInputStream(cml.getBytes()));
-            return (IMolecule) reader.read((IChemObject) new Molecule());
+            return (IMolecule) reader.read(new Molecule());
         }
     }
 
