@@ -103,7 +103,7 @@ class MolConverter extends SingleCellFactory {
 
         	// removes configuration and valence annotation
         	IAtomContainer molClone = (IAtomContainer) mol.clone();
-        	AtomContainerManipulator.clearAtomConfigurations(molClone);
+//        	AtomContainerManipulator.clearAtomConfigurations(molClone);
 
             StringWriter out = new StringWriter(1024);
             MDLV2000Writer writer = new MDLV2000Writer(out);

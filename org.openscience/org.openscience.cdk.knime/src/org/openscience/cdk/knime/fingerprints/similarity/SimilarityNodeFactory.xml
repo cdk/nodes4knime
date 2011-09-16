@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./fingerprint.png" type="Other">
+	<name>Fingerprint Similarity</name>
+
+	<shortDescription>
+		Calculates the Tanimoto similarity coefficient for
+		two fingerprints 
+    </shortDescription>
+
+	<fullDescription>
+		<intro>
+			Creates a new column containing the minimum, maximum or average
+			Tanimoto similarity coefficient for the molecules. The computations
+			are based on the
+			<a href="http://cdk.sf.net">CDK</a>
+			toolkit.
+		</intro>
+
+		<option name="Column with fingerprint">Select the column containing the molecular
+			fingerprint</option>
+		<option name="Combo box with aggregation options">Select the aggregation method for the calculation
+		</option>
+	</fullDescription>
+
+	<ports>
+		<inPort index="0" name="Fingerprint input">Table containing molecular fingerprints
+		</inPort>
+		<inPort index="1" name="Reference input">Table containing reference fingerprints
+		</inPort>
+		<outPort index="0" name="Input with Tanimoto coefficient">As input table plus Tanimoto
+			coefficient column
+		</outPort>
+	</ports>
+</knimeNode>

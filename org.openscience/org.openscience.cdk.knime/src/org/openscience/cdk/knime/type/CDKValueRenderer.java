@@ -58,7 +58,9 @@ import java.util.Arrays;
 import org.knime.core.data.renderer.AbstractPainterDataValueRenderer;
 import org.knime.core.node.NodeLogger;
 import org.openscience.cdk.geometry.GeometryTools;
+import org.openscience.cdk.graph.ConnectivityChecker;
 import org.openscience.cdk.interfaces.IAtomContainer;
+import org.openscience.cdk.interfaces.IMoleculeSet;
 import org.openscience.jchempaint.renderer.AtomContainerRenderer;
 import org.openscience.jchempaint.renderer.RendererModel;
 import org.openscience.jchempaint.renderer.font.AWTFontManager;
@@ -178,7 +180,7 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 			g.drawString("?", 2, 14);
 			return;
 		}
-		if (GeometryTools.has2DCoordinatesNew(m_mol) == 0) {
+		if (GeometryTools.has2DCoordinatesNew(m_mol) < 2) {
 			g.setFont(NO_2D_FONT);
 			g.drawString("No 2D coordinates", 2, 14);
 			return;
@@ -218,6 +220,7 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 			Dimension aPrefferedSize = new Dimension(width, height);
 			IAtomContainer cont = m_mol;
 //			if (!ConnectivityChecker.isConnected(m_mol)) {
+//				LOGGER.warn("Molecule not connected, largest fragment used instead.");
 //				IMoleculeSet fragments = ConnectivityChecker.partitionIntoMolecules(m_mol);
 //				int biggest = 0;
 //				for (int i = 1; i < fragments.getAtomContainerCount(); i++) {
@@ -227,7 +230,8 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 //					}
 //				}
 //				cont = fragments.getAtomContainer(biggest);
-				// TODO render rest too
+//				
+//				// TODO render rest too
 //			}
 			GeometryTools.translateAllPositive(cont);
 			GeometryTools.scaleMolecule(cont, aPrefferedSize, 0.8f);

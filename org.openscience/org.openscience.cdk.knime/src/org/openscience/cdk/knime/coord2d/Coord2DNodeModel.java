@@ -50,6 +50,7 @@ package org.openscience.cdk.knime.coord2d;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -72,9 +73,12 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.util.Pointer;
+import org.openscience.cdk.AtomContainer;
 import org.openscience.cdk.geometry.GeometryTools;
+import org.openscience.cdk.graph.ConnectivityChecker;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IMolecule;
+import org.openscience.cdk.interfaces.IMoleculeSet;
 import org.openscience.cdk.knime.convert.TimeoutThreadPool;
 import org.openscience.cdk.knime.type.CDKCell;
 import org.openscience.cdk.knime.type.CDKValue;
@@ -286,10 +290,25 @@ public class Coord2DNodeModel extends ThreadedColAppenderNodeModel {
                             @Override
                             public void run() {
                                 try {
-                                    IMolecule cp = (IMolecule)m.clone();
-                                    new StructureDiagramGenerator(cp)
-                                            .generateCoordinates();
-                                    pClone.set(cp);
+                                	// bug: SDG works for connected molecules only
+                                	// quick fix: superimpose
+                                	if (!ConnectivityChecker.isConnected(m)) {
+                                		setWarningMessage(row.getKey() + ": Molecule is not connected");
+                                		IMoleculeSet mSet = ConnectivityChecker.partitionIntoMolecules(m);
+                                		Iterator<IAtomContainer> it = mSet.molecules().iterator();
+                                		IAtomContainer col = new AtomContainer();
+                                		while (it.hasNext()) {
+                                			IMolecule fm = (IMolecule) it.next();
+                                			new StructureDiagramGenerator(fm).generateCoordinates();
+                                			col.add(fm);
+                                			pClone.set((IMolecule) col);
+                                		}
+                                	} else {
+	                                    IMolecule cp = (IMolecule)m.clone();
+	                                    new StructureDiagramGenerator(cp)
+	                                            .generateCoordinates();
+	                                    pClone.set(cp);
+                                	}
                                 } catch (ThreadDeath d) {
                                     LOGGER.debug("2D coord generation"
                                             + " timed out for row \""
