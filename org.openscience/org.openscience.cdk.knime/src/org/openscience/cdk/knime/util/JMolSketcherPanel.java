@@ -50,13 +50,16 @@
  */
 package org.openscience.cdk.knime.util;
 
+import java.awt.geom.Rectangle2D;
 import java.io.StringWriter;
 import java.util.ArrayList;
 
+import javax.vecmath.Point2d;
 import javax.vecmath.Vector2d;
 
 import org.openscience.cdk.DefaultChemObjectBuilder;
 import org.openscience.cdk.MoleculeSet;
+import org.openscience.cdk.geometry.GeometryTools;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IChemModel;
 import org.openscience.cdk.interfaces.IMolecule;
@@ -87,9 +90,8 @@ public class JMolSketcherPanel extends JChemPaintPanel {
     			newInstance(IMoleculeSet.class));
     	chemModel.getMoleculeSet().addAtomContainer(
     			chemModel.getBuilder().newInstance(IMolecule.class));
-    	
         setShowMenuBar(false);
-        setIsNewChemModel(true);        
+        setIsNewChemModel(true); 
     }
 
     /**
@@ -101,6 +103,8 @@ public class JMolSketcherPanel extends JChemPaintPanel {
     public void loadStructures(final String... smiles) throws Exception {
         IChemModel chemModel = getChemModel();
         IMoleculeSet moleculeSet = new MoleculeSet();
+        Rectangle2D molRectangle = null;
+        Rectangle2D tmpRectangle = null;
         if (smiles != null && smiles.length > 0) {
             for (int i = 0; i < smiles.length; i++) {
                 SmilesParser parser =
@@ -113,6 +117,17 @@ public class JMolSketcherPanel extends JChemPaintPanel {
                 sdg.setMolecule(m);
                 sdg.generateCoordinates(new Vector2d(0, 1));
                 m = sdg.getMolecule();
+                // arrange molecules relative to each other
+                if (molRectangle == null) {
+                	molRectangle = GeometryTools.getRectangle2D(m);
+                } else {
+                	tmpRectangle = GeometryTools.getRectangle2D(m);
+                	double xShift = molRectangle.getCenterX() + 
+                		(molRectangle.getWidth() / 1.95) + (tmpRectangle.getWidth() / 1.95);
+                	double yShift = tmpRectangle.getCenterY();
+                	GeometryTools.translate2DCenterTo(m, new Point2d(new double[] { xShift, yShift }));
+                	molRectangle = tmpRectangle;
+                }
                 moleculeSet.addAtomContainer(m);
                 // if there are no atoms in the actual chemModel
                 // all 2D-coordinates would be set to NaN
@@ -127,8 +142,6 @@ public class JMolSketcherPanel extends JChemPaintPanel {
                 chemModel.setMoleculeSet(moleculeSet);
             }
         }
-        // this.fire
-        // jchemPaintModel.fireChange(chemModel);
     }
 
     /**

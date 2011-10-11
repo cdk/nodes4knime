@@ -78,17 +78,23 @@ public class CDKPreferencePage extends FieldEditorPreferencePage implements
     protected void createFieldEditors() {
         Composite parent = getFieldEditorParent();
 
-        BooleanFieldEditor showImplicitHydrogens =
-            new BooleanFieldEditor(
-                    CDKPreferenceInitializer.PREF_SHOW_IMPLICIT_HYDROGENS,
-                    "Show implicit hydrogens in structure diagrams", parent);
-        addField(showImplicitHydrogens);
+//        BooleanFieldEditor showImplicitHydrogens =
+//            new BooleanFieldEditor(
+//                    CDKPreferenceInitializer.PREF_SHOW_IMPLICIT_HYDROGENS,
+//                    "Show implicit hydrogens in structure diagrams", parent);
+//        addField(showImplicitHydrogens);
 
         BooleanFieldEditor showExplicitHydrogens =
             new BooleanFieldEditor(
                     CDKPreferenceInitializer.PREF_SHOW_EXPLICIT_HYDROGENS,
                     "Show explicit hydrogens in structure diagrams", parent);
         addField(showExplicitHydrogens);
+        
+        BooleanFieldEditor useMultipleThreads =
+            new BooleanFieldEditor(
+                    CDKPreferenceInitializer.PREF_USE_MULTIPLE_THREADS,
+                    "Use CDK with multiple threads", parent);
+        addField(useMultipleThreads);
     }
 
     /**

@@ -293,7 +293,6 @@ public class Coord2DNodeModel extends ThreadedColAppenderNodeModel {
                                 	// bug: SDG works for connected molecules only
                                 	// quick fix: superimpose
                                 	if (!ConnectivityChecker.isConnected(m)) {
-                                		setWarningMessage(row.getKey() + ": Molecule is not connected");
                                 		IMoleculeSet mSet = ConnectivityChecker.partitionIntoMolecules(m);
                                 		Iterator<IAtomContainer> it = mSet.molecules().iterator();
                                 		IAtomContainer col = new AtomContainer();

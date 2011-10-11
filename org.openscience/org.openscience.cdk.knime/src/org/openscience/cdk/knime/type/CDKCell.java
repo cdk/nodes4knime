@@ -447,5 +447,4 @@ public final class CDKCell extends BlobDataCell implements CDKValue,
             }
         }
     }
-
 }

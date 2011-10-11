@@ -113,12 +113,15 @@ final class MolPropsGenerator implements CellFactory {
             throw new IllegalArgumentException("No CDK cell at "
                     + m_smilesColIndex + ": " + sCell.getClass().getName());
         }
-        IAtomContainer mol = ((CDKValue)sCell).getAtomContainer();
+        IAtomContainer mol = null;
         try {
+        	mol = (IAtomContainer) ((CDKValue)sCell).getAtomContainer().clone();
             CDKHueckelAromaticityDetector.detectAromaticity(mol);
         } catch (CDKException ce) {
             LOGGER.debug("Unable to carry out ring detection on molecule in "
                     + "row " + "\"" + row.getKey() + "\"", ce);
+        } catch (CloneNotSupportedException ce) {
+        	LOGGER.debug("Unable to clone molecule in row \"" + row.getKey() + "\"", ce);
         }
 
 

@@ -257,6 +257,9 @@ public class MolPropsNodeModel extends NodeModel {
         for (int i = 0; i < propsClassNames.length; i++) {
             String s = propsClassNames[i];
             DataColumnSpec colSpec = MolPropsLibrary.getColumnSpec(s);
+            if (s.endsWith("BondCountDescriptor")) {
+            	setWarningMessage("Bond Count descriptor does not count hydrogen bonds by default.");
+            }
             if (spec.containsName(colSpec.getName())) {
                 int uniquifier = 1;
                 String name;

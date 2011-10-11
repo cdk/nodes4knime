@@ -57,12 +57,16 @@ import org.eclipse.jface.preference.IPreferenceStore;
  */
 public class CDKPreferenceInitializer extends AbstractPreferenceInitializer {
     /** Preference key for the "show implicit hydrogens" setting. */
-    public static final String PREF_SHOW_IMPLICIT_HYDROGENS =
-            "knime.cdk.implicitHydrogens";
+//    public static final String PREF_SHOW_IMPLICIT_HYDROGENS =
+//            "knime.cdk.implicitHydrogens";
 
     /** Preference key for the "show explicit hydrogens" setting. */
     public static final String PREF_SHOW_EXPLICIT_HYDROGENS =
             "knime.cdk.explicitHydrogens";
+    
+    /** Preference key for the "use multiple threads" setting. */
+    public static final String PREF_USE_MULTIPLE_THREADS =
+    		"knime.cdk.multipleThreads";
 
     /**
      * {@inheritDoc}
@@ -74,7 +78,8 @@ public class CDKPreferenceInitializer extends AbstractPreferenceInitializer {
                 CDKNodePlugin.getDefault().getPreferenceStore();
 
         // set default values
-        store.setDefault(PREF_SHOW_IMPLICIT_HYDROGENS, false);
+//        store.setDefault(PREF_SHOW_IMPLICIT_HYDROGENS, false);
         store.setDefault(PREF_SHOW_EXPLICIT_HYDROGENS, false);
+        store.setDefault(PREF_USE_MULTIPLE_THREADS, false);
     }
 }

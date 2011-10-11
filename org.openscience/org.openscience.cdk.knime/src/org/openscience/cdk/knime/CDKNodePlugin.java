@@ -48,7 +48,7 @@
 package org.openscience.cdk.knime;
 
 import static org.openscience.cdk.knime.CDKPreferenceInitializer.PREF_SHOW_EXPLICIT_HYDROGENS;
-import static org.openscience.cdk.knime.CDKPreferenceInitializer.PREF_SHOW_IMPLICIT_HYDROGENS;
+import static org.openscience.cdk.knime.CDKPreferenceInitializer.PREF_USE_MULTIPLE_THREADS;
 
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.util.IPropertyChangeListener;
@@ -70,9 +70,11 @@ public class CDKNodePlugin extends AbstractUIPlugin {
     // The shared instance.
     private static CDKNodePlugin plugin;
 
-    private static boolean showImplicitHydrogens = false;
+//    private static boolean showImplicitHydrogens = false;
 
     private static boolean showExplicitHydrogens = false;
+    
+    private static boolean useMultipleThreads = false;
 
     /**
      * The constructor.
@@ -107,21 +109,26 @@ public class CDKNodePlugin extends AbstractUIPlugin {
         pStore.addPropertyChangeListener(new IPropertyChangeListener() {
             @Override
             public void propertyChange(final PropertyChangeEvent event) {
+//                if (event.getProperty().equals(
+//                        PREF_SHOW_IMPLICIT_HYDROGENS)) {
+//                    showImplicitHydrogens =
+//                            pStore.getBoolean(PREF_SHOW_IMPLICIT_HYDROGENS);
                 if (event.getProperty().equals(
-                        PREF_SHOW_IMPLICIT_HYDROGENS)) {
-                    showImplicitHydrogens =
-                            pStore.getBoolean(PREF_SHOW_IMPLICIT_HYDROGENS);
-                } else if (event.getProperty().equals(
                         PREF_SHOW_EXPLICIT_HYDROGENS)) {
                     showExplicitHydrogens =
                             pStore.getBoolean(PREF_SHOW_EXPLICIT_HYDROGENS);
+                } else if (event.getProperty().equals(
+                		PREF_USE_MULTIPLE_THREADS)) {
+                	useMultipleThreads =
+                			pStore.getBoolean(PREF_USE_MULTIPLE_THREADS);
                 }
 
             }
         });
 
-        showImplicitHydrogens = pStore.getBoolean(PREF_SHOW_IMPLICIT_HYDROGENS);
+//        showImplicitHydrogens = pStore.getBoolean(PREF_SHOW_IMPLICIT_HYDROGENS);
         showExplicitHydrogens = pStore.getBoolean(PREF_SHOW_EXPLICIT_HYDROGENS);
+        useMultipleThreads = pStore.getBoolean(PREF_USE_MULTIPLE_THREADS);
     }
 
     /**
@@ -145,15 +152,15 @@ public class CDKNodePlugin extends AbstractUIPlugin {
         return plugin;
     }
 
-    /**
-     * Returns if implicit hydrogens should be displayed in structure diagrams.
-     *
-     * @return <code>true</code> if the should be displayed,
-     *         <code>false</code> otherwise
-     */
-    public static boolean showImplicitHydrogens() {
-        return showImplicitHydrogens;
-    }
+//    /**
+//     * Returns if implicit hydrogens should be displayed in structure diagrams.
+//     *
+//     * @return <code>true</code> if the should be displayed,
+//     *         <code>false</code> otherwise
+//     */
+//    public static boolean showImplicitHydrogens() {
+//        return showImplicitHydrogens;
+//    }
 
     /**
      * Returns if explicit hydrogens should be displayed in structure diagrams.
@@ -163,5 +170,15 @@ public class CDKNodePlugin extends AbstractUIPlugin {
      */
     public static boolean showExplicitHydrogens() {
         return showExplicitHydrogens;
+    }
+    
+    /**
+     * Returns if multiple threads should be used.
+     *
+     * @return <code>true</code> if multiple threads should be used
+     *         <code>false</code> otherwise
+     */
+    public static boolean useMultipleThreads() {
+        return useMultipleThreads;
     }
 }

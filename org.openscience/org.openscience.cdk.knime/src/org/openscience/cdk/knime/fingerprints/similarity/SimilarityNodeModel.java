@@ -68,18 +68,7 @@ public class SimilarityNodeModel extends NodeModel {
 		final int fingerprintColIndex = spec.findColumnIndex(s);
 		final int fingerprintRefColIndex = specRef.findColumnIndex(sr);
 		
-		String newColName = m_settings.aggregationMethod() + " aggregation for " + s;
-		newColName = DataTableSpec.getUniqueColumnName(spec, newColName);		
-		
-		DataColumnSpec[] colOutSpec = new DataColumnSpec[spec.getNumColumns() + 2];
-    	int i;
-    	for (i = 0; i < spec.getNumColumns(); i++) {
-    		colOutSpec[i] = spec.getColumnSpec(i);
-		}
-    	colOutSpec[i] = new DataColumnSpecCreator(newColName, DoubleCell.TYPE).createSpec();
-    	colOutSpec[i+1] = new DataColumnSpecCreator("Reference", StringCell.TYPE).createSpec();
-    	
-    	DataTableSpec newSpec = new DataTableSpec(colOutSpec);
+		DataTableSpec newSpec = getTableSpec(spec);
     	BufferedDataContainer container = exec.createDataContainer(newSpec);
 		
     	// create fingerprint reference map: fingerprint -> rowKeys[]
@@ -91,6 +80,10 @@ public class SimilarityNodeModel extends NodeModel {
     	}
     	
     	for (DataRow row : inData[1]) {
+    		if (row.getCell(fingerprintRefColIndex).isMissing()) {
+    			setWarningMessage("Missing value in reference at row " + row.getKey().getString());
+    			continue;
+    		}
     		String bitString = ((BitVectorValue) row.getCell(fingerprintRefColIndex)).toBinaryString();
     		BitSet bs = new BitSet(bitSetSize);
     		StringBuilder sb = new StringBuilder();
@@ -112,6 +105,10 @@ public class SimilarityNodeModel extends NodeModel {
     	for (DataRow row : inData[0]) {
 
 			DataCell cell = row.getCell(fingerprintColIndex);
+			if (row.getCell(fingerprintColIndex).isMissing()) {
+    			setWarningMessage("Missing value in sample at row " + row.getKey().getString() + " - row skipped");
+    			continue;
+    		}
 			String bitString = ((BitVectorValue) cell).toBinaryString();
 			StringBuilder sb = new StringBuilder();
     		sb.append(bitString);
@@ -173,6 +170,22 @@ public class SimilarityNodeModel extends NodeModel {
     	container.close();
 		return new BufferedDataTable[] { container.getTable() };
 	}
+	
+	private DataTableSpec getTableSpec(DataTableSpec spec) {
+		DataColumnSpec[] colOutSpec = new DataColumnSpec[spec.getNumColumns() + 2];
+    	int i;
+    	for (i = 0; i < spec.getNumColumns(); i++) {
+    		colOutSpec[i] = spec.getColumnSpec(i);
+		}
+    	
+    	String newColName = m_settings.aggregationMethod() + " aggregation";
+		newColName = DataTableSpec.getUniqueColumnName(spec, newColName);		
+    	
+    	colOutSpec[i] = new DataColumnSpecCreator(newColName, DoubleCell.TYPE).createSpec();
+    	colOutSpec[i+1] = new DataColumnSpecCreator("Reference", StringCell.TYPE).createSpec();
+    	
+    	return new DataTableSpec(colOutSpec);
+	}
 
 	/**
 	 * {@inheritDoc}
@@ -214,8 +227,8 @@ public class SimilarityNodeModel extends NodeModel {
 				throw new InvalidSettingsException("No reference DenseBitVector compatible column in input table");
 			}
 		}
-		// XXX
-		return new DataTableSpec[] { null };
+		// create new table spec
+		return new DataTableSpec[] { getTableSpec(inSpecs[0]) };
 	}
 
 	/**

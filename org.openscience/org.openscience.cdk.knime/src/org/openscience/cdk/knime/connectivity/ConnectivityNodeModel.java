@@ -179,8 +179,14 @@ public class ConnectivityNodeModel extends NodeModel {
                 continue;
             }
 
-            IAtomContainer mol =
-                    ((CDKValue)row.getCell(molColIndex)).getAtomContainer();
+            IAtomContainer mol = null;
+            try {
+                mol = (IAtomContainer)
+                        ((CDKValue)row.getCell(molColIndex))
+                                .getAtomContainer().clone();
+            } catch (CloneNotSupportedException exception) {
+            	setWarningMessage("Clone not supported.");
+            }
 
             if (ConnectivityChecker.isConnected(mol)) {
                 cont.addRowToTable(row);
@@ -206,9 +212,14 @@ public class ConnectivityNodeModel extends NodeModel {
                             return DataType.getMissingCell();
                         }
 
-                        IAtomContainer mol =
-                                ((CDKValue)row.getCell(molColIndex))
-                                        .getAtomContainer();
+                        IAtomContainer mol = null;
+                        try {
+	                        mol = (IAtomContainer)
+	                                ((CDKValue)row.getCell(molColIndex))
+	                                        .getAtomContainer().clone();
+                        } catch (CloneNotSupportedException exception) {
+                        	setWarningMessage("Clone not supported.");
+                        }
 
                         if (!ConnectivityChecker.isConnected(mol)) {
                             IMoleculeSet molSet =

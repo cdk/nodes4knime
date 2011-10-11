@@ -53,14 +53,19 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.awt.geom.Rectangle2D;
 import java.util.Arrays;
+
+import javax.vecmath.Point2d;
 
 import org.knime.core.data.renderer.AbstractPainterDataValueRenderer;
 import org.knime.core.node.NodeLogger;
+import org.openscience.cdk.AtomContainer;
 import org.openscience.cdk.geometry.GeometryTools;
 import org.openscience.cdk.graph.ConnectivityChecker;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IMoleculeSet;
+import org.openscience.cdk.knime.CDKNodePlugin;
 import org.openscience.jchempaint.renderer.AtomContainerRenderer;
 import org.openscience.jchempaint.renderer.RendererModel;
 import org.openscience.jchempaint.renderer.font.AWTFontManager;
@@ -83,6 +88,7 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 			.getLogger(CDKValueRenderer.class);
 
 	private static final AtomContainerRenderer RENDERER;
+	private static final boolean EXPLICITHYDROGENS;
 	private static final double SCALE = 0.9;
 
 	static {
@@ -114,15 +120,15 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 
 			RendererModel renderer2dModel = renderer.getRenderer2DModel();
 			renderer2dModel.setUseAntiAliasing(true);
-			renderer2dModel.setShowExplicitHydrogens(true);
+			renderer2dModel.setShowExplicitHydrogens(CDKNodePlugin.showExplicitHydrogens());
 			renderer2dModel.setShowAtomAtomMapping(false);
 			renderer2dModel.setShowAtomTypeNames(false);
-
+			
 		} catch (Exception e) {
 			LOGGER.error("Error during renderer initialization!", e);
 		}
 		RENDERER = renderer;
-
+		EXPLICITHYDROGENS = CDKNodePlugin.showExplicitHydrogens();
 	}
 
 	private IAtomContainer m_mol;
@@ -216,31 +222,32 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 			width = (int) (width * SCALE);
 			height = (int) (height * SCALE);
 		}
-//		try {
-			Dimension aPrefferedSize = new Dimension(width, height);
-			IAtomContainer cont = m_mol;
-//			if (!ConnectivityChecker.isConnected(m_mol)) {
-//				LOGGER.warn("Molecule not connected, largest fragment used instead.");
-//				IMoleculeSet fragments = ConnectivityChecker.partitionIntoMolecules(m_mol);
-//				int biggest = 0;
-//				for (int i = 1; i < fragments.getAtomContainerCount(); i++) {
-//					if (fragments.getAtomContainer(i).getAtomCount() >
-//						fragments.getAtomContainer(biggest).getAtomCount()) {
-//						biggest = i;
-//					}
-//				}
-//				cont = fragments.getAtomContainer(biggest);
-//				
-//				// TODO render rest too
-//			}
-			GeometryTools.translateAllPositive(cont);
-			GeometryTools.scaleMolecule(cont, aPrefferedSize, 0.8f);
-			GeometryTools.center(cont, aPrefferedSize);
-			RENDERER.paintMolecule(cont, new AWTDrawVisitor(g2),
-					new Rectangle(x, y, width, height), true);
-//		} catch (Exception e) {
-//			LOGGER.warn("Error rendering molecule!", e);
-//		}
+		IAtomContainer cont = new AtomContainer();
+		Dimension aPrefferedSize = new Dimension(width, height);
+		// if not connected, draw every compound in succession next to each other
+		if (!ConnectivityChecker.isConnected(m_mol)) {
+			IMoleculeSet molSet = ConnectivityChecker.partitionIntoMolecules(m_mol);
+			Rectangle2D molRec = GeometryTools.getRectangle2D(molSet.getMolecule(0));
+			cont.add(molSet.getMolecule(0));
+			for (int i = 1; i < molSet.getMoleculeCount(); i++) {
+				IAtomContainer curMol = molSet.getMolecule(i);
+				Rectangle2D molRecCur = GeometryTools.getRectangle2D(curMol);
+				double xShift = molRec.getCenterX() + (molRec.getWidth() / 2) + (molRecCur.getWidth() / 2); 
+				double yShift = molRecCur.getCenterY();
+				GeometryTools.translate2DCenterTo(curMol, new Point2d(new double[] {xShift, yShift}));
+				
+				molRec = molRecCur;
+				cont.add(curMol);
+			}
+		} else {
+			cont = m_mol;
+		}
+
+		GeometryTools.translateAllPositive(cont);
+		GeometryTools.scaleMolecule(cont, aPrefferedSize, 0.8f);
+		GeometryTools.center(cont, aPrefferedSize);
+		RENDERER.paintMolecule(cont, new AWTDrawVisitor(g2),
+				new Rectangle(x, y, width, height), true);
 	}
 
 	/**
