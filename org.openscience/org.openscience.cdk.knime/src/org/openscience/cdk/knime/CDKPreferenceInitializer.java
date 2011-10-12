@@ -65,8 +65,8 @@ public class CDKPreferenceInitializer extends AbstractPreferenceInitializer {
             "knime.cdk.explicitHydrogens";
     
     /** Preference key for the "use multiple threads" setting. */
-    public static final String PREF_USE_MULTIPLE_THREADS =
-    		"knime.cdk.multipleThreads";
+//    public static final String PREF_USE_MULTIPLE_THREADS =
+//    		"knime.cdk.multipleThreads";
 
     /**
      * {@inheritDoc}
@@ -80,6 +80,6 @@ public class CDKPreferenceInitializer extends AbstractPreferenceInitializer {
         // set default values
 //        store.setDefault(PREF_SHOW_IMPLICIT_HYDROGENS, false);
         store.setDefault(PREF_SHOW_EXPLICIT_HYDROGENS, false);
-        store.setDefault(PREF_USE_MULTIPLE_THREADS, false);
+//        store.setDefault(PREF_USE_MULTIPLE_THREADS, false);
     }
 }

@@ -90,11 +90,11 @@ public class CDKPreferencePage extends FieldEditorPreferencePage implements
                     "Show explicit hydrogens in structure diagrams", parent);
         addField(showExplicitHydrogens);
         
-        BooleanFieldEditor useMultipleThreads =
-            new BooleanFieldEditor(
-                    CDKPreferenceInitializer.PREF_USE_MULTIPLE_THREADS,
-                    "Use CDK with multiple threads", parent);
-        addField(useMultipleThreads);
+//        BooleanFieldEditor useMultipleThreads =
+//            new BooleanFieldEditor(
+//                    CDKPreferenceInitializer.PREF_USE_MULTIPLE_THREADS,
+//                    "Use CDK with multiple threads", parent);
+//        addField(useMultipleThreads);
     }
 
     /**

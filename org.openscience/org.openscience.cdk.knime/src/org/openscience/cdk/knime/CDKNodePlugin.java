@@ -48,7 +48,6 @@
 package org.openscience.cdk.knime;
 
 import static org.openscience.cdk.knime.CDKPreferenceInitializer.PREF_SHOW_EXPLICIT_HYDROGENS;
-import static org.openscience.cdk.knime.CDKPreferenceInitializer.PREF_USE_MULTIPLE_THREADS;
 
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.util.IPropertyChangeListener;
@@ -74,7 +73,7 @@ public class CDKNodePlugin extends AbstractUIPlugin {
 
     private static boolean showExplicitHydrogens = false;
     
-    private static boolean useMultipleThreads = false;
+//    private static boolean useMultipleThreads = false;
 
     /**
      * The constructor.
@@ -117,18 +116,19 @@ public class CDKNodePlugin extends AbstractUIPlugin {
                         PREF_SHOW_EXPLICIT_HYDROGENS)) {
                     showExplicitHydrogens =
                             pStore.getBoolean(PREF_SHOW_EXPLICIT_HYDROGENS);
-                } else if (event.getProperty().equals(
-                		PREF_USE_MULTIPLE_THREADS)) {
-                	useMultipleThreads =
-                			pStore.getBoolean(PREF_USE_MULTIPLE_THREADS);
-                }
+                } 
+//                else if (event.getProperty().equals(
+//                		PREF_USE_MULTIPLE_THREADS)) {
+//                	useMultipleThreads =
+//                			pStore.getBoolean(PREF_USE_MULTIPLE_THREADS);
+//                }
 
             }
         });
 
 //        showImplicitHydrogens = pStore.getBoolean(PREF_SHOW_IMPLICIT_HYDROGENS);
         showExplicitHydrogens = pStore.getBoolean(PREF_SHOW_EXPLICIT_HYDROGENS);
-        useMultipleThreads = pStore.getBoolean(PREF_USE_MULTIPLE_THREADS);
+//        useMultipleThreads = pStore.getBoolean(PREF_USE_MULTIPLE_THREADS);
     }
 
     /**
@@ -178,7 +178,7 @@ public class CDKNodePlugin extends AbstractUIPlugin {
      * @return <code>true</code> if multiple threads should be used
      *         <code>false</code> otherwise
      */
-    public static boolean useMultipleThreads() {
-        return useMultipleThreads;
-    }
+//    public static boolean useMultipleThreads() {
+//        return useMultipleThreads;
+//    }
 }

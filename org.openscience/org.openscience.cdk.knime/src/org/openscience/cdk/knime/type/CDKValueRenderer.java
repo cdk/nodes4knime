@@ -76,72 +76,45 @@ import org.openscience.jchempaint.renderer.visitor.AWTDrawVisitor;
 /**
  * Renderer for {@link CDKValue}s. It will use CDK classes to render a 2D
  * structure of a molecule.
- *
+ * 
  * @author Bernd Wiswedel, University of Konstanz
  * @author Andreas Truszkowski, EMBL-EBI
+ * @author Stephan Beisken, EMBL-EBI
  * @author Mark Reijnberg, EMBL-EBI
  * @author Christoph Steinbeck, EMBL-EBI
  */
 public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 
-	private static final NodeLogger LOGGER = NodeLogger
-			.getLogger(CDKValueRenderer.class);
+	private static final NodeLogger LOGGER = NodeLogger.getLogger(CDKValueRenderer.class);
 
 	private static final AtomContainerRenderer RENDERER;
-	private static final boolean EXPLICITHYDROGENS;
 	private static final double SCALE = 0.9;
 
 	static {
 		AtomContainerRenderer renderer = null;
 		try {
-//			List<IGenerator<IAtomContainer>> generators =
-//				new ArrayList<IGenerator<IAtomContainer>>();
-//			generators.add(new BasicSceneGenerator());
-//			generators.add(new BasicBondGenerator());
-//			generators.add(new BasicAtomGenerator());
-//	        generators.add(new RingGenerator());
-//	        generators.add(new LonePairGenerator());
-//	        generators.add(new RadicalGenerator());
-//	        generators.add(new ExtendedAtomGenerator());
-//	        generators.add(new AtomNumberGenerator());
-//	        generators.add(new ExternalHighlightAtomGenerator());
-//	        generators.add(new ExternalHighlightBondGenerator());
-//	        generators.add(new HighlightAtomGenerator());
-//	        generators.add(new HighlightBondGenerator());
-//	        generators.add(new SelectAtomGenerator());
-//	        generators.add(new SelectBondGenerator());
-//	        generators.add(new MergeAtomsGenerator());
-//	        generators.add(new PhantomBondGenerator());
-//	        generators.add(new BasicSceneGenerator());
-
-			renderer = new AtomContainerRenderer(Arrays.asList(
-	        		new BasicBondGenerator(), new BasicAtomGenerator()),
-	        		new AWTFontManager(), true);
+			renderer = new AtomContainerRenderer(Arrays.asList(new BasicBondGenerator(), new BasicAtomGenerator()),
+					new AWTFontManager(), true);
 
 			RendererModel renderer2dModel = renderer.getRenderer2DModel();
 			renderer2dModel.setUseAntiAliasing(true);
-			renderer2dModel.setShowExplicitHydrogens(CDKNodePlugin.showExplicitHydrogens());
 			renderer2dModel.setShowAtomAtomMapping(false);
 			renderer2dModel.setShowAtomTypeNames(false);
-			
+
 		} catch (Exception e) {
 			LOGGER.error("Error during renderer initialization!", e);
 		}
 		RENDERER = renderer;
-		EXPLICITHYDROGENS = CDKNodePlugin.showExplicitHydrogens();
 	}
 
 	private IAtomContainer m_mol;
 
-	private static final Font NO_2D_FONT = new Font(Font.SANS_SERIF,
-			Font.ITALIC, 12);
-
+	private static final Font NO_2D_FONT = new Font(Font.SANS_SERIF, Font.ITALIC, 12);
 
 	/**
 	 * Sets a new object to be rendered.
-	 *
-	 * @param con
-	 *            the new molecule to be rendered (<code>null</code> is ok)
+	 * 
+	 * @param con the new molecule to be rendered (<code>null</code> is ok)
 	 */
 	protected void setAtomContainer(final IAtomContainer con) {
 		m_mol = con;
@@ -149,7 +122,7 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 
 	/**
 	 * Get the currently set molecule for rendering (may be <code>null</code>).
-	 *
+	 * 
 	 * @return the current molecule
 	 */
 	protected IAtomContainer getAtomContainer() {
@@ -158,12 +131,11 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 
 	/**
 	 * Sets the string object for the cell being rendered.
-	 *
-	 * @param value
-	 *            the string value for this cell; if value is <code>null</code>
-	 *            it sets the text value to an empty string
+	 * 
+	 * @param value the string value for this cell; if value is
+	 *            <code>null</code> it sets the text value to an empty string
 	 * @see javax.swing.JLabel#setText
-	 *
+	 * 
 	 */
 	@Override
 	protected void setValue(final Object value) {
@@ -181,6 +153,8 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 	@Override
 	protected void paintComponent(final Graphics g) {
 		super.paintComponent(g);
+		// global switch
+		RENDERER.getRenderer2DModel().setShowExplicitHydrogens(CDKNodePlugin.showExplicitHydrogens());
 		if (m_mol == null) {
 			g.setFont(NO_2D_FONT);
 			g.drawString("?", 2, 14);
@@ -196,25 +170,7 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 		int width = getWidth();
 		int height = getHeight();
 
-		// not needed with updated JChemPaint version
-//		GraphicsEnvironment genv = GraphicsEnvironment.getLocalGraphicsEnvironment();
-//		GraphicsConfiguration gc =
-//			genv.getDefaultScreenDevice().getDefaultConfiguration();
-//		BufferedImage image = gc.createCompatibleImage(width, height);
-//		Graphics2D g2 = (Graphics2D) image.getGraphics().create();
-//		g2.setColor(Color.WHITE);
-//		g2.fillRect(0, 0, width, height);
-//		if (m_image != null) {
-//			try {
-//				m_image = drawMolecule(m_mol, getWidth(), getHeight(), 0.9);
-//				((Graphics2D)g).drawImage(m_image, 0, 0, null);
-//			} catch (Exception e) {
-//				m_mol = null;
-//			}
-//		}
-//		g2.dispose();
-
-		Graphics2D g2 = (Graphics2D)g;
+		Graphics2D g2 = (Graphics2D) g;
 
 		if (SCALE < 1.0) {
 			x = (int) ((width * (1.0 - SCALE)) / 2);
@@ -224,7 +180,8 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 		}
 		IAtomContainer cont = new AtomContainer();
 		Dimension aPrefferedSize = new Dimension(width, height);
-		// if not connected, draw every compound in succession next to each other
+		// if not connected, draw every compound in succession next to each
+		// other
 		if (!ConnectivityChecker.isConnected(m_mol)) {
 			IMoleculeSet molSet = ConnectivityChecker.partitionIntoMolecules(m_mol);
 			Rectangle2D molRec = GeometryTools.getRectangle2D(molSet.getMolecule(0));
@@ -232,10 +189,10 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 			for (int i = 1; i < molSet.getMoleculeCount(); i++) {
 				IAtomContainer curMol = molSet.getMolecule(i);
 				Rectangle2D molRecCur = GeometryTools.getRectangle2D(curMol);
-				double xShift = molRec.getCenterX() + (molRec.getWidth() / 2) + (molRecCur.getWidth() / 2); 
+				double xShift = molRec.getCenterX() + (molRec.getWidth() / 2) + (molRecCur.getWidth() / 2);
 				double yShift = molRecCur.getCenterY();
-				GeometryTools.translate2DCenterTo(curMol, new Point2d(new double[] {xShift, yShift}));
-				
+				GeometryTools.translate2DCenterTo(curMol, new Point2d(new double[] { xShift, yShift }));
+
 				molRec = molRecCur;
 				cont.add(curMol);
 			}
@@ -246,8 +203,7 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 		GeometryTools.translateAllPositive(cont);
 		GeometryTools.scaleMolecule(cont, aPrefferedSize, 0.8f);
 		GeometryTools.center(cont, aPrefferedSize);
-		RENDERER.paintMolecule(cont, new AWTDrawVisitor(g2),
-				new Rectangle(x, y, width, height), true);
+		RENDERER.paintMolecule(cont, new AWTDrawVisitor(g2), new Rectangle(x, y, width, height), true);
 	}
 
 	/**

@@ -55,118 +55,112 @@ import org.knime.core.node.NodeSettingsWO;
  * This class holds all settings for the hydrogen adder node.
  * 
  * @author Thorsten Meinl, University of Konstanz
+ * @author Stephan Beisken, EMBL-EBI
  */
 public class HydrogenAdderSettings {
-    private String m_molColumnName;
+	
+	public enum Conversion { ToExplicit, ToImplicit };
+	
+	private String m_molColumnName;
+	private boolean m_replaceColumn = true;
+	private String m_appendColumnName;
+	private Conversion conversion = Conversion.ToExplicit;
 
-    private boolean m_replaceColumn = true;
-    private String m_appendColumnName;
+	/**
+	 * Returns the conversion modus.
+	 * 
+	 * @return the conversion modus
+	 */
+	public Conversion getConversion() {
+		return conversion;
+	}
+	
+	/**
+	 * Sets the conversion modus.
+	 * 
+	 * @param the conversion modus
+	 */
+	public void setConversion(final Conversion modus) {
+		conversion = modus;
+	}
 
-    private boolean m_explicitHydrogens = true;
+	/**
+	 * Returns the name of the column containing the molecules.
+	 * 
+	 * @return the molecules' column name
+	 */
+	public String molColumnName() {
+		return m_molColumnName;
+	}
 
-    /**
-     * Returns if explicit hydrogens are added to the molecules or only
-     * implicit ones.
-     * 
-     * @return <code>true</code> if explicit hydrogens should be added,
-     *         <code>false</code> if only implicit ones should be added
-     */
-    public boolean explicitHydrogens() {
-        return m_explicitHydrogens;
-    }
+	/**
+	 * Sets the name of the column containing the molecules.
+	 * 
+	 * @param colName the molecules' column name
+	 */
+	public void molColumnName(final String colName) {
+		m_molColumnName = colName;
+	}
 
-    /**
-     * Sets if explicit hydrogens are added to the molecules or only implicit
-     * ones.
-     * 
-     * @param explicit <code>true</code> if explicit hydrogens should be
-     *            added, <code>false</code> if only implicit ones should be
-     *            added
-     */
-    public void explicitHydrogens(final boolean explicit) {
-        m_explicitHydrogens = explicit;
-    }
+	/**
+	 * Returns if the molecule column should be replaced or if a new column
+	 * should be appended.
+	 * 
+	 * @return <code>true</code> if the column should be replaced,
+	 *         <code>false</code> if a new column should be appended
+	 */
+	public boolean replaceColumn() {
+		return m_replaceColumn;
+	}
 
-    /**
-     * Returns the name of the column containing the molecules.
-     * 
-     * @return the molecules' column name
-     */
-    public String molColumnName() {
-        return m_molColumnName;
-    }
+	/**
+	 * Sets if the molecule column should be replaced or if a new column should
+	 * be appended.
+	 * 
+	 * @param replace <code>true</code> if the column should be replaced,
+	 *            <code>false</code> if a new column should be appended
+	 */
+	public void replaceColumn(final boolean replace) {
+		m_replaceColumn = replace;
+	}
 
-    /**
-     * Sets the name of the column containing the molecules.
-     * 
-     * @param colName the molecules' column name
-     */
-    public void molColumnName(final String colName) {
-        m_molColumnName = colName;
-    }
+	/**
+	 * @return the appendColumnName
+	 */
+	public String appendColumnName() {
+		return m_appendColumnName;
+	}
 
-    /**
-     * Returns if the molecule column should be replaced or if a new column
-     * should be appended.
-     * 
-     * @return <code>true</code> if the column should be replaced,
-     *         <code>false</code> if a new column should be appended
-     */
-    public boolean replaceColumn() {
-        return m_replaceColumn;
-    }
+	/**
+	 * @param appendColumnName the appendColumnName to set
+	 */
+	public void appendColumnName(final String appendColumnName) {
+		m_appendColumnName = appendColumnName;
+	}
 
-    /**
-     * Sets if the molecule column should be replaced or if a new column should
-     * be appended.
-     * 
-     * @param replace <code>true</code> if the column should be replaced,
-     *            <code>false</code> if a new column should be appended
-     */
-    public void replaceColumn(final boolean replace) {
-        m_replaceColumn = replace;
-    }
+	/**
+	 * Saves the settings into the given node settings object.
+	 * 
+	 * @param settings a node settings object
+	 */
+	public void saveSettings(final NodeSettingsWO settings) {
+		settings.addString("molColumn", m_molColumnName);
+		settings.addBoolean("replaceColumn", m_replaceColumn);
+		settings.addString("appendColName", appendColumnName());
+		settings.addString("conversion", conversion.toString());
+	}
 
-    /**
-     * @return the appendColumnName
-     */
-    public String appendColumnName() {
-        return m_appendColumnName;
-    }
-
-    /**
-     * @param appendColumnName the appendColumnName to set
-     */
-    public void appendColumnName(final String appendColumnName) {
-        m_appendColumnName = appendColumnName;
-    }
-
-    /**
-     * Saves the settings into the given node settings object.
-     * 
-     * @param settings a node settings object
-     */
-    public void saveSettings(final NodeSettingsWO settings) {
-        settings.addString("molColumn", m_molColumnName);
-        settings.addBoolean("replaceColumn", m_replaceColumn);
-        settings.addBoolean("explicitHydrogens", m_explicitHydrogens);
-        settings.addString("appendColName", appendColumnName());
-    }
-
-    /**
-     * Loads the settings from the given node settings object.
-     * 
-     * @param settings a node settings object
-     * @throws InvalidSettingsException if not all required settings are
-     *             available
-     */
-    public void loadSettings(final NodeSettingsRO settings)
-            throws InvalidSettingsException {
-        m_molColumnName = settings.getString("molColumn");
-        m_replaceColumn = settings.getBoolean("replaceColumn");
-        // this setting was not available in 1.2.0
-        m_appendColumnName = settings.getString("appendColName", 
-            m_molColumnName + " (H)");
-        m_explicitHydrogens = settings.getBoolean("explicitHydrogens");
-    }
+	/**
+	 * Loads the settings from the given node settings object.
+	 * 
+	 * @param settings a node settings object
+	 * @throws InvalidSettingsException if not all required settings are
+	 *             available
+	 */
+	public void loadSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
+		m_molColumnName = settings.getString("molColumn");
+		m_replaceColumn = settings.getBoolean("replaceColumn");
+		m_appendColumnName = settings.getString("appendColName", m_molColumnName + " (H)");
+		conversion = Conversion.valueOf(settings.getString("conversion"));
+	}
 }

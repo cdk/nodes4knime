@@ -70,6 +70,7 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettings;
 import org.openscience.cdk.ChemFile;
 import org.openscience.cdk.Molecule;
+import org.openscience.cdk.aromaticity.CDKHueckelAromaticityDetector;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.geometry.GeometryTools;
 import org.openscience.cdk.interfaces.IAtom;
@@ -90,361 +91,344 @@ import org.xmlcml.cml.element.CMLAtomType;
 
 /**
  * Smiles {@link DataCell} holding a string as internal representation.
- *
+ * 
  * @author Bernd Wiswedel, University of Konstanz
  */
-public final class CDKCell extends BlobDataCell implements CDKValue,
-        StringValue {
-    static {
-        CMLWriter writer = new CMLWriter();
-        writer.registerCustomizer(new ICMLCustomizer() {
-            @Override
-            public void customize(final IAtom atom, final Object nodeToAdd)
-                    throws Exception {
-                if (atom.getAtomTypeName() != null) {
-                    if (nodeToAdd instanceof Element) {
-                        Element element = (Element)nodeToAdd;
-                        CMLAtomType atomType = new CMLAtomType();
-                        atomType.setConvention("bioclipse:atomType");
-                        atomType.appendChild(atom.getAtomTypeName());
-                        element.appendChild(atomType);
-                    }
-                }
-            }
+public final class CDKCell extends BlobDataCell implements CDKValue, StringValue {
+	static {
+		CMLWriter writer = new CMLWriter();
+		writer.registerCustomizer(new ICMLCustomizer() {
+			@Override
+			public void customize(final IAtom atom, final Object nodeToAdd) throws Exception {
+				if (atom.getAtomTypeName() != null) {
+					if (nodeToAdd instanceof Element) {
+						Element element = (Element) nodeToAdd;
+						CMLAtomType atomType = new CMLAtomType();
+						atomType.setConvention("bioclipse:atomType");
+						atomType.appendChild(atom.getAtomTypeName());
+						element.appendChild(atomType);
+					}
+				}
+			}
 
-            // don't customize the rest
-            @Override
-            public void customize(final IBond bond, final Object nodeToAdd)
-                    throws Exception {
-            }
+			// don't customize the rest
+			@Override
+			public void customize(final IBond bond, final Object nodeToAdd) throws Exception {
+			}
 
-            @Override
-            public void customize(final IAtomContainer molecule,
-                    final Object nodeToAdd) throws Exception {
-            }
-        });
-    }
+			@Override
+			public void customize(final IAtomContainer molecule, final Object nodeToAdd) throws Exception {
+			}
+		});
+	}
 
-    /**
-     * Convenience access member for <code>DataType.getType(CDKCell)</code>.
-     *
-     * @see DataType#getType(Class)
-     */
-    public static final DataType TYPE = DataType.getType(CDKCell.class);
+	/**
+	 * Convenience access member for <code>DataType.getType(CDKCell)</code>.
+	 * 
+	 * @see DataType#getType(Class)
+	 */
+	public static final DataType TYPE = DataType.getType(CDKCell.class);
 
-    /**
-     * Returns the preferred value class of this cell implementation. This
-     * method is called per reflection to determine which is the preferred
-     * renderer, comparator, etc.
-     *
-     * @return StringValue.class
-     */
-    public static final Class<? extends DataValue> getPreferredValueClass() {
-        return CDKValue.class;
-    }
+	/**
+	 * Returns the preferred value class of this cell implementation. This
+	 * method is called per reflection to determine which is the preferred
+	 * renderer, comparator, etc.
+	 * 
+	 * @return StringValue.class
+	 */
+	public static final Class<? extends DataValue> getPreferredValueClass() {
+		return CDKValue.class;
+	}
 
-    private static final NodeLogger LOGGER = NodeLogger
-            .getLogger(CDKCell.class);
+	private static final NodeLogger LOGGER = NodeLogger.getLogger(CDKCell.class);
 
-    /**
-     * Name of the data column spec property that indicates if the molecules in
-     * the column have 2D coordinates.
-     */
-    public static final String COORD2D_AVAILABLE = "2D coordinates available";
+	/**
+	 * Name of the data column spec property that indicates if the molecules in
+	 * the column have 2D coordinates.
+	 */
+	public static final String COORD2D_AVAILABLE = "2D coordinates available";
 
-    /**
-     * Name of the data column spec property that indicates if the molecules in
-     * the column have 3D coordinates.
-     */
-    public static final String COORD3D_AVAILABLE = "3D coordinates available";
+	/**
+	 * Name of the data column spec property that indicates if the molecules in
+	 * the column have 3D coordinates.
+	 */
+	public static final String COORD3D_AVAILABLE = "3D coordinates available";
 
-    /** Static instance of the serializer that uses CML as transfer format. */
-    private static final DataCellSerializer<CDKCell> SERIALIZER =
-            new CDKSerializer();
+	/** Static instance of the serializer that uses CML as transfer format. */
+	private static final DataCellSerializer<CDKCell> SERIALIZER = new CDKSerializer();
 
-    /**
-     * Returns the factory to read/write DataCells of this class from/to a
-     * DataInput/DataOutput. This method is called via reflection.
-     *
-     * @return A serializer for reading/writing cells of this kind.
-     * @see DataCell
-     */
-    public static final DataCellSerializer<CDKCell> getCellSerializer_XXX() {
-    	// remove "_XXX" from method name to activate
-    	// note that atom types are not recovered after deserialization
-        return SERIALIZER;
-    }
+	/**
+	 * Returns the factory to read/write DataCells of this class from/to a
+	 * DataInput/DataOutput. This method is called via reflection.
+	 * 
+	 * @return A serializer for reading/writing cells of this kind.
+	 * @see DataCell
+	 */
+	public static final DataCellSerializer<CDKCell> getCellSerializer_XXX() {
+		// remove "_XXX" from method name to activate
+		// note that atom types are not recovered after deserialization
+		return SERIALIZER;
+	}
 
-    /**
-     * The visual representation for this Smiles cell.
-     */
-    private IAtomContainer m_cdkMol;
+	/**
+	 * The visual representation for this Smiles cell.
+	 */
+	private IAtomContainer m_cdkMol;
 
-    /**
-     * Factory method to be used for creation. It will parse the smiles string
-     * and if that is successful it will create a new instance of smiles cell,
-     * otherwise it will return a SmilesType.SMILES_TYP.getMissing() instance.
-     *
-     * @param smiles the smiles string to parse
-     * @return a new CDKCell if possible, otherwise a missing cell
-     */
-    public static final DataCell newInstance(final String smiles) {
-        IMolecule cdkMol = createMol(smiles);
-        if (cdkMol == null) {
-            LOGGER.debug("Assigning missing cell for " + smiles);
-            return DataType.getMissingCell();
-        }
-        try {
-            // HueckelAromaticityDetector.detectAromaticity(cdkMol, false);
-            new StructureDiagramGenerator(cdkMol).generateCoordinates();
-            assert (GeometryTools.has2DCoordinates(cdkMol));
-        } catch (Exception e) {
-            LOGGER.warn("Unable to generate 2D coordinates for" + " molecule: "
-                    + smiles, e);
-        }
-        return new CDKCell(cdkMol);
+	/**
+	 * Factory method to be used for creation. It will parse the smiles string
+	 * and if that is successful it will create a new instance of smiles cell,
+	 * otherwise it will return a SmilesType.SMILES_TYP.getMissing() instance.
+	 * 
+	 * @param smiles the smiles string to parse
+	 * @return a new CDKCell if possible, otherwise a missing cell
+	 */
+	public static final DataCell newInstance(final String smiles) {
+		IAtomContainer cdkMol = createMol(smiles);
+		if (cdkMol == null) {
+			LOGGER.debug("Assigning missing cell for " + smiles);
+			return DataType.getMissingCell();
+		}
+		try {
+			CDKHueckelAromaticityDetector.detectAromaticity(cdkMol);
+			StructureDiagramGenerator sdg = new StructureDiagramGenerator();
+			sdg.setMolecule((IMolecule) cdkMol);
+			sdg.generateCoordinates();
+			cdkMol = sdg.getMolecule();
+			assert (GeometryTools.has2DCoordinates(cdkMol));
+		} catch (Exception e) {
+			LOGGER.warn("Unable to generate 2D coordinates for" + " molecule: " + smiles, e);
+		}
+		return new CDKCell(cdkMol);
 
-    }
+	}
 
-    /**
-     * Creates new CDK cell.
-     *
-     * @param atomContainer the CDK atom container
-     */
-    public CDKCell(final IAtomContainer atomContainer) {
+	/**
+	 * Creates new CDK cell.
+	 * 
+	 * @param atomContainer the CDK atom container
+	 */
+	public CDKCell(final IAtomContainer atomContainer) {
 
-        m_cdkMol = atomContainer;
-    }
+		m_cdkMol = atomContainer;
+	}
 
-    /**
-     * Returns the internal string value.
-     *
-     * @return The string value.
-     */
-    @Override
-    public String getStringValue() {
-        StringWriter stringWriter = new StringWriter(8192);
-        CMLWriter writer = new CMLWriter(stringWriter);
+	/**
+	 * Returns the internal string value.
+	 * 
+	 * @return The string value.
+	 */
+	@Override
+	public String getStringValue() {
+		StringWriter stringWriter = new StringWriter(8192);
+		CMLWriter writer = new CMLWriter(stringWriter);
 
-        try {
-            writer.write(m_cdkMol);
-            return stringWriter.toString();
-        } catch (CDKException ex) {
-            LOGGER.error("Error while creating CML string", ex);
-            return "Error while creating CML string";
-        }
-    }
+		try {
+			writer.write(m_cdkMol);
+			return stringWriter.toString();
+		} catch (CDKException ex) {
+			LOGGER.error("Error while creating CML string", ex);
+			return "Error while creating CML string";
+		}
+	}
 
-    /**
-     * {@inheritDoc}
-     *
-     * @deprecated use {@link #getAtomContainer()} instead
-     */
-    @Deprecated
-    @Override
-    public IMolecule getMolecule() {
-        return new Molecule(m_cdkMol);
-    }
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * @deprecated use {@link #getAtomContainer()} instead
+	 */
+	@Deprecated
+	@Override
+	public IMolecule getMolecule() {
+		return new Molecule(m_cdkMol);
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public IAtomContainer getAtomContainer() {
-        return m_cdkMol;
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public IAtomContainer getAtomContainer() {
+		return m_cdkMol;
+	}
 
-    /**
-     * Used to store this cell into the config.
-     */
-    private static final String KEY = "smiles";
+	/**
+	 * Used to store this cell into the config.
+	 */
+	private static final String KEY = "smiles";
 
-    /**
-     * Stores only the smiles' String into the node settings.
-     *
-     * @param config to write the String value into
-     *
-     * @see #load
-     */
-    public void save(final NodeSettings config) {
-        config.addString(KEY, getStringValue());
-    }
+	/**
+	 * Stores only the smiles' String into the node settings.
+	 * 
+	 * @param config to write the String value into
+	 * 
+	 * @see #load
+	 */
+	public void save(final NodeSettings config) {
+		config.addString(KEY, getStringValue());
+	}
 
-    /**
-     * Returns a new CDKCell with the String value retrieved from the node
-     * settings.
-     *
-     * @param config to read the smiles's String value from
-     * @return a new CDKCell or <code>null</code>
-     * @throws InvalidSettingsException if the key is not available in the node
-     *             settings
-     * @throws NullPointerException if the smiles string is <code>null</code>
-     * @see #save
-     */
-    public static DataCell load(final NodeSettings config)
-            throws InvalidSettingsException {
-        String smiles = config.getString(KEY);
-        if (smiles != null) {
-            return CDKCell.newInstance(smiles);
-        }
-        return DataType.getMissingCell();
-    }
+	/**
+	 * Returns a new CDKCell with the String value retrieved from the node
+	 * settings.
+	 * 
+	 * @param config to read the smiles's String value from
+	 * @return a new CDKCell or <code>null</code>
+	 * @throws InvalidSettingsException if the key is not available in the node
+	 *             settings
+	 * @throws NullPointerException if the smiles string is <code>null</code>
+	 * @see #save
+	 */
+	public static DataCell load(final NodeSettings config) throws InvalidSettingsException {
+		String smiles = config.getString(KEY);
+		if (smiles != null) {
+			return CDKCell.newInstance(smiles);
+		}
+		return DataType.getMissingCell();
+	}
 
-    private void writeObject(final ObjectOutputStream out) throws IOException {
-        out.defaultWriteObject();
-    }
+	private void writeObject(final ObjectOutputStream out) throws IOException {
+		out.defaultWriteObject();
+	}
 
-    private void readObject(final ObjectInputStream in) throws IOException,
-            ClassNotFoundException {
-        in.defaultReadObject();
-        // assert (m_cdkMol == null);
-        // m_cdkMol = createMol(m_smiles);
-    }
+	private void readObject(final ObjectInputStream in) throws IOException, ClassNotFoundException {
+		in.defaultReadObject();
+		// assert (m_cdkMol == null);
+		// m_cdkMol = createMol(m_smiles);
+	}
 
-    /**
-     * Factory method to create a {@link IMolecule} from a Smiles string.
-     *
-     * @param smiles Smiles representation to convert
-     * @return a CDK Molecule for the Smiles string or <code>null</code> if the
-     *         Smiles can't be parsed or is <code>null</code>
-     */
-    public static final IMolecule createMol(final String smiles) {
-        if (smiles == null) {
-            return null;
-        }
-        LOGGER.debug("Creating molecule for \"" + smiles + "\"... ");
-        SmilesParser parser =
-                new SmilesParser(NoNotificationChemObjectBuilder.getInstance());
-        IMolecule cdkMol = null;
-        try {
-            long time = System.currentTimeMillis();
-            cdkMol = parser.parseSmiles(smiles);
-            long delay = System.currentTimeMillis() - time;
-            LOGGER.debug("Successful (" + delay + "ms).");
-        } catch (Exception e) {
-            LOGGER.debug("Failed", e);
-            LOGGER.warn("Molecule could not be generated from \"" + smiles
-                    + "\": " + e.getMessage(), e);
-        }
+	/**
+	 * Factory method to create a {@link IMolecule} from a Smiles string.
+	 * 
+	 * @param smiles Smiles representation to convert
+	 * @return a CDK Molecule for the Smiles string or <code>null</code> if the
+	 *         Smiles can't be parsed or is <code>null</code>
+	 */
+	public static final IMolecule createMol(final String smiles) {
+		if (smiles == null) {
+			return null;
+		}
+		LOGGER.debug("Creating molecule for \"" + smiles + "\"... ");
+		SmilesParser parser = new SmilesParser(NoNotificationChemObjectBuilder.getInstance());
+		IMolecule cdkMol = null;
+		try {
+			long time = System.currentTimeMillis();
+			cdkMol = parser.parseSmiles(smiles);
+			long delay = System.currentTimeMillis() - time;
+			LOGGER.debug("Successful (" + delay + "ms).");
+		} catch (Exception e) {
+			LOGGER.debug("Failed", e);
+			LOGGER.warn("Molecule could not be generated from \"" + smiles + "\": " + e.getMessage(), e);
+		}
 
-        // JOEMol class not found in lib, cdk smiles parser used
-        // JOEMol mol = new JOEMol(IOTypeHolder.instance().getIOType("SMILES"),
-        // IOTypeHolder.instance().getIOType("SDF"));
-        // try {
-        // if (!JOESmilesParser.smiToMol(mol, smiles, "Name:" + smiles)) {
-        // LOGGER.warn("Molecule could not be generated from \""
-        // + smiles + "\".");
-        // }
-        // } catch (Exception e) {
-        // LOGGER.warn("Molecule could not be generated from \""
-        // + smiles + "\"", e);
-        // }
-        // Molecule cdkMol = Convertor.convert(mol);
-        return cdkMol;
-    }
+		// JOEMol class not found in lib, cdk smiles parser used
+		// JOEMol mol = new JOEMol(IOTypeHolder.instance().getIOType("SMILES"),
+		// IOTypeHolder.instance().getIOType("SDF"));
+		// try {
+		// if (!JOESmilesParser.smiToMol(mol, smiles, "Name:" + smiles)) {
+		// LOGGER.warn("Molecule could not be generated from \""
+		// + smiles + "\".");
+		// }
+		// } catch (Exception e) {
+		// LOGGER.warn("Molecule could not be generated from \""
+		// + smiles + "\"", e);
+		// }
+		// Molecule cdkMol = Convertor.convert(mol);
+		return cdkMol;
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected boolean equalsDataCell(final DataCell dc) {
-        return this.getStringValue().equals(((CDKCell)dc).getStringValue());
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected boolean equalsDataCell(final DataCell dc) {
+		return this.getStringValue().equals(((CDKCell) dc).getStringValue());
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public int hashCode() {
-        return m_cdkMol.hashCode();
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public int hashCode() {
+		return m_cdkMol.hashCode();
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String toString() {
-        return getStringValue();
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public String toString() {
+		return getStringValue();
+	}
 
-    /** Factory for (de-)serializing a DoubleCell. */
-    private static class CDKSerializer implements DataCellSerializer<CDKCell> {
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public void serialize(final CDKCell cell, final DataCellDataOutput out)
-                throws IOException {
-            byte[] data = cell.getStringValue().getBytes();
-            out.writeInt(data.length);
-            out.write(data);
-        }
+	/** Factory for (de-)serializing a DoubleCell. */
+	private static class CDKSerializer implements DataCellSerializer<CDKCell> {
+		/**
+		 * {@inheritDoc}
+		 */
+		@Override
+		public void serialize(final CDKCell cell, final DataCellDataOutput out) throws IOException {
+			byte[] data = cell.getStringValue().getBytes();
+			out.writeInt(data.length);
+			out.write(data);
+		}
 
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public CDKCell deserialize(final DataCellDataInput input)
-                throws IOException {
-            int size = input.readInt();
-            byte[] cml = new byte[size];
-            input.readFully(cml);
+		/**
+		 * {@inheritDoc}
+		 */
+		@Override
+		public CDKCell deserialize(final DataCellDataInput input) throws IOException {
+			int size = input.readInt();
+			byte[] cml = new byte[size];
+			input.readFully(cml);
 
-            try {
-                CMLReader reader = new CMLReader(new ByteArrayInputStream(cml));
+			try {
+				CMLReader reader = new CMLReader(new ByteArrayInputStream(cml));
 
-                reader.registerConvention("bioclipse:atomType",
-                        new CMLCoreModule((IChemFile)null) {
-                            List<String> atomTypes = new ArrayList<String>();
+				reader.registerConvention("bioclipse:atomType", new CMLCoreModule((IChemFile) null) {
+					List<String> atomTypes = new ArrayList<String>();
 
-                            @Override
-                            protected void newAtomData() {
-                                super.newAtomData();
-                                atomTypes = new ArrayList<String>();
-                            }
+					@Override
+					protected void newAtomData() {
+						super.newAtomData();
+						atomTypes = new ArrayList<String>();
+					}
 
-                            @Override
-                            protected void storeAtomData() {
-                                super.storeAtomData();
+					@Override
+					protected void storeAtomData() {
+						super.storeAtomData();
 
-                                boolean hasAtomType = false;
-                                if (atomTypes.size() == atomCounter) {
-                                    hasAtomType = true;
-                                } else {
-                                    logger.debug(
-                                            "No atom types: " + elid.size(),
-                                            " != " + atomCounter);
-                                }
-                                if (hasAtomType) {
-                                    for (int i = 0; i < atomCounter; i++) {
-                                        currentAtom =
-                                                currentMolecule.getAtom(i);
-                                        currentAtom.setAtomTypeName(atomTypes
-                                                .get(i));
-                                    }
-                                }
-                            }
+						boolean hasAtomType = false;
+						if (atomTypes.size() == atomCounter) {
+							hasAtomType = true;
+						} else {
+							logger.debug("No atom types: " + elid.size(), " != " + atomCounter);
+						}
+						if (hasAtomType) {
+							for (int i = 0; i < atomCounter; i++) {
+								currentAtom = currentMolecule.getAtom(i);
+								currentAtom.setAtomTypeName(atomTypes.get(i));
+							}
+						}
+					}
 
-                            @Override
-                            public void endElement(final CMLStack xpath, final String uri,
-                                    final String name, final String raw) {
-                                if (xpath.endsWith("atom", "atomType")) {
-                                    while ((atomTypes.size() + 1) < atomCounter) {
-                                        atomTypes.add(null);
-                                    }
-                                    atomTypes.add(currentChars);
-                                } else {
-                                    super.endElement(xpath, uri, name, raw);
-                                }
-                            }
-                        });
-                IChemFile chemFile = (ChemFile) reader.read(new ChemFile());
-                return new CDKCell(ChemFileManipulator.getAllAtomContainers(
-                        chemFile).get(0));
-            } catch (CDKException ex) {
-                LOGGER.error("Error while deserializing CDK cell via CML", ex);
-                throw new IOException(ex.getMessage());
-            }
-        }
-    }
+					@Override
+					public void endElement(final CMLStack xpath, final String uri, final String name, final String raw) {
+						if (xpath.endsWith("atom", "atomType")) {
+							while ((atomTypes.size() + 1) < atomCounter) {
+								atomTypes.add(null);
+							}
+							atomTypes.add(currentChars);
+						} else {
+							super.endElement(xpath, uri, name, raw);
+						}
+					}
+				});
+				IChemFile chemFile = (ChemFile) reader.read(new ChemFile());
+				return new CDKCell(ChemFileManipulator.getAllAtomContainers(chemFile).get(0));
+			} catch (CDKException ex) {
+				LOGGER.error("Error while deserializing CDK cell via CML", ex);
+				throw new IOException(ex.getMessage());
+			}
+		}
+	}
 }

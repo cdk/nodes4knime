@@ -61,83 +61,75 @@ import org.openscience.cdk.interfaces.IMolecule;
 
 /**
  * DataValue for a Molecule.
- *
+ * 
  * @author Bernd Wiswedel, University of Konstanz
  */
 public interface CDKValue extends DataValue {
 
-    /**
-     * Meta information to this value type.
-     *
-     * @see DataValue#UTILITY
-     */
-    public static final UtilityFactory UTILITY = new CDKUtilityFactory();
+	/**
+	 * Meta information to this value type.
+	 * 
+	 * @see DataValue#UTILITY
+	 */
+	public static final UtilityFactory UTILITY = new CDKUtilityFactory();
 
-    /**
-     * Get the CDK molecule to the smiles.
-     *
-     * @return the corresponding molecule
-     * @deprecated use {@link #getAtomContainer()} instead
-     */
-    @Deprecated
-    IMolecule getMolecule();
+	/**
+	 * Get the CDK molecule to the smiles.
+	 * 
+	 * @return the corresponding molecule
+	 * @deprecated use {@link #getAtomContainer()} instead
+	 */
+	@Deprecated
+	IMolecule getMolecule();
 
+	/**
+	 * Get the CDK atom container.
+	 * 
+	 * @return the corresponding atom container
+	 */
+	IAtomContainer getAtomContainer();
 
-    /**
-     * Get the CDK atom container.
-     *
-     * @return the corresponding atom container
-     */
-    IAtomContainer getAtomContainer();
+	/** Implementations of the meta information of this value class. */
+	public static class CDKUtilityFactory extends UtilityFactory {
+		/** Singleton icon to be used to display this cell type. */
+		private static final Icon ICON = loadIcon(CDKValue.class, "/cdk.png");
 
-    /** Implementations of the meta information of this value class. */
-    public static class CDKUtilityFactory extends UtilityFactory {
-        /** Singleton icon to be used to display this cell type. */
-        private static final Icon ICON = loadIcon(CDKValue.class, "/cdk.png");
+		private static final DataValueComparator COMPARATOR = new DataValueComparator() {
+			@Override
+			protected int compareDataValues(final DataValue v1, final DataValue v2) {
+				int atomCount1 = ((CDKValue) v1).getAtomContainer().getAtomCount();
+				int atomCount2 = ((CDKValue) v2).getAtomContainer().getAtomCount();
+				return atomCount1 - atomCount2;
+			}
+		};
 
-        private static final DataValueComparator COMPARATOR =
-                new DataValueComparator() {
-                    @Override
-                    protected int compareDataValues(final DataValue v1,
-                            final DataValue v2) {
-                        int atomCount1 =
-                                ((CDKValue)v1).getAtomContainer().getAtomCount();
-                        int atomCount2 =
-                                ((CDKValue)v2).getAtomContainer().getAtomCount();
-                        return atomCount1 - atomCount2;
-                    }
-                };
+		/** Only subclasses are allowed to instantiate this class. */
+		protected CDKUtilityFactory() {
+		}
 
-        /** Only subclasses are allowed to instantiate this class. */
-        protected CDKUtilityFactory() {
-        }
+		/**
+		 * {@inheritDoc}
+		 */
+		@Override
+		public Icon getIcon() {
+			return ICON;
+		}
 
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public Icon getIcon() {
-            return ICON;
-        }
+		/**
+		 * {@inheritDoc}
+		 */
+		@Override
+		protected DataValueComparator getComparator() {
+			return COMPARATOR;
+		}
 
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        protected DataValueComparator getComparator() {
-            return COMPARATOR;
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        protected DataValueRendererFamily getRendererFamily(
-                final DataColumnSpec spec) {
-             return new DefaultDataValueRendererFamily(new CDKValueRenderer(),
-             new MultiLineStringValueRenderer("String"));
-//            return new DefaultDataValueRendererFamily(
-//                    new MultiLineStringValueRenderer("String"));
-        }
-    }
+		/**
+		 * {@inheritDoc}
+		 */
+		@Override
+		protected DataValueRendererFamily getRendererFamily(final DataColumnSpec spec) {
+			return new DefaultDataValueRendererFamily(new CDKValueRenderer(),
+					new MultiLineStringValueRenderer("String"));
+		}
+	}
 }

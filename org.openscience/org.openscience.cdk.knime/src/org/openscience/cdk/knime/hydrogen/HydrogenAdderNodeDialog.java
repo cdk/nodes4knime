@@ -50,9 +50,11 @@ package org.openscience.cdk.knime.hydrogen;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 
+import javax.swing.ButtonGroup;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.border.Border;
 import javax.swing.event.ChangeEvent;
@@ -65,115 +67,125 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.util.ColumnSelectionComboxBox;
+import org.openscience.cdk.knime.hydrogen.HydrogenAdderSettings.Conversion;
 import org.openscience.cdk.knime.type.CDKValue;
 
 /**
  * This class is the dialog for the hydrogen adder node. It lets the user choose
  * the column containing the molecules and how the hydrogens should be added
  * (implicitly or explicitly).
- *
+ * 
  * @author Thorsten Meinl, University of Konstanz
+ * @author Stephan Beisken, EMBL-EBI
  */
 public class HydrogenAdderNodeDialog extends NodeDialogPane {
-    @SuppressWarnings("unchecked")
-    private final ColumnSelectionComboxBox m_molColumn =
-        new ColumnSelectionComboxBox((Border)null, CDKValue.class);
-    private final JCheckBox m_appendColumnChecker =
-        new JCheckBox("Append Column");
-    private final JTextField m_appendColumnName = new JTextField(8);
-    private final JCheckBox m_explicitHydrogens = new JCheckBox();
+	@SuppressWarnings("unchecked")
+	private final ColumnSelectionComboxBox m_molColumn = new ColumnSelectionComboxBox((Border) null, CDKValue.class);
+	private final JCheckBox m_appendColumnChecker = new JCheckBox("Append Column");
+	private final JTextField m_appendColumnName = new JTextField(8);
+	private final JRadioButton toExplicit = new JRadioButton("Set Hydrogens Explicit");
+	private final JRadioButton toImplicit = new JRadioButton("Set Hydrogens Implicit");
 
-    private final HydrogenAdderSettings m_settings =
-        new HydrogenAdderSettings();
+	private final HydrogenAdderSettings m_settings = new HydrogenAdderSettings();
 
-    /**
-     * Creates a new dialog.
-     */
-    public HydrogenAdderNodeDialog() {
-        JPanel p = new JPanel(new GridBagLayout());
+	/**
+	 * Creates a new dialog.
+	 */
+	public HydrogenAdderNodeDialog() {
+		JPanel p = new JPanel(new GridBagLayout());
 
-        GridBagConstraints c = new GridBagConstraints();
+		GridBagConstraints c = new GridBagConstraints();
 
-        c.gridx = 0;
-        c.gridy = 0;
-        c.anchor = GridBagConstraints.NORTHWEST;
+		c.gridx = 0;
+		c.gridy = 0;
+		c.anchor = GridBagConstraints.NORTHWEST;
 
-        p.add(new JLabel("Column with molecules   "), c);
-        c.gridx++;
-        p.add(m_molColumn, c);
+		p.add(new JLabel("Column with molecules   "), c);
+		c.gridx++;
+		p.add(m_molColumn, c);
 
+		c.gridy++;
+		c.gridx = 0;
+		p.add(new JLabel("Select conversion   "), c);
+		c.gridx = 1;
+		p.add(toExplicit, c);
+		c.gridy++;
+		p.add(toImplicit, c);
+		
+		ButtonGroup bg = new ButtonGroup();
+		bg.add(toExplicit);
+		bg.add(toImplicit);
 
-        c.gridy++;
-        c.gridx = 0;
-        p.add(new JLabel("Add explicit hydrogens   "), c);
-        c.gridx = 1;
-        p.add(m_explicitHydrogens, c);
+		c.gridy++;
+		c.gridx = 0;
+		p.add(m_appendColumnChecker, c);
+		c.gridx = 1;
+		p.add(m_appendColumnName, c);
 
-        c.gridy++;
-        c.gridx = 0;
-        p.add(m_appendColumnChecker, c);
-        c.gridx = 1;
-        p.add(m_appendColumnName, c);
+		m_appendColumnChecker.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(final ChangeEvent e) {
+				if (m_appendColumnChecker.isSelected()) {
+					m_appendColumnName.setEnabled(true);
+					if ("".equals(m_appendColumnName.getText())) {
+						m_appendColumnName.setText(m_molColumn.getSelectedColumn() + " (H)");
+					}
+				} else {
+					m_appendColumnName.setEnabled(false);
+				}
 
-        m_appendColumnChecker.addChangeListener(new ChangeListener() {
-            @Override
-            public void stateChanged(final ChangeEvent e) {
-                if (m_appendColumnChecker.isSelected()) {
-                    m_appendColumnName.setEnabled(true);
-                    if ("".equals(m_appendColumnName.getText())) {
-                        m_appendColumnName.setText(
-                                m_molColumn.getSelectedColumn() + " (H)");
-                    }
-                } else {
-                    m_appendColumnName.setEnabled(false);
-                }
+			}
+		});
+		m_appendColumnName.setEnabled(m_appendColumnChecker.isSelected());
 
-            }
-        });
-        m_appendColumnName.setEnabled(m_appendColumnChecker.isSelected());
+		addTab("Default settings", p);
+	}
 
-        addTab("Default settings", p);
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected void loadSettingsFrom(final NodeSettingsRO settings, final DataTableSpec[] specs)
+			throws NotConfigurableException {
+		try {
+			m_settings.loadSettings(settings);
+		} catch (InvalidSettingsException ex) {
+			// ignore it
+		}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void loadSettingsFrom(final NodeSettingsRO settings,
-            final DataTableSpec[] specs) throws NotConfigurableException {
-        try {
-            m_settings.loadSettings(settings);
-        } catch (InvalidSettingsException ex) {
-            // ignore it
-        }
+		m_molColumn.update(specs[0], m_settings.molColumnName());
+		m_appendColumnChecker.setSelected(!m_settings.replaceColumn());
+		if (m_settings.getConversion().equals(Conversion.ToExplicit)) {
+			toExplicit.setSelected(true);
+		} else if (m_settings.getConversion().equals(Conversion.ToImplicit)) {
+			toImplicit.setSelected(true);
+		}
+		if (m_settings.replaceColumn()) {
+			m_appendColumnChecker.setSelected(false);
+			m_appendColumnName.setText("");
+		} else {
+			m_appendColumnChecker.setSelected(true);
+			String name = m_settings.appendColumnName();
+			if (name != null && name.length() > 0) {
+				// otherwise it will have a meaningful default.
+				m_appendColumnName.setText(name);
+			}
+		}
+	}
 
-        m_molColumn.update(specs[0], m_settings.molColumnName());
-        m_appendColumnChecker.setSelected(!m_settings.replaceColumn());
-        m_explicitHydrogens.setSelected(m_settings.explicitHydrogens());
-        if (m_settings.replaceColumn()) {
-            m_appendColumnChecker.setSelected(false);
-            m_appendColumnName.setText("");
-        } else {
-            m_appendColumnChecker.setSelected(true);
-            String name = m_settings.appendColumnName();
-            if (name != null && name.length() > 0) {
-                // otherwise it will have a meaningful default.
-                m_appendColumnName.setText(name);
-            }
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void saveSettingsTo(final NodeSettingsWO settings)
-            throws InvalidSettingsException {
-        m_settings.molColumnName(m_molColumn.getSelectedColumn());
-        m_settings.replaceColumn(!m_appendColumnChecker.isSelected());
-        m_settings.appendColumnName(m_appendColumnChecker.isSelected()
-                ? m_appendColumnName.getText() : null);
-        m_settings.explicitHydrogens(m_explicitHydrogens.isSelected());
-        m_settings.saveSettings(settings);
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
+		m_settings.molColumnName(m_molColumn.getSelectedColumn());
+		m_settings.replaceColumn(!m_appendColumnChecker.isSelected());
+		if (toExplicit.isSelected()) {
+			m_settings.setConversion(Conversion.ToExplicit);
+		} else if (toImplicit.isSelected()) {
+			m_settings.setConversion(Conversion.ToImplicit);
+		}
+		m_settings.appendColumnName(m_appendColumnChecker.isSelected() ? m_appendColumnName.getText() : null);
+		m_settings.saveSettings(settings);
+	}
 }
