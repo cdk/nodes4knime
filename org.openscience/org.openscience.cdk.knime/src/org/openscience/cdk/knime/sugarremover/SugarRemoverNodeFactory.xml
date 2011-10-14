@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./sugarremover.png" type="Other">
+    <name>Sugar Remover</name>
+    
+    <shortDescription>
+        This node removes sugars from compounds
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>This node removes all the sugars present in the structure of a compound.
+        The sugar can be terminal or connect other substructures and in that case, 
+        all the substructures with more than 5 bonds are kept. 
+        </intro>
+        
+        
+        <option name="Column with molecules">Select the column containing the molecular structure</option>
+        <option name="Append Column">Appends a new molecule column (with the name as specified in the text field) if checked, replaces the original column otherwise.</option>
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Input Ports">Table containing molecular structures</inPort>
+        <!-- possibly more input ports here-->
+        <outPort index="0" name="Ouput Ports">As input but with structure without sugars</outPort>
+        <!-- possibly more output ports here-->
+    </ports>    
+</knimeNode>

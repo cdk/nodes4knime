@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./sign.png" type="Other">
+    <name>Atom Signatures</name>
+    
+    <shortDescription>
+        This node allows to generate the signatures describing the neighborhood of a atom in CDK molecules.
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>This node allows to generate the signatures describing the neighborhood of carbon or hydrogen atoms in CDK molecules. 
+        There are two types of signatures available, HOSE codes or atom signatures. 
+        If the minimum and maximum height of the signature are not specified, the signatures will be calculated for height 6. 
+        If the signature of specified height cannot be calculated, the signature with maximum possible height for that atom will be reported.  
+        </intro>
+        
+        
+        <option name="Column with molecules">Select the column containing the molecular structure</option>
+        <option name="Signature type">Chose the type of signature to be generated</option>
+        <option name="Atom of interest">Chose for which type of atom is the signature going to be generated</option>
+        <option name="Set signature height">Costumize the minimum and maximum height of the signature</option>
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Input Ports">Table containing molecular structures</inPort>
+        <!-- possibly more input ports here-->
+        <outPort index="0" name="Output Ports">As input but with new rows for each atom in the CDK moleucle for which the signatures were calculated</outPort>
+        <!-- possibly more output ports here-->
+    </ports>    
+</knimeNode>

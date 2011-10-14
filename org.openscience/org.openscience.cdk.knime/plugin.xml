@@ -13,11 +13,7 @@
       </node>
       <node category-path="/community/cdk" expert-flag="false" factory-class="org.openscience.cdk.knime.fingerprints.FingerprintNodeFactory" id="org.openscience.cdk.knime.fingerprints.FingerprintNodeFactory">
       </node>
-      <node
-            category-path="/community/cdk"
-            expert-flag="false"
-            factory-class="org.openscience.cdk.knime.fingerprints.similarity.SimilarityNodeFactory"
-            id="org.openscience.cdk.knime.fingerprints.similarity.SimilarityNodeFactory">
+      <node category-path="/community/cdk" expert-flag="false" factory-class="org.openscience.cdk.knime.fingerprints.similarity.SimilarityNodeFactory" id="org.openscience.cdk.knime.fingerprints.similarity.SimilarityNodeFactory">
       </node>
       <node category-path="/community/cdk" expert-flag="false" factory-class="org.openscience.cdk.knime.lipinski.LipinskiNodeFactory" id="org.openscience.cdk.knime.lipinski.LipinskiNodeFactory">
       </node>
@@ -35,6 +31,8 @@
       </node>
       <node category-path="/community/cdk" expert-flag="false" factory-class="org.openscience.cdk.knime.sssearch.SSSearchNodeFactory" id="org.openscience.cdk.knime.sssearch.SSSearchNodeFactory">
       </node>
+	  <node category-path="/community/cdk" expert-flag="false" factory-class="org.openscience.cdk.knime.atomsignature.AtomSignatureNodeFactory" id="org.openscience.cdk.knime.atomsignature.AtomSignatureNodeFactory"/>
+   	  <node category-path="/community/cdk" expert-flag="false" factory-class="org.openscience.cdk.knime.sugarremover.SugarRemoverNodeFactory" id="org.openscience.cdk.knime.sugarremover.SugarRemoverNodeFactory"/>
 </extension>
    <extension point="org.knime.workbench.repository.categories">
        <category after="" description="Nodes using the Chemistry Development Kit (CDK)" icon="icons/cdk.png" level-id="cdk" name="CDK" path="/community"/>
