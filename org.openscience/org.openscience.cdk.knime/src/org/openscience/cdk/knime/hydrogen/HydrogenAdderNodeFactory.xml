@@ -4,8 +4,9 @@
     <name>Hydrogen Manipulator</name>
     <shortDescription>Manipulates hydrogens of CDK molecules</shortDescription>
     <fullDescription>
-        <intro>This node adds missing hydrogends to CDK molecules and following converts explicit to implicit ones or
-        vice versa.
+        <intro>This node adds missing hydrogens to CDK molecules and following converts explicit to implicit ones or
+        vice versa. Visibility of explicit hydrogens is controlled by the global option "Show explicit Hydrogens" in
+        the KNIME CDK preferences.
             <br />      
         </intro>
         <option name="Column with molecules">Select the column containing the molecular structure</option>

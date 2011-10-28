@@ -303,7 +303,7 @@ public class Coord2DNodeModel extends ThreadedColAppenderNodeModel {
                                 			pClone.set((IMolecule) col);
                                 		}
                                 	} else {
-	                                    IMolecule cp = (IMolecule)m.clone();
+	                                    IMolecule cp = (IMolecule) m.clone();
 	                                    new StructureDiagramGenerator(cp)
 	                                            .generateCoordinates();
 	                                    pClone.set(cp);
