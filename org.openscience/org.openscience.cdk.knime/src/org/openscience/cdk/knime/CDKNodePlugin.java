@@ -53,6 +53,8 @@ import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
+import org.knime.ext.chem.moss.CDKMolConverter;
+import org.knime.ext.chem.moss.MolConverter;
 import org.osgi.framework.BundleContext;
 
 /**
@@ -72,7 +74,7 @@ public class CDKNodePlugin extends AbstractUIPlugin {
 //    private static boolean showImplicitHydrogens = false;
 
     private static boolean showExplicitHydrogens = false;
-    
+
 //    private static boolean useMultipleThreads = false;
 
     /**
@@ -116,7 +118,7 @@ public class CDKNodePlugin extends AbstractUIPlugin {
                         PREF_SHOW_EXPLICIT_HYDROGENS)) {
                     showExplicitHydrogens =
                             pStore.getBoolean(PREF_SHOW_EXPLICIT_HYDROGENS);
-                } 
+                }
 //                else if (event.getProperty().equals(
 //                		PREF_USE_MULTIPLE_THREADS)) {
 //                	useMultipleThreads =
@@ -129,6 +131,13 @@ public class CDKNodePlugin extends AbstractUIPlugin {
 //        showImplicitHydrogens = pStore.getBoolean(PREF_SHOW_IMPLICIT_HYDROGENS);
         showExplicitHydrogens = pStore.getBoolean(PREF_SHOW_EXPLICIT_HYDROGENS);
 //        useMultipleThreads = pStore.getBoolean(PREF_USE_MULTIPLE_THREADS);
+
+        try {
+            // may fail if MoSS is not installed
+            MolConverter.register(CDKMolConverter.class);
+        } catch (NoClassDefFoundError err) {
+            // ignore it
+        }
     }
 
     /**
@@ -171,7 +180,7 @@ public class CDKNodePlugin extends AbstractUIPlugin {
     public static boolean showExplicitHydrogens() {
         return showExplicitHydrogens;
     }
-    
+
     /**
      * Returns if multiple threads should be used.
      *

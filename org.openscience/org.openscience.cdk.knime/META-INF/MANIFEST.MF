@@ -12,7 +12,8 @@ Bundle-ClassPath: knime-cdk.jar,
 Require-Bundle: org.knime.base;bundle-version="2.3.0",
  org.eclipse.ui;bundle-version="3.6.1",
  org.knime.chem.types;bundle-version="2.3.0",
- org.knime.workbench.repository;bundle-version="2.3.0"
+ org.knime.workbench.repository;bundle-version="2.3.0",
+ org.knime.ext.chem.moss;bundle-version="2.5.0";resolution:=optional
 Export-Package: org.chemspider.knime,
  org.openscience.cdk,
  org.openscience.cdk.annotations,
