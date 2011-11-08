@@ -6,13 +6,7 @@
     <fullDescription>
         <intro>
         	Generates 2D coordinates and attaches them to the input CDK cells, 
-        	enabling them to be displayed in a 2D viewer.
-            <br />
-            <i>
-                This node can process the input table in parallel. However, by default the usage of threads is disabled
-                in the CDK plugin, because the CDK code may not be thread-safe in all places. If you want to enable
-                multi-threading, change the setting in the KNIME preferences.
-            </i>            
+        	enabling them to be displayed in a 2D viewer.  
         </intro>
     </fullDescription>
     <ports>

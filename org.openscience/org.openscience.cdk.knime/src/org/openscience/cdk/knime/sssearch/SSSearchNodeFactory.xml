@@ -5,17 +5,10 @@
     <shortDescription>Filters molecules based on a fragment</shortDescription>
     <fullDescription>
         <intro>
-            <p>This node allows you to draw a fragment in the dialog. Upon execution
+            This node allows you to draw a fragment in the dialog. Upon execution
             the molecules from the input table are divided into two sets, one with
             all molecules that contain the fragments, the other with all molecules
-            that do not contain it.
-            </p>
-            <br />
-            <i>
-                This node can process the input table in parallel. However, by default the usage of threads is disabled
-                in the CDK plugin, because the CDK code may not be thread-safe in all places. If you want to enable
-                multi-threading, change the setting in the KNIME preferences.
-            </i>            
+            that do not contain it.           
         </intro>
         <option name="Sketcher">Use the control options to assemble a structure. If a previously
         drawn molecule does not show up when opening the dialog, you may need to scroll down the editor pane.</option>

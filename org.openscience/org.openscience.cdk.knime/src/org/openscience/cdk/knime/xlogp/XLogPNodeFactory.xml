@@ -9,12 +9,6 @@
         	Wang, R., Fu, Y., and Lai, L.. A 
         	<i>New Atom-Additive Method for Calculating Partition Coefficients</i>, 
         	Journal of Chemical Information and Computer Sciences. vol. 37. 1997, pp. 615-621. 
-            <br />
-            <i>
-                This node can process the input table in parallel. However, by default the usage of threads is disabled
-                in the CDK plugin, because the CDK code may not be thread-safe in all places. If you want to enable
-                multi-threading, change the setting in the KNIME preferences.
-            </i>
         </intro>
         <option name="CDK column">Select the column containing the molecular
             structure.

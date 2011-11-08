@@ -7,13 +7,7 @@
         <intro>Create new columns holding molecular properties, computed for each
             structure. The computations are based on the
             <a href="http://cdk.sf.net">CDK</a> toolkit and include logP, molecular weight,
-            number of aromatic bonds, and many others.
-            <br />
-            <i>
-                This node can process the input table in parallel. However, by default the usage of threads is disabled
-                in the CDK plugin, because the CDK code may not be thread-safe in all places. If you want to enable
-                multi-threading, change the setting in the KNIME preferences.
-            </i>            
+            number of aromatic bonds, and many others.      
         </intro>
         <option name="Column Selection">Select the column containing the molecular
             structure.

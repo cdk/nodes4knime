@@ -8,12 +8,6 @@
             This node lets you handle CDK molecules which are fragmented into different parts. This is useful because
             some algorithms won't work with unconnected structures. You have either the choice to completely remove the
             rows that contain fragmented molecules, or to remove all fragments except the biggest one.
-            <br />
-            <i>
-                This node can process the input table in parallel. However, by default the usage of threads is disabled
-                in the CDK plugin, because the CDK code may not be thread-safe in all places. If you want to enable
-                multi-threading, change the setting in the KNIME preferences.
-            </i>
         </intro>
         <option name="Column with molecules">Select the column containing the molecular structure</option>
         <option name="Remove complete row">
