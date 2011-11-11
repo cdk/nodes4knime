@@ -173,7 +173,10 @@ class MolConverter implements ExtendedCellFactory {
 			final String smiles = ((SmilesValue) cell).getSmilesValue();
 
 			final SmilesParser parser = new SmilesParser(NoNotificationChemObjectBuilder.getInstance());
-			return parser.parseSmiles(smiles);
+			IAtomContainer cdkMol = parser.parseSmiles(smiles);
+			// CMLWriter crashes if chiral centers are not eradicated
+			IAtomContainer cdkContainer = SMSDNormalizer.convertExplicitToImplicitHydrogens(cdkMol);
+			return (IMolecule) cdkContainer;
 		}
 	}
 

@@ -10,19 +10,13 @@
             <p>
                 Converts the elements in one of the input table's columns into an internal format (CDKCell), which can
                 then be rendered as molecule or used for further computations. The target column must contain string
-                representations of molecules (SDF, Mol2, Smiles, CML).
+                representations of molecules (SDF, Mol2, Smiles [no stereo information], CML).
             </p>
             <p>
                 This node uses
                 <a href="http://cdk.sf.net">CDK</a>
                 classes to parse and display structures.
             </p>
-            <br />
-            <i>
-                This node can process the input table in parallel. However, by default the usage of threads is disabled
-                in the CDK plugin, because the CDK code may not be thread-safe in all places. If you want to enable
-                multi-threading, change the setting in the KNIME preferences.
-            </i>
         </intro>
         <option name="Molecule Column">The column that contains the molecules.</option>
         <option name="Replace Column">
