@@ -113,14 +113,14 @@ public class CDKMolConverter extends MolConverter<IAtomContainer, CDKValue> {
             int nodeA = map.get(b.getAtom(0));
             int nodeB = map.get(b.getAtom(1));
 
-            if (b.getOrder() == CDKConstants.BONDORDER_SINGLE) {
+            if (b.getFlag(CDKConstants.ISAROMATIC)) {
+                g.addEdge(nodeA, nodeB, Bonds.AROMATIC);
+            } else if (b.getOrder() == CDKConstants.BONDORDER_SINGLE) {
                 g.addEdge(nodeA, nodeB, Bonds.SINGLE);
             } else if (b.getOrder() == CDKConstants.BONDORDER_DOUBLE) {
                 g.addEdge(nodeA, nodeB, Bonds.DOUBLE);
             } else if (b.getOrder() == CDKConstants.BONDORDER_TRIPLE) {
                 g.addEdge(nodeA, nodeB, Bonds.TRIPLE);
-            } else if (b.getFlag(CDKConstants.ISAROMATIC)) {
-                g.addEdge(nodeA, nodeB, Bonds.AROMATIC);
             } else {
                 throw new IllegalArgumentException("Unknown bond type: "
                         + b.getOrder());
