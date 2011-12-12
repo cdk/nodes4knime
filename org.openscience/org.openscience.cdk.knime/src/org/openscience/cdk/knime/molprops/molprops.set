@@ -3,7 +3,9 @@
 # We discussed the different descriptors during the CDK Workshop on 30. Jan 2006
 
 # double array result 
-# org.openscience.cdk.qsar.descriptors.molecular.ALOGP
+org.openscience.cdk.qsar.descriptors.molecular.ALOGPDescriptor
+org.openscience.cdk.qsar.descriptors.molecular.MannholdLogPDescriptor
+org.openscience.cdk.qsar.descriptors.molecular.AutocorrelationDescriptorMass
 
 # sort of boolean array result 
 # org.openscience.cdk.qsar.descriptors.molecular.AminoAcidCountDescriptor
@@ -13,7 +15,7 @@ org.openscience.cdk.qsar.descriptors.molecular.AromaticBondsCountDescriptor
 org.openscience.cdk.qsar.descriptors.molecular.AtomCountDescriptor
 
 # double array result
-# org.openscience.cdk.qsar.descriptors.molecular.BCUTDescriptor
+org.openscience.cdk.qsar.descriptors.molecular.BCUTDescriptor
 org.openscience.cdk.qsar.descriptors.molecular.BPolDescriptor
 org.openscience.cdk.qsar.descriptors.molecular.BondCountDescriptor
 org.openscience.cdk.qsar.descriptors.molecular.CarbonConnectivityOrderOneDescriptor
@@ -24,10 +26,11 @@ org.openscience.cdk.qsar.descriptors.molecular.CarbonConnectivityOrderZeroDescri
 # org.openscience.cdk.qsar.descriptors.molecular.ChiClusterDescriptor
 # org.openscience.cdk.qsar.descriptors.molecular.ChiPathClusterDescriptor
 # org.openscience.cdk.qsar.descriptors.molecular.ChiPathDescriptor
-# org.openscience.cdk.qsar.descriptors.molecular.CPSADescriptor
+org.openscience.cdk.qsar.descriptors.molecular.CPSADescriptor
 
 org.openscience.cdk.qsar.descriptors.molecular.EccentricConnectivityIndexDescriptor
 org.openscience.cdk.qsar.descriptors.molecular.FragmentComplexityDescriptor
+org.openscience.cdk.qsar.descriptors.molecular.VABCDescriptor
 
 # 3D requrired, array result
 # org.openscience.cdk.qsar.descriptors.molecular.GravitationalIndexDescriptor
@@ -68,7 +71,9 @@ org.openscience.cdk.qsar.descriptors.molecular.RotatableBondsCountDescriptor
 # org.openscience.cdk.qsar.descriptors.molecular.RuleOfFiveDescriptor
 
 org.openscience.cdk.qsar.descriptors.molecular.TaeAminoAcidDescriptor
+
 org.openscience.cdk.qsar.descriptors.molecular.TPSADescriptor
+
 org.openscience.cdk.qsar.descriptors.molecular.VAdjMaDescriptor
 # temporarily disabled because of obvious CDK bug
 # org.openscience.cdk.qsar.descriptors.molecular.ValenceCarbonConnectivityOrderOneDescriptor

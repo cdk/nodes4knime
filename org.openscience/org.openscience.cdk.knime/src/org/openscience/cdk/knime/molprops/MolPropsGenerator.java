@@ -56,12 +56,17 @@ import org.knime.core.data.DataRow;
 import org.knime.core.data.DataType;
 import org.knime.core.data.RowKey;
 import org.knime.core.data.container.CellFactory;
+import org.knime.core.data.def.IntCell;
+import org.knime.core.data.def.StringCell;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.NodeLogger;
 import org.openscience.cdk.aromaticity.CDKHueckelAromaticityDetector;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtomContainer;
+import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.knime.type.CDKValue;
+import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
+import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 
 /**
@@ -127,8 +132,15 @@ final class MolPropsGenerator implements CellFactory {
 
         for (int i = 0; i < m_descClassNames.length; i++) {
             String prop = m_descClassNames[i];
-            newCells[i] = MolPropsLibrary.getProperty(row.getKey().toString(),
+            if (prop.equals("molecularformula")) {
+            	IMolecularFormula formula = MolecularFormulaManipulator.getMolecularFormula(mol);
+            	newCells[i] = new StringCell(MolecularFormulaManipulator.getHillString(formula));
+            } else if (prop.equals("heavyatoms")) {
+            	newCells[i] = new IntCell(AtomContainerManipulator.getHeavyAtoms(mol).size());
+            } else {
+            	newCells[i] = MolPropsLibrary.getProperty(row.getKey().toString(),
                     mol, prop);
+            }
         }
         return newCells;
     }

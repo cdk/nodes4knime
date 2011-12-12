@@ -66,6 +66,8 @@ import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.container.ColumnRearranger;
+import org.knime.core.data.def.IntCell;
+import org.knime.core.data.def.StringCell;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
@@ -134,6 +136,13 @@ public class MolPropsNodeModel extends NodeModel {
                 specStringMap.put(s, className);
             }
         }
+        // custom "non-qsar" methods
+        DataColumnSpec mfSpec = new DataColumnSpecCreator("Molecular Formula",
+				StringCell.TYPE).createSpec();
+        DataColumnSpec haSpec = new DataColumnSpecCreator("No. of Heavy Atoms",
+				IntCell.TYPE).createSpec();
+        specStringMap.put(mfSpec, "molecularformula");
+        specStringMap.put(haSpec, "heavyatoms");
         MOLPROPS_IDENTIFIER_MAP = Collections.unmodifiableMap(specStringMap);
     }
 
