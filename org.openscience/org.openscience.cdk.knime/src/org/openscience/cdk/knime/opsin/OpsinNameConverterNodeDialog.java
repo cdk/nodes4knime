@@ -42,84 +42,94 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ------------------------------------------------------------------- * 
  */
-package org.openscience.cdk.knime.fingerprints.similarity;
+package org.openscience.cdk.knime.opsin;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 
-import javax.swing.ButtonGroup;
+import javax.swing.BorderFactory;
+import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JRadioButton;
 import javax.swing.border.Border;
 
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.vector.bitvector.BitVectorValue;
+import org.knime.core.data.StringValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.util.ColumnSelectionComboxBox;
-import org.openscience.cdk.knime.fingerprints.similarity.SimilaritySettings.AggregationMethod;
 
 /**
- * <code>NodeDialog</code> for the "Similarity" Node.
+ * <code>NodeDialog</code> for the "OpsinNameConverter" Node.
  * 
  * @author Stephan Beisken
  */
-public class SimilarityNodeDialog extends NodeDialogPane {
-	@SuppressWarnings("unchecked")
-	private final ColumnSelectionComboxBox m_fingerprintColumn = new ColumnSelectionComboxBox((Border) null,
-			BitVectorValue.class);
-	@SuppressWarnings("unchecked")
-	private final ColumnSelectionComboxBox m_fingerprintRefColumn = new ColumnSelectionComboxBox((Border) null,
-			BitVectorValue.class);
+public class OpsinNameConverterNodeDialog extends NodeDialogPane {
 
-	private final JRadioButton m_minimum = new JRadioButton("Minimum");
-	private final JRadioButton m_maximum = new JRadioButton("Maximum");
-	private final JRadioButton m_average = new JRadioButton("Average");
+	@SuppressWarnings("unchecked")
+	private final ColumnSelectionComboxBox nameColumn = new ColumnSelectionComboxBox((Border) null, StringValue.class);
+	private final JCheckBox cdkBox = new JCheckBox("", true);
+	private final JCheckBox smilesBox = new JCheckBox();
+	private final JCheckBox inchiBox = new JCheckBox();
+	private final JCheckBox pngBox = new JCheckBox();
+	private final JCheckBox cmlBox = new JCheckBox();
 
-	private final SimilaritySettings m_settings = new SimilaritySettings();
+	private OpsinNameConverterSettings settings = new OpsinNameConverterSettings();
 
 	/**
-	 * New pane for configuring the Similarity node.
+	 * New pane for configuring the OpsinNameConverter node.
 	 */
-	protected SimilarityNodeDialog() {
-		JPanel p = new JPanel(new GridBagLayout());
+	protected OpsinNameConverterNodeDialog() {
 
 		GridBagConstraints c = new GridBagConstraints();
+
+		JPanel panel = new JPanel(new GridBagLayout());
+		panel.setBorder(BorderFactory.createTitledBorder("Settings"));
 
 		c.gridx = 0;
 		c.gridy = 0;
 		c.anchor = GridBagConstraints.NORTHWEST;
 
-		p.add(new JLabel("Column with fingerprints   "), c);
-		c.gridx = 1;
-		p.add(m_fingerprintColumn, c);
+		panel.add(new JLabel("IUPAC string column  "), c);
+		c.gridx++;
+		panel.add(nameColumn, c);
 		c.gridy++;
 		c.gridx = 0;
-		p.add(new JLabel("Column with reference fingerprints   "), c);
-		c.gridx = 1;
-		p.add(m_fingerprintRefColumn, c);
 
+		panel.add(new JLabel("Append CDK molecule column  "), c);
+		c.gridx++;
+		panel.add(cdkBox, c);
 		c.gridy++;
 		c.gridx = 0;
-		p.add(new JLabel("Aggregation method   "), c);
-		c.gridx = 1;
-		p.add(m_minimum, c);
+
+		panel.add(new JLabel("Append SMILES column  "), c);
+		c.gridx++;
+		panel.add(smilesBox, c);
 		c.gridy++;
-		p.add(m_maximum, c);
-		m_maximum.setSelected(true);
+		c.gridx = 0;
+
+		panel.add(new JLabel("Append InChI column  "), c);
+		c.gridx++;
+		panel.add(inchiBox, c);
 		c.gridy++;
-		p.add(m_average, c);
-		
-		ButtonGroup bg1 = new ButtonGroup();
-		bg1.add(m_minimum);
-		bg1.add(m_maximum);
-		bg1.add(m_average);
-		
-		addTab("Similarity Options", p);
+		c.gridx = 0;
+
+		panel.add(new JLabel("Append PNG column  "), c);
+		c.gridx++;
+		panel.add(pngBox, c);
+		c.gridy++;
+		c.gridx = 0;
+
+		panel.add(new JLabel("Append CML column  "), c);
+		c.gridx++;
+		panel.add(cmlBox, c);
+		c.gridy++;
+		c.gridx = 0;
+
+		this.addTab("Settings", panel);
 	}
 
 	/**
@@ -128,23 +138,19 @@ public class SimilarityNodeDialog extends NodeDialogPane {
 	@Override
 	protected void loadSettingsFrom(final NodeSettingsRO settings, final DataTableSpec[] specs)
 			throws NotConfigurableException {
-		
+
 		try {
-			m_settings.loadSettings(settings);
-		} catch (InvalidSettingsException exception) {
+			this.settings.loadSettings(settings);
+		} catch (InvalidSettingsException ex) {
 			// ignore it
 		}
-		
-		m_fingerprintColumn.update(specs[0], m_settings.fingerprintColumn());
-		m_fingerprintRefColumn.update(specs[1], m_settings.fingerprintRefColumn());
-		
-		if (m_settings.aggregationMethod().equals(AggregationMethod.Minimum)) {
-			m_minimum.setSelected(true);
-		} else if (m_settings.aggregationMethod().equals(AggregationMethod.Maximum)) {
-			m_maximum.setSelected(true);
-		} else if (m_settings.aggregationMethod().equals(AggregationMethod.Average)) {
-			m_average.setSelected(true);
-		}
+
+		nameColumn.update(specs[0], this.settings.getNameColumn());
+		cmlBox.setSelected(this.settings.isAddCml());
+		smilesBox.setSelected(this.settings.isAddSmiles());
+		cdkBox.setSelected(this.settings.isAddCdk());
+		inchiBox.setSelected(this.settings.isAddInChI());
+		pngBox.setSelected(this.settings.isAddPng());
 	}
 
 	/**
@@ -152,16 +158,14 @@ public class SimilarityNodeDialog extends NodeDialogPane {
 	 */
 	@Override
 	protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
-		m_settings.fingerprintColumn(m_fingerprintColumn.getSelectedColumn());
-		m_settings.fingerprintRefColumn(m_fingerprintRefColumn.getSelectedColumn());
-		if (m_minimum.isSelected()) {
-			m_settings.aggregationMethod(AggregationMethod.Minimum);
-		} else if (m_maximum.isSelected()) {
-			m_settings.aggregationMethod(AggregationMethod.Maximum);
-		} else if (m_average.isSelected()) {
-			m_settings.aggregationMethod(AggregationMethod.Average);
-		}
 
-		m_settings.saveSettingsTo(settings);
+		this.settings.setNameColumn(nameColumn.getSelectedColumn());
+		this.settings.setAddCdk(cdkBox.isSelected());
+		this.settings.setAddSmiles(smilesBox.isSelected());
+		this.settings.setAddCml(cmlBox.isSelected());
+		this.settings.setAddInChI(inchiBox.isSelected());
+		this.settings.setAddPng(pngBox.isSelected());
+
+		this.settings.saveSettings(settings);
 	}
 }

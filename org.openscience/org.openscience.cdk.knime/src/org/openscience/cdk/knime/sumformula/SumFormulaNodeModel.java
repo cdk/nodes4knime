@@ -42,23 +42,18 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ------------------------------------------------------------------- * 
  */
-package org.openscience.cdk.knime.fingerprints.similarity;
+package org.openscience.cdk.knime.sumformula;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
-import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.collection.ListCell;
 import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.StringCell;
-import org.knime.core.data.vector.bitvector.BitVectorValue;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
@@ -69,24 +64,24 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 
 /**
- * This is the model implementation of the similarity node. CDK is used to
- * calculate the Tanimoto coefficient for two fingerprints. The minimum, maximum
- * or average can be selected as aggregation method.
+ * This is the model implementation of SumFormula. Node to generate probable
+ * molecular formulas based on a given mass input.
  * 
- * @author Stephan Beisken, European Bioinformatics Institute
+ * @author Stephan Beisken
  */
-public class SimilarityNodeModel extends NodeModel {
+public class SumFormulaNodeModel extends NodeModel {
 
-	private int rowCount;
-	private Map<BitSet, ArrayList<String>> fingerprintRefs;
-	private final SimilaritySettings m_settings = new SimilaritySettings();
+	// private static final String[] RULES = new String[] { "ValidSum",
+	// "Elements", "MMElements", "Nitrogen", "RDBE" };
+
+	private SumFormulaSettings settings = new SumFormulaSettings();
 
 	/**
 	 * Constructor for the node model.
 	 */
-	protected SimilarityNodeModel() {
+	protected SumFormulaNodeModel() {
 
-		super(2, 1);
+		super(1, 1);
 	}
 
 	/**
@@ -96,76 +91,30 @@ public class SimilarityNodeModel extends NodeModel {
 	protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
 			throws Exception {
 
-		DataTableSpec spec = inData[0].getDataTableSpec();
-		DataTableSpec specRef = inData[1].getDataTableSpec();
-
-		String sr = m_settings.fingerprintRefColumn();
-		final int fingerprintRefColIndex = specRef.findColumnIndex(sr);
-
-		fingerprintRefs = getFingerprintRefs(inData[1], fingerprintRefColIndex);
-		rowCount = inData[1].getRowCount();
-
-		ColumnRearranger rearranger = createColumnRearranger(spec);
+		DataTableSpec inSpec = inData[0].getDataTableSpec();
+		ColumnRearranger rearranger = createColumnRearranger(inSpec);
 		BufferedDataTable outTable = exec.createColumnRearrangeTable(inData[0], rearranger, exec);
 
 		return new BufferedDataTable[] { outTable };
 	}
 
-	/**
-	 * Provides a map of bitsets and their corresponding rows.
-	 * 
-	 * @param bdt a buffered data table with DenseBitVector cells
-	 * @param fingerprintRefColIndex a fingerprint column index in bdt
-	 * @return the map
-	 */
-	private Map<BitSet, ArrayList<String>> getFingerprintRefs(BufferedDataTable bdt, int fingerprintRefColIndex) {
-
-		Map<BitSet, ArrayList<String>> fingerprintRefs = new HashMap<BitSet, ArrayList<String>>();
-
-		for (DataRow row : bdt) {
-			if (row.getCell(fingerprintRefColIndex).isMissing()) {
-				continue;
-			}
-			BitVectorValue bitVectorValue = (BitVectorValue) row.getCell(fingerprintRefColIndex);
-			String bitString = bitVectorValue.toBinaryString();
-			BitSet bs = new BitSet((int) bitVectorValue.length());
-
-			for (int j = 0; j < bitString.length(); j++) {
-				if (bitString.charAt(j) == '1')
-					bs.set(j);
-			}
-			if (fingerprintRefs.containsKey(bs)) {
-				fingerprintRefs.get(bs).add(row.getKey().getString());
-			} else {
-				ArrayList<String> keyList = new ArrayList<String>();
-				keyList.add(row.getKey().getString());
-				fingerprintRefs.put(bs, keyList);
-			}
-		}
-		return fingerprintRefs;
-	}
-
-	/**
-	 * Creates a column rearranger to append one/two output columns.
-	 * 
-	 * @param spec a input table specification
-	 * @return the rearranger
-	 * @throws InvalidSettingsException unexpected behaviour
-	 */
 	private ColumnRearranger createColumnRearranger(DataTableSpec spec) throws InvalidSettingsException {
 
-		int fingerprintColIndex = spec.findColumnIndex(m_settings.fingerprintColumn());
-		DataColumnSpec[] outSpec = null;
-		if (m_settings.aggregationMethod().name().equals("Average")) {
-			DataColumnSpec colSpec = new DataColumnSpecCreator("Tanimoto", DoubleCell.TYPE).createSpec();
-			outSpec = new DataColumnSpec[] { colSpec };
-		} else {
-			DataColumnSpec colSpec1 = new DataColumnSpecCreator("Tanimoto", DoubleCell.TYPE).createSpec();
-			DataColumnSpec colSpec2 = new DataColumnSpecCreator("Reference", StringCell.TYPE).createSpec();
-			outSpec = new DataColumnSpec[] { colSpec1, colSpec2 };
-		}
-		SimilarityGenerator generator = new SimilarityGenerator(outSpec, fingerprintColIndex, fingerprintRefs,
-				m_settings.aggregationMethod(), rowCount);
+		final int colIndex = spec.findColumnIndex(settings.getMassColumn());
+
+		DataColumnSpec[] columnSpecs = new DataColumnSpec[2];
+		columnSpecs[0] = new DataColumnSpecCreator("Sum Formula", ListCell.getCollectionType(StringCell.TYPE))
+				.createSpec();
+		columnSpecs[1] = new DataColumnSpecCreator("Valid Sum", ListCell.getCollectionType(DoubleCell.TYPE))
+				.createSpec();
+
+		// for (int i = 1; i < 6; i++) {
+		// columnSpecs[i] = new DataColumnSpecCreator(RULES[i - 1],
+		// ListCell.getCollectionType(DoubleCell.TYPE))
+		// .createSpec();
+		// }
+
+		SumFormulaGenerator generator = new SumFormulaGenerator(columnSpecs, colIndex, settings.isExcludeByValidSum());
 		ColumnRearranger arrange = new ColumnRearranger(spec);
 		arrange.append(generator);
 
@@ -177,7 +126,7 @@ public class SimilarityNodeModel extends NodeModel {
 	 */
 	@Override
 	protected void reset() {
-		// nothing to do;
+		// nothing to do
 	}
 
 	/**
@@ -186,36 +135,13 @@ public class SimilarityNodeModel extends NodeModel {
 	@Override
 	protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
 
-		if (m_settings.fingerprintColumn() == null
-				|| (inSpecs[0].findColumnIndex(m_settings.fingerprintColumn())) == -1) {
-			String name = null;
-			for (DataColumnSpec s : inSpecs[0]) {
-				if (s.getType().isCompatible(BitVectorValue.class)) {
-					name = s.getName();
-				}
-			}
-			if (name != null) {
-				m_settings.fingerprintColumn(name);
-			} else {
-				throw new InvalidSettingsException("No DenseBitVector compatible column in input table");
-			}
-		}
-		if (m_settings.fingerprintRefColumn() == null
-				|| (inSpecs[1].findColumnIndex(m_settings.fingerprintRefColumn())) == -1) {
-			String name = null;
-			for (DataColumnSpec s : inSpecs[1]) {
-				if (s.getType().isCompatible(BitVectorValue.class)) {
-					name = s.getName();
-				}
-			}
-			if (name != null) {
-				m_settings.fingerprintRefColumn(name);
-			} else {
-				throw new InvalidSettingsException("No reference DenseBitVector compatible column in input table");
-			}
+		int stringColumn = inSpecs[0].findColumnIndex(settings.getMassColumn());
+		if (stringColumn == -1) {
+			throw new InvalidSettingsException("Mass column '" + settings.getMassColumn() + "' does not exist");
 		}
 
 		DataTableSpec outSpec = createColumnRearranger(inSpecs[0]).createSpec();
+
 		return new DataTableSpec[] { outSpec };
 	}
 
@@ -225,7 +151,7 @@ public class SimilarityNodeModel extends NodeModel {
 	@Override
 	protected void saveSettingsTo(final NodeSettingsWO settings) {
 
-		m_settings.saveSettingsTo(settings);
+		this.settings.saveSettings(settings);
 	}
 
 	/**
@@ -234,7 +160,7 @@ public class SimilarityNodeModel extends NodeModel {
 	@Override
 	protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
 
-		m_settings.loadSettings(settings);
+		this.settings.loadSettings(settings);
 	}
 
 	/**
@@ -243,8 +169,11 @@ public class SimilarityNodeModel extends NodeModel {
 	@Override
 	protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
 
-		SimilaritySettings s = new SimilaritySettings();
-		s.loadSettings(settings);
+		SumFormulaSettings tmpSettings = new SumFormulaSettings();
+		tmpSettings.loadSettings(settings);
+		if ((tmpSettings.getMassColumn() == null) || (tmpSettings.getMassColumn().length() == 0)) {
+			throw new InvalidSettingsException("No mass column chosen");
+		}
 	}
 
 	/**
@@ -253,7 +182,7 @@ public class SimilarityNodeModel extends NodeModel {
 	@Override
 	protected void loadInternals(final File internDir, final ExecutionMonitor exec) throws IOException,
 			CanceledExecutionException {
-		// nothing to do;
+		// nothing to do
 	}
 
 	/**
@@ -262,6 +191,7 @@ public class SimilarityNodeModel extends NodeModel {
 	@Override
 	protected void saveInternals(final File internDir, final ExecutionMonitor exec) throws IOException,
 			CanceledExecutionException {
-		// nothing to do;
+		// nothing to do
 	}
+
 }

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./elementFilter.png" type="Manipulator">
+	<name>Element Filter</name>
+
+	<shortDescription>
+		Filters molecules by element type occurrence.
+	</shortDescription>
+
+	<fullDescription>
+		<intro>Takes a table with molecules and filters them by element type.
+			Only molecules that contain defined elements are valid.</intro>
+
+		<option name="Column with molecules">Molecule column in input table.</option>
+		<option name="Filter set">The element set used for filtering. Custom sets
+			need to be comma-separated.</option>
+	</fullDescription>
+
+	<ports>
+		<inPort index="0" name="Molecule input">Table containing molecules.</inPort>
+		<outPort index="0" name="Filtered input">Filtered input table.</outPort>
+	</ports>
+</knimeNode>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./sumformula.png" type="Manipulator">
+	<name>Sum Formula</name>
+
+	<shortDescription>
+		Node to generate molecular formulas based on
+		a given mass input.
+    </shortDescription>
+
+	<fullDescription>
+		<intro>Generates sum formulas based on a given mass. The mass
+			tolerance limit is 0.05 amu. The formula generator assumes masses to be
+			major isotopic masses.
+			The 'valid sum' of the generated sum formulas
+			is also given. It ranges
+			between 0 and 1 indicating if any of the
+			applied rules for evaluating
+			the validity of a formula has been
+			violated. Rules used are 'ElementRule', 'MMElementRule',
+			'NitrogenRule', and 'RDBERule' (defined in CDK API). All rule parameters are set to
+			default.
+			'Exclusion' removes all formulas with a valid sum of 0.</intro>
+
+		<option name="Column with masses">Mass column in input table.</option>
+		<option name="Remove unprobable formulas">Remove sum formulas that appear to be unlikely.
+		</option>
+	</fullDescription>
+
+	<ports>
+		<inPort index="0" name="Mass input">Table with molecular masses.</inPort>
+		<outPort index="0" name="Input with sum forumlas">Input table plus calculated sum
+			formulas.</outPort>
+	</ports>
+</knimeNode>

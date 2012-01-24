@@ -42,126 +42,146 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ------------------------------------------------------------------- * 
  */
-package org.openscience.cdk.knime.fingerprints.similarity;
+package org.openscience.cdk.knime.elementfilter;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 
+import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
+import javax.swing.JTextField;
 import javax.swing.border.Border;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.vector.bitvector.BitVectorValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.util.ColumnSelectionComboxBox;
-import org.openscience.cdk.knime.fingerprints.similarity.SimilaritySettings.AggregationMethod;
+import org.openscience.cdk.knime.type.CDKValue;
 
 /**
- * <code>NodeDialog</code> for the "Similarity" Node.
+ * <code>NodeDialog</code> for the "ElementFilter" Node.
  * 
  * @author Stephan Beisken
  */
-public class SimilarityNodeDialog extends NodeDialogPane {
+public class ElementFilterNodeDialog extends NodeDialogPane {
+
 	@SuppressWarnings("unchecked")
-	private final ColumnSelectionComboxBox m_fingerprintColumn = new ColumnSelectionComboxBox((Border) null,
-			BitVectorValue.class);
-	@SuppressWarnings("unchecked")
-	private final ColumnSelectionComboxBox m_fingerprintRefColumn = new ColumnSelectionComboxBox((Border) null,
-			BitVectorValue.class);
+	private final ColumnSelectionComboxBox molColumn = new ColumnSelectionComboxBox((Border) null, CDKValue.class);
+	private final JRadioButton customSetButton;
+	private final JRadioButton standardSetButton;
+	private final JTextField elementField;
+	
+	private static final String STANDARDSET = "C,H,N,O,P,S";
+	
+	private ElementFilterSettings settings = new ElementFilterSettings();
+	
+    /**
+     * New pane for configuring the ElementFilter node.
+     */
+    protected ElementFilterNodeDialog() {
+    	
+    	GridBagConstraints c = new GridBagConstraints();
 
-	private final JRadioButton m_minimum = new JRadioButton("Minimum");
-	private final JRadioButton m_maximum = new JRadioButton("Maximum");
-	private final JRadioButton m_average = new JRadioButton("Average");
-
-	private final SimilaritySettings m_settings = new SimilaritySettings();
-
-	/**
-	 * New pane for configuring the Similarity node.
-	 */
-	protected SimilarityNodeDialog() {
-		JPanel p = new JPanel(new GridBagLayout());
-
-		GridBagConstraints c = new GridBagConstraints();
-
+		JPanel panel = new JPanel(new GridBagLayout());
+		panel.setBorder(BorderFactory.createTitledBorder("Settings"));
+		
 		c.gridx = 0;
 		c.gridy = 0;
 		c.anchor = GridBagConstraints.NORTHWEST;
-
-		p.add(new JLabel("Column with fingerprints   "), c);
-		c.gridx = 1;
-		p.add(m_fingerprintColumn, c);
+		
+		panel.add(new JLabel("CDK column "), c);
+		c.gridx++;
+		panel.add(molColumn, c);
 		c.gridy++;
 		c.gridx = 0;
-		p.add(new JLabel("Column with reference fingerprints   "), c);
-		c.gridx = 1;
-		p.add(m_fingerprintRefColumn, c);
-
+		
+		panel.add(new JLabel("Standard set "), c);
+		c.gridx++;
+		standardSetButton = new JRadioButton("(C,H,N,O,P,S)");
+		standardSetButton.setSelected(true);
+		panel.add(standardSetButton, c);
 		c.gridy++;
 		c.gridx = 0;
-		p.add(new JLabel("Aggregation method   "), c);
-		c.gridx = 1;
-		p.add(m_minimum, c);
-		c.gridy++;
-		p.add(m_maximum, c);
-		m_maximum.setSelected(true);
-		c.gridy++;
-		p.add(m_average, c);
 		
-		ButtonGroup bg1 = new ButtonGroup();
-		bg1.add(m_minimum);
-		bg1.add(m_maximum);
-		bg1.add(m_average);
+		panel.add(new JLabel("Custom set "), c);
+		c.gridx++;
+		customSetButton = new JRadioButton("(comma separated)");
+		customSetButton.addChangeListener(new ChangeListener() {
+			
+			@Override
+			public void stateChanged(ChangeEvent arg0) {
+				if (customSetButton.isSelected()) {
+					elementField.setEditable(true);
+				} else {
+					elementField.setEditable(false);
+				}
+			}
+		});
+		panel.add(customSetButton, c);
+		c.gridy++;
+		c.gridx = 0;
 		
-		addTab("Similarity Options", p);
-	}
-
-	/**
+		panel.add(new JLabel("Element string  "), c);
+		c.gridx++;
+		elementField = new JTextField(15);
+		elementField.setEditable(false);
+		panel.add(elementField, c);
+		c.gridy++;
+		c.gridx = 0;
+		
+		ButtonGroup buttonGroup = new ButtonGroup();
+		buttonGroup.add(standardSetButton);
+		buttonGroup.add(customSetButton);
+		
+		this.addTab("Settings", panel);
+    }
+    
+    /**
 	 * {@inheritDoc}
 	 */
 	@Override
 	protected void loadSettingsFrom(final NodeSettingsRO settings, final DataTableSpec[] specs)
 			throws NotConfigurableException {
-		
+
 		try {
-			m_settings.loadSettings(settings);
-		} catch (InvalidSettingsException exception) {
+			this.settings.loadSettings(settings);
+		} catch (InvalidSettingsException ex) {
 			// ignore it
 		}
-		
-		m_fingerprintColumn.update(specs[0], m_settings.fingerprintColumn());
-		m_fingerprintRefColumn.update(specs[1], m_settings.fingerprintRefColumn());
-		
-		if (m_settings.aggregationMethod().equals(AggregationMethod.Minimum)) {
-			m_minimum.setSelected(true);
-		} else if (m_settings.aggregationMethod().equals(AggregationMethod.Maximum)) {
-			m_maximum.setSelected(true);
-		} else if (m_settings.aggregationMethod().equals(AggregationMethod.Average)) {
-			m_average.setSelected(true);
+
+		molColumn.update(specs[0], this.settings.getMolColumnName());
+		String elementSet = this.settings.getElements();
+		if (elementSet.equals(STANDARDSET)) {
+			standardSetButton.setSelected(true);
+			elementField.setEditable(false);
+		} else {
+			customSetButton.setSelected(true);
+			elementField.setText(this.settings.getElements());
 		}
 	}
-
+	
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
 	protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
-		m_settings.fingerprintColumn(m_fingerprintColumn.getSelectedColumn());
-		m_settings.fingerprintRefColumn(m_fingerprintRefColumn.getSelectedColumn());
-		if (m_minimum.isSelected()) {
-			m_settings.aggregationMethod(AggregationMethod.Minimum);
-		} else if (m_maximum.isSelected()) {
-			m_settings.aggregationMethod(AggregationMethod.Maximum);
-		} else if (m_average.isSelected()) {
-			m_settings.aggregationMethod(AggregationMethod.Average);
-		}
 
-		m_settings.saveSettingsTo(settings);
+		this.settings.setMolColumnName(molColumn.getSelectedColumn());
+		if (standardSetButton.isSelected()) {
+			this.settings.setElements(STANDARDSET);
+		} else {
+			this.settings.setElements(elementField.getText());
+		}
+		
+		this.settings.saveSettings(settings);
 	}
 }
+

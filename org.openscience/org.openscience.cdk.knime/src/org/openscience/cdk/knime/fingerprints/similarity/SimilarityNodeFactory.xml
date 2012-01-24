@@ -5,16 +5,15 @@
 
 	<shortDescription>
 		Calculates the Tanimoto similarity coefficient for
-		two MACCS fingerprints 
+		two fingerprints or equal size. 
     </shortDescription>
 
 	<fullDescription>
 		<intro>
 			Creates a new column containing the minimum, maximum or average
-			Tanimoto similarity coefficient for the molecules. The computations
-			are based on the
-			<a href="http://cdk.sf.net">CDK</a>
-			toolkit.
+			Tanimoto similarity coefficient for the fingerprints in the first
+			input table against the second input table. The computations
+			are based on the <a href="http://cdk.sf.net">CDK</a> toolkit.
 		</intro>
 
 		<option name="Column with fingerprint">Select the column containing the molecular
@@ -24,9 +23,9 @@
 	</fullDescription>
 
 	<ports>
-		<inPort index="0" name="Fingerprint input">Table containing molecular MACCS fingerprints
+		<inPort index="0" name="Fingerprint input">Table containing molecular fingerprints
 		</inPort>
-		<inPort index="1" name="Reference input">Table containing reference MACCS fingerprints
+		<inPort index="1" name="Reference input">Table containing reference fingerprints
 		</inPort>
 		<outPort index="0" name="Input with Tanimoto coefficient">As input table plus Tanimoto
 			coefficient column

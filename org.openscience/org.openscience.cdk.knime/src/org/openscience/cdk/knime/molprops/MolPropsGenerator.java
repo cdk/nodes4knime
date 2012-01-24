@@ -56,6 +56,7 @@ import org.knime.core.data.DataRow;
 import org.knime.core.data.DataType;
 import org.knime.core.data.RowKey;
 import org.knime.core.data.container.CellFactory;
+import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.ExecutionMonitor;
@@ -137,6 +138,9 @@ final class MolPropsGenerator implements CellFactory {
             	newCells[i] = new StringCell(MolecularFormulaManipulator.getHillString(formula));
             } else if (prop.equals("heavyatoms")) {
             	newCells[i] = new IntCell(AtomContainerManipulator.getHeavyAtoms(mol).size());
+            } else if (prop.equals("molarmass")) {
+            	IMolecularFormula formula = MolecularFormulaManipulator.getMolecularFormula(mol);
+            	newCells[i] = new DoubleCell(MolecularFormulaManipulator.getNaturalExactMass(formula));
             } else {
             	newCells[i] = MolPropsLibrary.getProperty(row.getKey().toString(),
                     mol, prop);

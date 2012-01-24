@@ -66,6 +66,7 @@ import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.container.ColumnRearranger;
+import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.BufferedDataTable;
@@ -141,8 +142,11 @@ public class MolPropsNodeModel extends NodeModel {
 				StringCell.TYPE).createSpec();
         DataColumnSpec haSpec = new DataColumnSpecCreator("No. of Heavy Atoms",
 				IntCell.TYPE).createSpec();
+        DataColumnSpec mmSpec = new DataColumnSpecCreator("Molar Mass",
+				DoubleCell.TYPE).createSpec();
         specStringMap.put(mfSpec, "molecularformula");
         specStringMap.put(haSpec, "heavyatoms");
+        specStringMap.put(mmSpec, "molarmass");
         MOLPROPS_IDENTIFIER_MAP = Collections.unmodifiableMap(specStringMap);
     }
 

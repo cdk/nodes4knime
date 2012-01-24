@@ -62,7 +62,6 @@ import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataType;
-import org.knime.core.data.collection.BlobSupportDataCellList;
 import org.knime.core.data.collection.CollectionCellFactory;
 import org.knime.core.data.collection.ListCell;
 import org.knime.core.data.def.DoubleCell;
@@ -94,8 +93,7 @@ import org.openscience.cdk.qsar.result.IntegerResultType;
  */
 public final class MolPropsLibrary {
 
-	private static final NodeLogger LOGGER = NodeLogger
-			.getLogger(MolPropsLibrary.class);
+	private static final NodeLogger LOGGER = NodeLogger.getLogger(MolPropsLibrary.class);
 
 	/** The package name where all CDK molecular descriptor classes reside. */
 	public static final String CDK_DESCRIPTOR_PACKAGE = "org.openscience.cdk.qsar.descriptors.molecular";
@@ -119,13 +117,11 @@ public final class MolPropsLibrary {
 	static {
 		// file in the cdk-qsar.jar that contains all available descriptors
 		String descriptorFileName = "qsar-descriptors.set";
-		URL descriptorURL = MolPropsLibrary.class.getClassLoader().getResource(
-				descriptorFileName);
+		URL descriptorURL = MolPropsLibrary.class.getClassLoader().getResource(descriptorFileName);
 		final List<String> classNames = new ArrayList<String>();
 		if (descriptorURL != null) {
 			try {
-				BufferedReader inStream = new BufferedReader(
-						new InputStreamReader(descriptorURL.openStream()));
+				BufferedReader inStream = new BufferedReader(new InputStreamReader(descriptorURL.openStream()));
 				String line;
 				while ((line = inStream.readLine()) != null) {
 					if (line.startsWith(CDK_DESCRIPTOR_PACKAGE)) {
@@ -133,12 +129,10 @@ public final class MolPropsLibrary {
 					}
 				}
 			} catch (Exception e) {
-				NodeLogger.getLogger(CDKNodePlugin.class).warn(
-						"Unable to load descriptors", e);
+				NodeLogger.getLogger(CDKNodePlugin.class).warn("Unable to load descriptors", e);
 			}
 		} else {
-			LOGGER.warn("Unable to load CDK descriptor classes from file "
-					+ descriptorFileName);
+			LOGGER.warn("Unable to load CDK descriptor classes from file " + descriptorFileName);
 		}
 		final DescriptorEngine engine;
 		List<?> nativeDescs;
@@ -150,8 +144,7 @@ public final class MolPropsLibrary {
 				engine = new DescriptorEngine(DescriptorEngine.MOLECULAR);
 			}
 			nativeDescs = engine.getDescriptorInstances();
-			dict = new DictionaryDatabase()
-					.getDictionary("descriptor-algorithms");
+			dict = new DictionaryDatabase().getDictionary("descriptor-algorithms");
 		} catch (Throwable e) {
 			LOGGER.warn("Unable to instantiate CDK descriptor engine", e);
 			nativeDescs = Collections.emptyList();
@@ -166,11 +159,9 @@ public final class MolPropsLibrary {
 				if (d instanceof IMolecularDescriptor) {
 					descriptor = ((IMolecularDescriptor) d);
 					resultClass = descriptor.getDescriptorResultType();
-					String id = descriptor.getSpecification()
-							.getSpecificationReference();
+					String id = descriptor.getSpecification().getSpecificationReference();
 					int hashIndex = id.indexOf('#');
-					id = hashIndex >= 0 && hashIndex < id.length() ? id
-							.substring(hashIndex + 1) : id;
+					id = hashIndex >= 0 && hashIndex < id.length() ? id.substring(hashIndex + 1) : id;
 					id = id.toLowerCase();
 					if ((dict != null) && dict.hasEntry(id)) {
 						Entry e = dict.getEntry(id);
@@ -183,33 +174,25 @@ public final class MolPropsLibrary {
 					continue;
 				}
 				DataColumnSpec colSpec;
-				if (resultClass instanceof IntegerResult
-						|| resultClass instanceof IntegerResultType) {
-					colSpec = new DataColumnSpecCreator(humanReadable,
-							IntCell.TYPE).createSpec();
-				} else if (resultClass instanceof DoubleResult
-						|| resultClass instanceof DoubleResultType) {
-					colSpec = new DataColumnSpecCreator(humanReadable,
-							DoubleCell.TYPE).createSpec();
+				if (resultClass instanceof IntegerResult || resultClass instanceof IntegerResultType) {
+					colSpec = new DataColumnSpecCreator(humanReadable, IntCell.TYPE).createSpec();
+				} else if (resultClass instanceof DoubleResult || resultClass instanceof DoubleResultType) {
+					colSpec = new DataColumnSpecCreator(humanReadable, DoubleCell.TYPE).createSpec();
 				} else if (resultClass instanceof DoubleArrayResultType) {
-					colSpec = new DataColumnSpecCreator(humanReadable,
-							ListCell.getCollectionType(DoubleCell.TYPE))
+					colSpec = new DataColumnSpecCreator(humanReadable, ListCell.getCollectionType(DoubleCell.TYPE))
 							.createSpec();
 				} else if (resultClass instanceof IntegerArrayResultType) {
-					colSpec = new DataColumnSpecCreator(humanReadable,
-							ListCell.getCollectionType(IntCell.TYPE))
+					colSpec = new DataColumnSpecCreator(humanReadable, ListCell.getCollectionType(IntCell.TYPE))
 							.createSpec();
 				} else {
-					LOGGER.debug("Descriptor result (\"" + resultClass
-							+ "\") unkown, " + "skipping descriptor "
+					LOGGER.debug("Descriptor result (\"" + resultClass + "\") unkown, " + "skipping descriptor "
 							+ humanReadable);
 					continue;
 				}
 				DESCRIPTOR_COLSPEC_HASH.put(className, colSpec);
 				DESCRIPTOR_HASH.put(className, descriptor);
 			} catch (Throwable e) {
-				LOGGER.debug("(" + e.getClass().getSimpleName()
-						+ ") Failed to load descriptor " + className, e);
+				LOGGER.debug("(" + e.getClass().getSimpleName() + ") Failed to load descriptor " + className, e);
 			}
 		}
 	}
@@ -218,21 +201,21 @@ public final class MolPropsLibrary {
 	 * Get a representative {@link DataColumnSpec} object for a given
 	 * descriptor.
 	 * 
-	 * @param descriptorClassName
-	 *            The internal class name for the descriptor.
+	 * @param descriptorClassName The internal class name for the descriptor.
 	 * @return The spec to be used.
 	 */
 	public static DataColumnSpec getColumnSpec(final String descriptorClassName) {
 		if (descriptorClassName == null) {
 			throw new NullPointerException("Argument must not be null.");
 		} else if (descriptorClassName.equals("molecularformula")) {
-			DataColumnSpec mfSpec = new DataColumnSpecCreator("Molecular Formula",
-					StringCell.TYPE).createSpec();
+			DataColumnSpec mfSpec = new DataColumnSpecCreator("Molecular Formula", StringCell.TYPE).createSpec();
 			return mfSpec;
 		} else if (descriptorClassName.equals("heavyatoms")) {
-	        DataColumnSpec haSpec = new DataColumnSpecCreator("Heavy Atoms Count",
-					IntCell.TYPE).createSpec();
-	        return haSpec;
+			DataColumnSpec haSpec = new DataColumnSpecCreator("Heavy Atoms Count", IntCell.TYPE).createSpec();
+			return haSpec;
+		} else if (descriptorClassName.equals("molarmass")) {
+			DataColumnSpec mmSpec = new DataColumnSpecCreator("Molar Mass", DoubleCell.TYPE).createSpec();
+			return mmSpec;
 		}
 		return DESCRIPTOR_COLSPEC_HASH.get(descriptorClassName);
 	}
@@ -240,23 +223,18 @@ public final class MolPropsLibrary {
 	/**
 	 * Get property for molecule.
 	 * 
-	 * @param rowKey
-	 *            Name of row - used error message.
-	 * @param mol
-	 *            The input molecule
-	 * @param descriptorClassName
-	 *            class name of the descriptor
+	 * @param rowKey Name of row - used error message.
+	 * @param mol The input molecule
+	 * @param descriptorClassName class name of the descriptor
 	 * @return a <code>DataCell</code> with the property or a missing cell if
 	 *         something goes wrong
 	 */
-	public static DataCell getProperty(final String rowKey,
-			final IAtomContainer mol, final String descriptorClassName) {
+	public static DataCell getProperty(final String rowKey, final IAtomContainer mol, final String descriptorClassName) {
 		if (descriptorClassName == null) {
 			throw new NullPointerException("Description must not be null.");
 		}
 		if (!DESCRIPTOR_HASH.containsKey(descriptorClassName)) {
-			LOGGER.warn("No such CDK descriptor: \"" + descriptorClassName
-					+ "\", assigning missing cell.");
+			LOGGER.warn("No such CDK descriptor: \"" + descriptorClassName + "\", assigning missing cell.");
 			return DataType.getMissingCell();
 		}
 		IMolecularDescriptor engine = DESCRIPTOR_HASH.get(descriptorClassName);
@@ -279,13 +257,11 @@ public final class MolPropsLibrary {
 				} else if (d instanceof DoubleResult) {
 					double dbl = ((DoubleResult) d).doubleValue();
 					i = (int) Math.round(dbl);
-					LOGGER.debug("qsar descriptor \"" + descriptorClassName
-							+ "\" for \"" + mol + "\" didn't return integer "
-							+ "but " + dbl + ", rounding to " + i);
+					LOGGER.debug("qsar descriptor \"" + descriptorClassName + "\" for \"" + mol
+							+ "\" didn't return integer " + "but " + dbl + ", rounding to " + i);
 					return new IntCell(i);
 				} else {
-					LOGGER.debug("Unable to handle descriptor result \""
-							+ d.getClass().getSimpleName()
+					LOGGER.debug("Unable to handle descriptor result \"" + d.getClass().getSimpleName()
 							+ "\", returning missing cell");
 				}
 			} else if (isDouble || isDoubleType) {
@@ -297,11 +273,10 @@ public final class MolPropsLibrary {
 					i = ((DoubleResult) d).doubleValue();
 					return new DoubleCell(i);
 				} else {
-					LOGGER.debug("Unable to handle descriptor result \""
-							+ d.getClass().getSimpleName()
+					LOGGER.debug("Unable to handle descriptor result \"" + d.getClass().getSimpleName()
 							+ "\", returning missing cell");
 				}
-			} else if (isDoubleArray || isDoubleArrayType){
+			} else if (isDoubleArray || isDoubleArrayType) {
 				DoubleArrayResult dr = (DoubleArrayResult) d;
 				Collection<DoubleCell> resultCol = new ArrayList<DoubleCell>();
 				for (int i = 0; i < dr.length(); i++) {
@@ -312,15 +287,11 @@ public final class MolPropsLibrary {
 				return cell;
 			}
 		} catch (ClassCastException cce) {
-			LOGGER.warn("Unable to get property \"" + descriptorClassName
-					+ "\" for molecule in row \"" + rowKey + "\": "
-					+ "Return value is not a double; assigning missing", cce);
+			LOGGER.warn("Unable to get property \"" + descriptorClassName + "\" for molecule in row \"" + rowKey
+					+ "\": " + "Return value is not a double; assigning missing", cce);
 		} catch (Exception e) {
-			LOGGER.warn(
-					"Exception (" + e.getClass().getSimpleName()
-							+ ") while computing descriptor \""
-							+ descriptorClassName + "\" for molecule in row \""
-							+ rowKey + "\": " + e.getMessage(), e);
+			LOGGER.warn("Exception (" + e.getClass().getSimpleName() + ") while computing descriptor \""
+					+ descriptorClassName + "\" for molecule in row \"" + rowKey + "\": " + e.getMessage(), e);
 		}
 		return DataType.getMissingCell();
 	}

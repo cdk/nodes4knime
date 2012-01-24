@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: KNIME CDK Integration
-Bundle-SymbolicName: org.openscience.cdk.knime;singleton:=true
+Bundle-SymbolicName: KnimeCdk;singleton:=true
 Bundle-Version: 1.0.0.qualifier
 Bundle-Vendor: KNIME GmbH, Konstanz and EBI, Cambridge
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
@@ -73,13 +73,16 @@ Export-Package: org.chemspider.knime,
  org.openscience.cdk.knime.convert.cdk2molecule,
  org.openscience.cdk.knime.convert.molecule2cdk,
  org.openscience.cdk.knime.coord2d,
+ org.openscience.cdk.knime.elementfilter;uses:="org.knime.core.node",
  org.openscience.cdk.knime.fingerprints,
  org.openscience.cdk.knime.fingerprints.similarity,
  org.openscience.cdk.knime.hydrogen,
  org.openscience.cdk.knime.lipinski,
  org.openscience.cdk.knime.molprops,
+ org.openscience.cdk.knime.opsin;uses:="org.knime.core.node,org.knime.core.node.defaultnodesettings",
  org.openscience.cdk.knime.sketcher,
  org.openscience.cdk.knime.sssearch,
+ org.openscience.cdk.knime.sumformula,
  org.openscience.cdk.knime.sugarremover,
  org.openscience.cdk.knime.type,
  org.openscience.cdk.knime.util,

@@ -17,6 +17,7 @@ THIS SOFTWARE.
  */
 
 package org.chemspider.knime;
+
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 
@@ -34,43 +35,43 @@ import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
 import org.knime.core.node.util.ColumnSelectionComboxBox;
 
 /**
- * <code>NodeDialog</code> for the "ChemSpider" Node.
- * Download Structures from ChemSpider.com.
- *
+ * <code>NodeDialog</code> for the "ChemSpider" Node. Download Structures from
+ * ChemSpider.com.
+ * 
  * This node dialog derives from {@link DefaultNodeSettingsPane} which allows
  * creation of a simple dialog with standard components. If you need a more
  * complex dialog please derive directly from
  * {@link org.knime.core.node.NodeDialogPane}.
- *
+ * 
  * @author Egon Willighagen
  */
 public class ChemSpiderNodeDialog extends NodeDialogPane {
 
-	private ColumnSelectionComboxBox box =
-	    new ColumnSelectionComboxBox(StringValue.class);
+	@SuppressWarnings("unchecked")
+	private ColumnSelectionComboxBox box = new ColumnSelectionComboxBox(StringValue.class);
 
-    /**
-     * New pane for configuring ChemSpider node dialog.
-     * This is just a suggestion to demonstrate possible default dialog
-     * components.
-     */
-    protected ChemSpiderNodeDialog() {
-        JPanel p = new JPanel(new GridBagLayout());
+	/**
+	 * New pane for configuring ChemSpider node dialog. This is just a
+	 * suggestion to demonstrate possible default dialog components.
+	 */
+	protected ChemSpiderNodeDialog() {
+		JPanel p = new JPanel(new GridBagLayout());
 
-        GridBagConstraints c = new GridBagConstraints();
-        c.gridx = 0;
-        c.gridy = 0;
+		GridBagConstraints c = new GridBagConstraints();
+		c.gridx = 0;
+		c.gridy = 0;
 
-        p.add(new JLabel("InchiKey column   "), c);
-        c.gridx = 1;
-        p.add(box);
+		p.add(new JLabel("InchiKey column   "), c);
+		c.gridx = 1;
+		p.add(box);
 
-        addTab("Column Selection", p);
+		addTab("Column Selection", p);
 
-    }
+	}
 
 	@Override
-	protected void loadSettingsFrom(final NodeSettingsRO settings, final DataTableSpec[] specs) throws NotConfigurableException {
+	protected void loadSettingsFrom(final NodeSettingsRO settings, final DataTableSpec[] specs)
+			throws NotConfigurableException {
 		try {
 			box.update(specs[0], settings.getString("inchikeyColumnName"));
 		} catch (InvalidSettingsException e) {

@@ -42,105 +42,80 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ------------------------------------------------------------------- * 
  */
-package org.openscience.cdk.knime.fingerprints.similarity;
+package org.openscience.cdk.knime.sumformula;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 
 /**
- * This class holds the settings for the similarity node.
+ * Settings for the "SumFormulaNode" Node.
  * 
- * @author Stephan Beisken, European Bioinformatics Institute
+ * @author Stephan Beisken
+ * 
  */
-public class SimilaritySettings {
+public class SumFormulaSettings {
 
-	/** Enum for the different aggregation methods. */
-	public enum AggregationMethod {
-		Minimum, Maximum, Average
-	}
-	public enum FingerprintTypes {
-        Standard, Extended, EState, MACCS, Pubchem
-    }
-
-	private String m_fingerprintColumn = null;
-	private String m_fingerprintRefColumn = null;
-	private AggregationMethod m_aggregation = AggregationMethod.Average;
-
+	private String massColumn;
+	private boolean excludeByValidSum;
+	
 	/**
-	 * Returns the name of the column that holds the fingerprints.
+	 * Gets the name of the mass containing double column.
 	 * 
-	 * @return a column name
+	 * @return the massColumn
 	 */
-	public String fingerprintColumn() {
-		return m_fingerprintColumn;
+	public String getMassColumn() {
+		return massColumn;
 	}
 
 	/**
-	 * Sets the name of the column that holds the fingerprints.
+	 * Sets the name of the mass containing double column.
 	 * 
-	 * @param columnName a column name
+	 * @param massColumn the massColumn to set
 	 */
-	public void fingerprintColumn(final String columnName) {
-		m_fingerprintColumn = columnName;
+	public void setMassColumn(String massColumn) {
+		this.massColumn = massColumn;
 	}
 
 	/**
-	 * Returns the name of the column that holds the reference fingerprints.
+	 * Returns if unlikely filtered molecular formulas should be exclucded.
 	 * 
-	 * @return a column name
+	 * @return the excludeByValidSum
 	 */
-	public String fingerprintRefColumn() {
-		return m_fingerprintRefColumn;
+	public boolean isExcludeByValidSum() {
+		return excludeByValidSum;
 	}
 
 	/**
-	 * Sets the name of the column that holds the reference fingerprints.
+	 * Sets if unlikely filtered molecular formulas should be exclucded.
 	 * 
-	 * @param columnName a column name
+	 * @param excludeByValidSum the excludeByValidSum to set
 	 */
-	public void fingerprintRefColumn(final String columnName) {
-		m_fingerprintRefColumn = columnName;
+	public void setExcludeByValidSum(boolean excludeByValidSum) {
+		this.excludeByValidSum = excludeByValidSum;
 	}
 
 	/**
-	 * Returns the aggregation method that should be used.
+	 * Saves the settings into the given node settings object.
 	 * 
-	 * @return the aggregation method
+	 * @param settings a node settings object
 	 */
-	public AggregationMethod aggregationMethod() {
-		return m_aggregation;
-	}
+	public void saveSettings(final NodeSettingsWO settings) {
 
-	/**
-	 * Sets the aggregation method that should be used.
-	 * 
-	 * @param type the aggregation method
-	 */
-	public void aggregationMethod(final AggregationMethod aggregation) {
-		m_aggregation = aggregation;
+		settings.addString("massColumn", massColumn);
+		settings.addBoolean("exclude", excludeByValidSum);
 	}
 
 	/**
 	 * Loads the settings from the given node settings object.
 	 * 
-	 * @param settings node settings
-	 * @throws InvalidSettingsException if some settings are missing
+	 * @param settings a node settings object
+	 * @throws InvalidSettingsException if not all required settings are
+	 *         available
 	 */
 	public void loadSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-		m_fingerprintColumn = settings.getString("molColumn");
-		m_fingerprintRefColumn = settings.getString("molRefColumn");
-		m_aggregation = AggregationMethod.valueOf(settings.getString("aggregationMethod"));
-	}
 
-	/**
-	 * Saves the settings to the given node settings object.
-	 * 
-	 * @param settings node settings
-	 */
-	public void saveSettingsTo(final NodeSettingsWO settings) {
-		settings.addString("molColumn", m_fingerprintColumn);
-		settings.addString("molRefColumn", m_fingerprintRefColumn);
-		settings.addString("aggregationMethod", m_aggregation.toString());
+		massColumn = settings.getString("massColumn");
+		excludeByValidSum = settings.getBoolean("exclude");
 	}
 }

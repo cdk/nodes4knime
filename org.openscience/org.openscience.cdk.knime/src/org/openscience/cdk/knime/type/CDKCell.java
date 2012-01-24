@@ -164,9 +164,8 @@ public final class CDKCell extends BlobDataCell implements CDKValue, StringValue
 	 * @return A serializer for reading/writing cells of this kind.
 	 * @see DataCell
 	 */
-	public static final DataCellSerializer<CDKCell> getCellSerializer_XXX() {
-		// remove "_XXX" from method name to activate
-		// note that atom types are not recovered after deserialization
+	public static final DataCellSerializer<CDKCell> getCellSerializer() {
+		
 		return SERIALIZER;
 	}
 
@@ -320,19 +319,6 @@ public final class CDKCell extends BlobDataCell implements CDKValue, StringValue
 			LOGGER.warn("Molecule could not be generated from \"" + smiles + "\": " + e.getMessage(), e);
 		}
 
-		// JOEMol class not found in lib, cdk smiles parser used
-		// JOEMol mol = new JOEMol(IOTypeHolder.instance().getIOType("SMILES"),
-		// IOTypeHolder.instance().getIOType("SDF"));
-		// try {
-		// if (!JOESmilesParser.smiToMol(mol, smiles, "Name:" + smiles)) {
-		// LOGGER.warn("Molecule could not be generated from \""
-		// + smiles + "\".");
-		// }
-		// } catch (Exception e) {
-		// LOGGER.warn("Molecule could not be generated from \""
-		// + smiles + "\"", e);
-		// }
-		// Molecule cdkMol = Convertor.convert(mol);
 		return cdkMol;
 	}
 

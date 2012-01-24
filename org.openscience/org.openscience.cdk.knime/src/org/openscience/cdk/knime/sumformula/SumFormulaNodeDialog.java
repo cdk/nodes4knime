@@ -42,105 +42,95 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ------------------------------------------------------------------- * 
  */
-package org.openscience.cdk.knime.fingerprints.similarity;
+package org.openscience.cdk.knime.sumformula;
 
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+
+import javax.swing.BorderFactory;
+import javax.swing.JCheckBox;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.border.Border;
+
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DoubleValue;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.NotConfigurableException;
+import org.knime.core.node.util.ColumnSelectionComboxBox;
 
 /**
- * This class holds the settings for the similarity node.
+ * <code>NodeDialog</code> for the "SumFormula" Node. Node to generate probable
+ * molecular formulas based on a given mass input.
  * 
- * @author Stephan Beisken, European Bioinformatics Institute
+ * @author Stephan Beisken
  */
-public class SimilaritySettings {
+public class SumFormulaNodeDialog extends NodeDialogPane {
 
-	/** Enum for the different aggregation methods. */
-	public enum AggregationMethod {
-		Minimum, Maximum, Average
-	}
-	public enum FingerprintTypes {
-        Standard, Extended, EState, MACCS, Pubchem
-    }
-
-	private String m_fingerprintColumn = null;
-	private String m_fingerprintRefColumn = null;
-	private AggregationMethod m_aggregation = AggregationMethod.Average;
-
+	@SuppressWarnings("unchecked")
+	private final ColumnSelectionComboxBox massColumn = new ColumnSelectionComboxBox((Border) null, DoubleValue.class);
+	private final JCheckBox excludeByValidSum = new JCheckBox("", true);
+	
+	private SumFormulaSettings settings = new SumFormulaSettings();
+	
 	/**
-	 * Returns the name of the column that holds the fingerprints.
-	 * 
-	 * @return a column name
+	 * New pane for configuring the SumFormula node.
 	 */
-	public String fingerprintColumn() {
-		return m_fingerprintColumn;
-	}
+	protected SumFormulaNodeDialog() {
 
-	/**
-	 * Sets the name of the column that holds the fingerprints.
-	 * 
-	 * @param columnName a column name
-	 */
-	public void fingerprintColumn(final String columnName) {
-		m_fingerprintColumn = columnName;
-	}
+		GridBagConstraints c = new GridBagConstraints();
 
-	/**
-	 * Returns the name of the column that holds the reference fingerprints.
-	 * 
-	 * @return a column name
-	 */
-	public String fingerprintRefColumn() {
-		return m_fingerprintRefColumn;
-	}
+		JPanel panel = new JPanel(new GridBagLayout());
+		panel.setBorder(BorderFactory.createTitledBorder("Settings"));
 
-	/**
-	 * Sets the name of the column that holds the reference fingerprints.
-	 * 
-	 * @param columnName a column name
-	 */
-	public void fingerprintRefColumn(final String columnName) {
-		m_fingerprintRefColumn = columnName;
-	}
+		c.gridx = 0;
+		c.gridy = 0;
+		c.anchor = GridBagConstraints.NORTHWEST;
 
+		panel.add(new JLabel("Mass column  "), c);
+		c.gridx++;
+		panel.add(massColumn, c);
+		c.gridy++;
+		c.gridx = 0;
+
+		panel.add(new JLabel("Exclude filtered  "), c);
+		c.gridx++;
+		panel.add(excludeByValidSum, c);
+		c.gridy++;
+		c.gridx = 0;
+
+		this.addTab("Settings", panel);
+	}
+	
 	/**
-	 * Returns the aggregation method that should be used.
-	 * 
-	 * @return the aggregation method
+	 * {@inheritDoc}
 	 */
-	public AggregationMethod aggregationMethod() {
-		return m_aggregation;
+	@Override
+	protected void loadSettingsFrom(final NodeSettingsRO settings, final DataTableSpec[] specs)
+			throws NotConfigurableException {
+
+		try {
+			this.settings.loadSettings(settings);
+		} catch (InvalidSettingsException ex) {
+			// ignore it
+		}
+
+		massColumn.update(specs[0], this.settings.getMassColumn());
+		excludeByValidSum.setSelected(this.settings.isExcludeByValidSum());
 	}
 
 	/**
-	 * Sets the aggregation method that should be used.
-	 * 
-	 * @param type the aggregation method
+	 * {@inheritDoc}
 	 */
-	public void aggregationMethod(final AggregationMethod aggregation) {
-		m_aggregation = aggregation;
-	}
+	@Override
+	protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
 
-	/**
-	 * Loads the settings from the given node settings object.
-	 * 
-	 * @param settings node settings
-	 * @throws InvalidSettingsException if some settings are missing
-	 */
-	public void loadSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-		m_fingerprintColumn = settings.getString("molColumn");
-		m_fingerprintRefColumn = settings.getString("molRefColumn");
-		m_aggregation = AggregationMethod.valueOf(settings.getString("aggregationMethod"));
-	}
+		this.settings.setMassColumn(massColumn.getSelectedColumn());
+		this.settings.setExcludeByValidSum(excludeByValidSum.isSelected());
 
-	/**
-	 * Saves the settings to the given node settings object.
-	 * 
-	 * @param settings node settings
-	 */
-	public void saveSettingsTo(final NodeSettingsWO settings) {
-		settings.addString("molColumn", m_fingerprintColumn);
-		settings.addString("molRefColumn", m_fingerprintRefColumn);
-		settings.addString("aggregationMethod", m_aggregation.toString());
+		this.settings.saveSettings(settings);
 	}
 }
