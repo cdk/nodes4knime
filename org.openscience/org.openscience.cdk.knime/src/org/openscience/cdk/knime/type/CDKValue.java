@@ -83,6 +83,13 @@ public interface CDKValue extends DataValue {
 	IMolecule getMolecule();
 
 	/**
+     * Returns the Smiles string of the molecule.
+     *
+     * @return a String value
+     */
+    String getSmilesValue();
+	
+	/**
 	 * Get the CDK atom container.
 	 * 
 	 * @return the corresponding atom container
