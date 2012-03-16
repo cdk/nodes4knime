@@ -33,6 +33,7 @@
       </node>
 	  <node category-path="/community/cdk" expert-flag="false" factory-class="org.openscience.cdk.knime.atomsignature.AtomSignatureNodeFactory" id="org.openscience.cdk.knime.atomsignature.AtomSignatureNodeFactory"/>
    	  <node category-path="/community/cdk" expert-flag="false" factory-class="org.openscience.cdk.knime.sugarremover.SugarRemoverNodeFactory" id="org.openscience.cdk.knime.sugarremover.SugarRemoverNodeFactory"/>
+   	  <node category-path="/community/cdk" factory-class="org.openscience.cdk.knime.rmsdcalculator.RMSDCalculatorNodeFactory" id="org.openscience.cdk.knime.rmsdcalculator.RMSDCalculatorNodeFactory"/>
       <node
             category-path="/community/cdk"
             expert-flag="false"

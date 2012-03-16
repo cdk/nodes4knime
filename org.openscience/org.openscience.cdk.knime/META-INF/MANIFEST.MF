@@ -189,3 +189,4 @@ Export-Package: org.chemspider.knime,
  signature.simple
 Bundle-Activator: org.openscience.cdk.knime.CDKNodePlugin
 Bundle-ActivationPolicy: lazy
+Import-Package: org.knime.distmatrix.type
