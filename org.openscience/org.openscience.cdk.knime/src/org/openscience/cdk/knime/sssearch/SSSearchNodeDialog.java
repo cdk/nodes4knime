@@ -77,7 +77,8 @@ public class SSSearchNodeDialog extends NodeDialogPane {
 
     private final JMolSketcherPanel m_panel = new JMolSketcherPanel();
 
-    private final ColumnSelectionComboxBox m_molColumnName =
+    @SuppressWarnings("unchecked")
+	private final ColumnSelectionComboxBox m_molColumnName =
             new ColumnSelectionComboxBox((Border)null, CDKValue.class);
 
     private SSSearchSettings m_settings = new SSSearchSettings();

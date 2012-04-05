@@ -1,11 +1,8 @@
 package org.openscience.cdk.knime.atomsignature;
 
-import org.apache.xmlbeans.impl.xb.xsdschema.Public;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.openscience.cdk.knime.fingerprints.FingerprintSettings.FingerprintTypes;
-import org.openscience.cdk.knime.fingerprints.similarity.SimilaritySettings.AggregationMethod;
 
 public class AtomSignatureSettings {
 	private String m_molColumnName;

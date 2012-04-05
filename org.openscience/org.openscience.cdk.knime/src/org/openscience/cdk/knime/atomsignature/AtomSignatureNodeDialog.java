@@ -2,7 +2,6 @@ package org.openscience.cdk.knime.atomsignature;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.security.Signature;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JCheckBox;
@@ -21,13 +20,9 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
-import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
-import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.util.ColumnSelectionComboxBox;
 import org.openscience.cdk.knime.atomsignature.AtomSignatureSettings.AtomTypes;
 import org.openscience.cdk.knime.atomsignature.AtomSignatureSettings.SignatureTypes;
-import org.openscience.cdk.knime.connectivity.ConnectivitySettings;
-import org.openscience.cdk.knime.fingerprints.FingerprintSettings.FingerprintTypes;
 import org.openscience.cdk.knime.type.CDKValue;
 
 /**

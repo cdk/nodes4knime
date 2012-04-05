@@ -72,7 +72,6 @@ import org.openscience.cdk.io.MDLV2000Writer;
 import org.openscience.cdk.io.Mol2Writer;
 import org.openscience.cdk.io.SMILESWriter;
 import org.openscience.cdk.knime.type.CDKValue;
-import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 
 /**
  * Helper class for converting CDK molecules into strings representations.

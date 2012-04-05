@@ -20,6 +20,8 @@ org.openscience.cdk.qsar.descriptors.molecular.BPolDescriptor
 org.openscience.cdk.qsar.descriptors.molecular.BondCountDescriptor
 org.openscience.cdk.qsar.descriptors.molecular.CarbonConnectivityOrderOneDescriptor
 org.openscience.cdk.qsar.descriptors.molecular.CarbonConnectivityOrderZeroDescriptor
+org.openscience.cdk.qsar.descriptors.molecular.AutocorrelationDescriptorCharge
+org.openscience.cdk.qsar.descriptors.molecular.AutocorrelationDescriptorPolarizability
 
 # all array results
 # org.openscience.cdk.qsar.descriptors.molecular.ChiChainDescriptor

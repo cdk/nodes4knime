@@ -2,55 +2,34 @@ package org.openscience.cdk.knime.atomsignature;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 
-import org.knime.base.data.append.column.AppendedColumnTable;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
-import org.knime.core.data.RowKey;
-import org.knime.core.data.collection.CollectionCellFactory;
-import org.knime.core.data.collection.SetCell;
-import org.knime.core.data.container.ColumnRearranger;
-import org.knime.core.data.container.SingleCellFactory;
 import org.knime.core.data.def.DefaultRow;
-import org.knime.core.data.def.DoubleCell;
-import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
-import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.openscience.cdk.aromaticity.CDKHueckelAromaticityDetector;
 import org.openscience.cdk.exception.CDKException;
-import org.openscience.cdk.graph.ConnectivityChecker;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
-import org.openscience.cdk.interfaces.IMoleculeSet;
 import org.openscience.cdk.knime.atomsignature.AtomSignatureSettings.AtomTypes;
 import org.openscience.cdk.knime.atomsignature.AtomSignatureSettings.SignatureTypes;
-import org.openscience.cdk.knime.connectivity.ConnectivitySettings;
-import org.openscience.cdk.knime.type.CDKCell;
 import org.openscience.cdk.knime.type.CDKValue;
 import org.openscience.cdk.nonotify.NoNotificationChemObjectBuilder;
-import org.openscience.cdk.normalize.SMSDNormalizer;
-import org.openscience.cdk.qsar.descriptors.molecular.AtomCountDescriptor;
 import org.openscience.cdk.signature.AtomSignature;
 import org.openscience.cdk.tools.CDKHydrogenAdder;
-import org.openscience.cdk.tools.HOSECodeAnalyser;
 import org.openscience.cdk.tools.HOSECodeGenerator;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 
@@ -64,13 +43,6 @@ import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 public class AtomSignatureNodeModel extends NodeModel {
     
 	private final AtomSignatureSettings m_settings = new AtomSignatureSettings();
-	
-    // the logger instance
-    private static final NodeLogger logger = NodeLogger
-            .getLogger(AtomSignatureNodeModel.class);
-    
-    
-
 
     /**
      * Constructor for the node model.

@@ -34,24 +34,17 @@
 	  <node category-path="/community/cdk" expert-flag="false" factory-class="org.openscience.cdk.knime.atomsignature.AtomSignatureNodeFactory" id="org.openscience.cdk.knime.atomsignature.AtomSignatureNodeFactory"/>
    	  <node category-path="/community/cdk" expert-flag="false" factory-class="org.openscience.cdk.knime.sugarremover.SugarRemoverNodeFactory" id="org.openscience.cdk.knime.sugarremover.SugarRemoverNodeFactory"/>
    	  <node category-path="/community/cdk" factory-class="org.openscience.cdk.knime.rmsdcalculator.RMSDCalculatorNodeFactory" id="org.openscience.cdk.knime.rmsdcalculator.RMSDCalculatorNodeFactory"/>
-      <node
-            category-path="/community/cdk"
-            expert-flag="false"
-            factory-class="org.openscience.cdk.knime.sumformula.SumFormulaNodeFactory"
-            id="org.openscience.cdk.knime.sumformula.SumFormulaNodeFactory">
+      <node category-path="/community/cdk" expert-flag="false" factory-class="org.openscience.cdk.knime.sumformula.SumFormulaNodeFactory" id="org.openscience.cdk.knime.sumformula.SumFormulaNodeFactory">
       </node>
-      <node
-            category-path="/community/cdk"
-            expert-flag="false"
-            factory-class="org.openscience.cdk.knime.elementfilter.ElementFilterNodeFactory"
-            id="org.openscience.cdk.knime.elementfilter.ElementFilterNodeFactory">
+      <node category-path="/community/cdk" expert-flag="false" factory-class="org.openscience.cdk.knime.elementfilter.ElementFilterNodeFactory" id="org.openscience.cdk.knime.elementfilter.ElementFilterNodeFactory">
       </node>
-      <node
-            category-path="/community/cdk"
-            expert-flag="false"
-            factory-class="org.openscience.cdk.knime.opsin.OpsinNameConverterNodeFactory"
-            id="org.openscience.cdk.knime.opsin.OpsinNameConverterNodeFactory">
+      <node category-path="/community/cdk" expert-flag="false" factory-class="org.openscience.cdk.knime.opsin.OpsinNameConverterNodeFactory" id="org.openscience.cdk.knime.opsin.OpsinNameConverterNodeFactory">
       </node>
+<node
+      category-path="/community/cdk"
+      expert-flag="false"
+      factory-class="org.openscience.cdk.knime.whim3d.Whim3dNodeFactory"
+      id="org.openscience.cdk.knime.whim3d.Whim3dNodeFactory"/>
 </extension>
    <extension point="org.knime.workbench.repository.categories">
        <category after="" description="Nodes using the Chemistry Development Kit (CDK)" icon="icons/cdk.png" level-id="cdk" name="CDK" path="/community"/>

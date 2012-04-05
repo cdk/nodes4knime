@@ -3,7 +3,6 @@ package org.openscience.cdk.knime.rmsdcalculator;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.openscience.cdk.knime.fingerprints.FingerprintSettings.FingerprintTypes;
 
 public class RMSDCalculatorSettings {
 	// always set m_molColumnName to null...

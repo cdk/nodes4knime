@@ -155,7 +155,7 @@ public class TimeoutThreadPool {
         }
 
         if (!w.doWork(r, timeout)) {
-            w.stop();
+            w.interrupt();
             return false;
         } else {
             m_workers.offer(w);
