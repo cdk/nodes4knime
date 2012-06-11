@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
       id="org.openscience.cdk.knime.feature"
-      label="KNIME CDK Integration (based on CDK 1.4)"
-      version="1.0.0.qualifier"
+      label="KNIME CDK Integration (based on CDK 1.4.9)"
+      version="1.1.0.qualifier"
       provider-name="University Konstanz and EBI"
       plugin="org.openscience.cdk.knime">
 
@@ -10,16 +10,16 @@
       This feature contains several nodes that are suitable for processing
 chemical data, among others nodes that integrate some of the
 functionality in the CDK, the Chemistry Development Kit.
-This feature is based on CDK 1.4 and is still in experimental
+This feature is based on CDK 1.4.9 and is still in experimental
 status. It is not compatible with the old CDK feature from the
 KNIME.org update site.
    </description>
 
    <copyright>
-      Copyright, 2003 - 2011
-      University of Konstanz, Germany
-      KNIME GmbH, Konstanz, Germany
-      EBI, Hinxton, UK
+      Copyright, 2003 - 2012
+University of Konstanz, Germany
+KNIME GmbH, Konstanz, Germany
+EBI, Hinxton, UK
    </copyright>
 
    <license>
