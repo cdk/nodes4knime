@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: KNIME CDK Integration
 Bundle-SymbolicName: org.openscience.cdk.knime;singleton:=true
 Bundle-Version: 1.1.0.qualifier
-Bundle-Vendor: KNIME GmbH, Konstanz and EBI, Cambridge
+Bundle-Vendor: KNIME GmbH, Konstanz and EMBL-EBI, Cambridge
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ClassPath: knime-cdk.jar,
  lib/cdk-1.5.0.jar,
