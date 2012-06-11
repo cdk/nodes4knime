@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
-<knimeNode icon="./RMSD Calculator.png" type="Other">
-    <name>RMSDCalculator</name>
+<knimeNode icon="./RMSDCalculator.png" type="Other">
+    <name>RMSD Calculator</name>
     
     <shortDescription>
         Calculates the RMSD between different conformers
     </shortDescription>
     
     <fullDescription>
-        <intro>Creates a new columns containing the RMSD distances between different conformers. The computations are based
-        of the <a href="http://cdk.sf.net">CDK</a> toolkit.</intro>. At the moment two types of RMSD calculations are possible.
+        <intro>Creates a new columns containing the RMSD distances between different conformers (required 3D coordinates). 
+        The computations are based of the <a href="http://cdk.sf.net">CDK</a> toolkit.</intro>. At the moment two types of
+         RMSD calculations are possible.
         One based on the alignment using the Kabsch algorithm and the other based on the isomorphic alignment of the 
         molecular structure and using the global geometry.        
    

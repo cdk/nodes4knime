@@ -1,48 +1,34 @@
 /*
  * ------------------------------------------------------------------------
- *
- *  Copyright (C) 2003 - 2011
- *  University of Konstanz, Germany and
- *  KNIME GmbH, Konstanz, Germany
- *  Website: http://www.knime.org; Email: contact@knime.org
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License, Version 3, as
- *  published by the Free Software Foundation.
- *
- *  This program is distributed in the hope that it will be useful, but
- *  WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, see <http://www.gnu.org/licenses>.
- *
- *  Additional permission under GNU GPL version 3 section 7:
- *
- *  KNIME interoperates with ECLIPSE solely via ECLIPSE's plug-in APIs.
- *  Hence, KNIME and ECLIPSE are both independent programs and are not
- *  derived from each other. Should, however, the interpretation of the
- *  GNU GPL Version 3 ("License") under any applicable laws result in
- *  KNIME and ECLIPSE being a combined program, KNIME GMBH herewith grants
- *  you the additional permission to use and propagate KNIME together with
- *  ECLIPSE with only the license terms in place for ECLIPSE applying to
- *  ECLIPSE and the GNU GPL Version 3 applying for KNIME, provided the
- *  license terms of ECLIPSE themselves allow for the respective use and
- *  propagation of ECLIPSE together with KNIME.
- *
- *  Additional permission relating to nodes for KNIME that extend the Node
- *  Extension (and in particular that are based on subclasses of NodeModel,
- *  NodeDialog, and NodeView) and that only interoperate with KNIME through
- *  standard APIs ("Nodes"):
- *  Nodes are deemed to be separate and independent programs and to not be
- *  covered works.  Notwithstanding anything to the contrary in the
- *  License, the License does not apply to Nodes, you are not required to
- *  license Nodes under the License, and you are granted a license to
- *  prepare and propagate Nodes, in each case even if such Nodes are
- *  propagated with or for interoperation with KNIME.  The owner of a Node
- *  may freely choose the license terms applicable to such Node, including
- *  when such Node is propagated with or for interoperation with KNIME.
+ * 
+ * Copyright (C) 2003 - 2011 University of Konstanz, Germany and KNIME GmbH, Konstanz, Germany Website:
+ * http://www.knime.org; Email: contact@knime.org
+ * 
+ * This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public
+ * License, Version 3, as published by the Free Software Foundation.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with this program; if not, see
+ * <http://www.gnu.org/licenses>.
+ * 
+ * Additional permission under GNU GPL version 3 section 7:
+ * 
+ * KNIME interoperates with ECLIPSE solely via ECLIPSE's plug-in APIs. Hence, KNIME and ECLIPSE are both independent
+ * programs and are not derived from each other. Should, however, the interpretation of the GNU GPL Version 3
+ * ("License") under any applicable laws result in KNIME and ECLIPSE being a combined program, KNIME GMBH herewith
+ * grants you the additional permission to use and propagate KNIME together with ECLIPSE with only the license terms in
+ * place for ECLIPSE applying to ECLIPSE and the GNU GPL Version 3 applying for KNIME, provided the license terms of
+ * ECLIPSE themselves allow for the respective use and propagation of ECLIPSE together with KNIME.
+ * 
+ * Additional permission relating to nodes for KNIME that extend the Node Extension (and in particular that are based on
+ * subclasses of NodeModel, NodeDialog, and NodeView) and that only interoperate with KNIME through standard APIs
+ * ("Nodes"): Nodes are deemed to be separate and independent programs and to not be covered works. Notwithstanding
+ * anything to the contrary in the License, the License does not apply to Nodes, you are not required to license Nodes
+ * under the License, and you are granted a license to prepare and propagate Nodes, in each case even if such Nodes are
+ * propagated with or for interoperation with KNIME. The owner of a Node may freely choose the license terms applicable
+ * to such Node, including when such Node is propagated with or for interoperation with KNIME.
  * --------------------------------------------------------------------- *
  */
 package org.openscience.cdk.knime.type;
@@ -71,24 +57,21 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettings;
 import org.openscience.cdk.ChemFile;
-import org.openscience.cdk.Molecule;
-import org.openscience.cdk.aromaticity.CDKHueckelAromaticityDetector;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.geometry.GeometryTools;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IBond;
 import org.openscience.cdk.interfaces.IChemFile;
-import org.openscience.cdk.interfaces.IMolecule;
 import org.openscience.cdk.io.CMLReader;
 import org.openscience.cdk.io.CMLWriter;
 import org.openscience.cdk.io.SDFWriter;
 import org.openscience.cdk.io.cml.CMLCoreModule;
 import org.openscience.cdk.io.cml.CMLStack;
+import org.openscience.cdk.knime.CDKNodeUtils;
 import org.openscience.cdk.layout.StructureDiagramGenerator;
 import org.openscience.cdk.libio.cml.ICMLCustomizer;
-import org.openscience.cdk.nonotify.NoNotificationChemObjectBuilder;
-import org.openscience.cdk.smiles.SmilesGenerator;
+import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.smiles.SmilesParser;
 import org.openscience.cdk.tools.manipulator.ChemFileManipulator;
 import org.xmlcml.cml.element.CMLAtomType;
@@ -121,10 +104,12 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 			// don't customize the rest
 			@Override
 			public void customize(final IBond bond, final Object nodeToAdd) throws Exception {
+
 			}
 
 			@Override
 			public void customize(final IAtomContainer molecule, final Object nodeToAdd) throws Exception {
+
 			}
 		});
 	}
@@ -137,9 +122,8 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 	public static final DataType TYPE = DataType.getType(CDKCell.class);
 
 	/**
-	 * Returns the preferred value class of this cell implementation. This
-	 * method is called per reflection to determine which is the preferred
-	 * renderer, comparator, etc.
+	 * Returns the preferred value class of this cell implementation. This method is called per reflection to determine
+	 * which is the preferred renderer, comparator, etc.
 	 * 
 	 * @return StringValue.class
 	 */
@@ -151,14 +135,12 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 	private static final NodeLogger LOGGER = NodeLogger.getLogger(CDKCell.class);
 
 	/**
-	 * Name of the data column spec property that indicates if the molecules in
-	 * the column have 2D coordinates.
+	 * Name of the data column spec property that indicates if the molecules in the column have 2D coordinates.
 	 */
 	public static final String COORD2D_AVAILABLE = "2D coordinates available";
 
 	/**
-	 * Name of the data column spec property that indicates if the molecules in
-	 * the column have 3D coordinates.
+	 * Name of the data column spec property that indicates if the molecules in the column have 3D coordinates.
 	 */
 	public static final String COORD3D_AVAILABLE = "3D coordinates available";
 
@@ -168,8 +150,8 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 	private static final DataCellSerializer<CDKCell> SERIALIZER = new CDKSerializer();
 
 	/**
-	 * Returns the factory to read/write DataCells of this class from/to a
-	 * DataInput/DataOutput. This method is called via reflection.
+	 * Returns the factory to read/write DataCells of this class from/to a DataInput/DataOutput. This method is called
+	 * via reflection.
 	 * 
 	 * @return A serializer for reading/writing cells of this kind.
 	 * @see DataCell
@@ -190,9 +172,8 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 	private final IAtomContainer m_cdkMol;
 
 	/**
-	 * Factory method to be used for creation. It will parse the smiles string
-	 * and if that is successful it will create a new instance of smiles cell,
-	 * otherwise it will return a SmilesType.SMILES_TYP.getMissing() instance.
+	 * Factory method to be used for creation. It will parse the smiles string and if that is successful it will create
+	 * a new instance of smiles cell, otherwise it will return a SmilesType.SMILES_TYP.getMissing() instance.
 	 * 
 	 * @param smiles the smiles string to parse
 	 * @return a new CDKCell if possible, otherwise a missing cell
@@ -202,21 +183,16 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 		IAtomContainer cdkMol = createMol(smiles);
 
 		if (cdkMol == null) {
-			LOGGER.debug("Assigning missing cell for " + smiles);
 			return DataType.getMissingCell();
 		}
 
 		cdkMol.setProperty(KEY, smiles);
 
 		try {
-			CDKHueckelAromaticityDetector.detectAromaticity(cdkMol);
-			StructureDiagramGenerator sdg = new StructureDiagramGenerator();
-			sdg.setMolecule((IMolecule) cdkMol);
-			sdg.generateCoordinates();
-			cdkMol = sdg.getMolecule();
-			assert (GeometryTools.has2DCoordinates(cdkMol));
-		} catch (Exception e) {
-			LOGGER.warn("Unable to generate 2D coordinates for" + " molecule: " + smiles, e);
+			CDKNodeUtils.getStandardMolecule(cdkMol);
+			cdkMol = CDKNodeUtils.calculateCoordinates(cdkMol, true);
+		} catch (CDKException exception) {
+			return DataType.getMissingCell();
 		}
 
 		return new CDKCell(cdkMol);
@@ -230,13 +206,7 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 	public CDKCell(final IAtomContainer atomContainer) {
 
 		m_cdkMol = atomContainer;
-		
-		if (m_cdkMol.getProperty(KEY) == null) {
-			SmilesGenerator sg = new SmilesGenerator();
-			sg.setUseAromaticityFlag(true);
-			String smiles = sg.createSMILES(m_cdkMol);
-			m_cdkMol.setProperty(KEY, smiles);
-		}
+		CDKNodeUtils.calculateSmiles(atomContainer);
 	}
 
 	/**
@@ -254,7 +224,6 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 			writer.write(m_cdkMol);
 			return stringWriter.toString();
 		} catch (CDKException ex) {
-			LOGGER.error("Error while creating CML string", ex);
 			return "Error while creating CML string";
 		}
 	}
@@ -277,13 +246,13 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 		IAtomContainer cdkMol = m_cdkMol;
 		SDFWriter sdfWriter = null;
 		StringWriter stringWriter = null;
-		
+
 		try {
 			if (!GeometryTools.has2DCoordinates(m_cdkMol)) {
 				if (!GeometryTools.has3DCoordinates(m_cdkMol)) {
 
 					StructureDiagramGenerator sdg = new StructureDiagramGenerator();
-					sdg.setMolecule((IMolecule) m_cdkMol);
+					sdg.setMolecule(m_cdkMol);
 					sdg.generateCoordinates();
 					cdkMol = sdg.getMolecule();
 				}
@@ -293,8 +262,9 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 			sdfWriter = new SDFWriter(stringWriter);
 
 			sdfWriter.write(cdkMol);
-			
+
 		} catch (CDKException exception) {
+			LOGGER.error("Error while cwriting sdf", exception);
 		} finally {
 			try {
 				sdfWriter.close();
@@ -302,29 +272,7 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 			} catch (IOException exception) {
 			}
 		}
-		// KNIME SDF type requires string to be terminated
-		// by $$$$ -- see org.knime.chem.types.SdfValue for details
-		// String postfix = "\n$$$$\n";
-		// if (!.endsWith(postfix)) {
-		// stringWriter.append(postfix);
-		// StringBuilder valueBuilder = new StringBuilder();
-		// valueBuilder.append(value);
-		// valueBuilder.append(postfix);
-		// value = valueBuilder.toString();
-		// }
 		return stringWriter.toString();
-	}
-	
-	/**
-	 * {@inheritDoc}
-	 * 
-	 * @deprecated use {@link #getAtomContainer()} instead
-	 */
-	@Deprecated
-	@Override
-	public IMolecule getMolecule() {
-		
-		return new Molecule(m_cdkMol);
 	}
 
 	/**
@@ -349,13 +297,11 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 	}
 
 	/**
-	 * Returns a new CDKCell with the String value retrieved from the node
-	 * settings.
+	 * Returns a new CDKCell with the String value retrieved from the node settings.
 	 * 
 	 * @param config to read the smiles's String value from
 	 * @return a new CDKCell or <code>null</code>
-	 * @throws InvalidSettingsException if the key is not available in the node
-	 *         settings
+	 * @throws InvalidSettingsException if the key is not available in the node settings
 	 * @throws NullPointerException if the smiles string is <code>null</code>
 	 * @see #save
 	 */
@@ -369,35 +315,35 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 	}
 
 	private void writeObject(final ObjectOutputStream out) throws IOException {
+
 		out.defaultWriteObject();
 	}
 
 	private void readObject(final ObjectInputStream in) throws IOException, ClassNotFoundException {
+
 		in.defaultReadObject();
-		// assert (m_cdkMol == null);
-		// m_cdkMol = createMol(m_smiles);
 	}
 
 	/**
-	 * Factory method to create a {@link IMolecule} from a Smiles string.
+	 * Factory method to create an AtomContainer from a Smiles string.
 	 * 
 	 * @param smiles Smiles representation to convert
-	 * @return a CDK Molecule for the Smiles string or <code>null</code> if the
-	 *         Smiles can't be parsed or is <code>null</code>
+	 * @return a CDK Molecule for the Smiles string or <code>null</code> if the Smiles can't be parsed or is
+	 *         <code>null</code>
 	 * 
-	 * @deprecated
 	 */
-	public static final IMolecule createMol(final String smiles) {
+	private static IAtomContainer createMol(final String smiles) {
 
 		if (smiles == null) {
 			return null;
 		}
 
-		SmilesParser parser = new SmilesParser(NoNotificationChemObjectBuilder.getInstance());
-		IMolecule cdkMol = null;
+		SmilesParser parser = new SmilesParser(SilentChemObjectBuilder.getInstance());
+		IAtomContainer cdkMol = null;
 		try {
 			cdkMol = parser.parseSmiles(smiles);
-		} catch (Exception e) {
+		} catch (Exception exception) {
+			LOGGER.error("Error while parsing smiles", exception);
 		}
 
 		return cdkMol;
@@ -408,6 +354,7 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 	 */
 	@Override
 	protected boolean equalsDataCell(final DataCell dc) {
+
 		return this.getSmilesValue().equals(((CDKCell) dc).getSmilesValue());
 	}
 
@@ -426,16 +373,18 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 	@Override
 	public String toString() {
 
-		return getSmilesValue();
+		return getSdfValue();
 	}
 
 	/** Factory for (de-)serializing a DoubleCell. */
 	private static class CDKSerializer implements DataCellSerializer<CDKCell> {
+
 		/**
 		 * {@inheritDoc}
 		 */
 		@Override
 		public void serialize(final CDKCell cell, final DataCellDataOutput out) throws IOException {
+
 			byte[] data = cell.getStringValue().getBytes();
 			out.writeInt(data.length);
 			out.write(data);
@@ -446,6 +395,7 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 		 */
 		@Override
 		public CDKCell deserialize(final DataCellDataInput input) throws IOException {
+
 			int size = input.readInt();
 			byte[] cml = new byte[size];
 			input.readFully(cml);
@@ -454,16 +404,19 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 				CMLReader reader = new CMLReader(new ByteArrayInputStream(cml));
 
 				reader.registerConvention("bioclipse:atomType", new CMLCoreModule((IChemFile) null) {
+
 					List<String> atomTypes = new ArrayList<String>();
 
 					@Override
 					protected void newAtomData() {
+
 						super.newAtomData();
 						atomTypes = new ArrayList<String>();
 					}
 
 					@Override
 					protected void storeAtomData() {
+
 						super.storeAtomData();
 
 						boolean hasAtomType = false;
@@ -482,6 +435,7 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 
 					@Override
 					public void endElement(final CMLStack xpath, final String uri, final String name, final String raw) {
+
 						if (xpath.endsWith("atom", "atomType")) {
 							while ((atomTypes.size() + 1) < atomCounter) {
 								atomTypes.add(null);

@@ -7,11 +7,9 @@ package org.openscience.cdk.knime.whim3d;
  */
 public enum Whim3dSchemes {
 
-	UNITY_WEIGHTS("Unit Weights", "unity"), 
-	ATOMIC_MASSES("Atomic Masses", "mass"), 
-	ATOMIC_POLARIZABILITIES("Atomic Polarizabilities", "polar"), 
-	VdW_VOLUMES("VdW Volumes", "volume"), 
-	ATOMIC_ELECTRONEGATIVITIES("Atomic Electronegativities", "eneg");
+	UNITY_WEIGHTS("Unit Weights", "unity"), ATOMIC_MASSES("Atomic Masses", "mass"), ATOMIC_POLARIZABILITIES(
+			"Atomic Polarizabilities", "polar"), VdW_VOLUMES("VdW Volumes", "volume"), ATOMIC_ELECTRONEGATIVITIES(
+			"Atomic Electronegativities", "eneg");
 
 	private String title;
 	private String parameterName;

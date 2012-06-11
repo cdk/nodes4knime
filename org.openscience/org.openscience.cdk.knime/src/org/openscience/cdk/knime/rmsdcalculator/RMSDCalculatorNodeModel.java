@@ -45,15 +45,13 @@ public class RMSDCalculatorNodeModel extends NodeModel {
 
 	private final RMSDCalculatorSettings m_settings = new RMSDCalculatorSettings();
 	// the logger instance
-	private static final NodeLogger LOGGER = NodeLogger
-			.getLogger(RMSDCalculatorNodeModel.class);
+	private static final NodeLogger LOGGER = NodeLogger.getLogger(RMSDCalculatorNodeModel.class);
 
 	/**
 	 * Constructor for the node model.
 	 */
 	protected RMSDCalculatorNodeModel() {
 
-		// TODO one incoming port and one outgoing port is assumed
 		super(1, 1);
 	}
 
@@ -61,13 +59,11 @@ public class RMSDCalculatorNodeModel extends NodeModel {
 	 * {@inheritDoc}
 	 */
 	@Override
-	protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
-			final ExecutionContext exec) throws Exception {
-		ColumnRearranger cr = createColumnRearranger(inData[0]
-				.getDataTableSpec());
+	protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
+			throws Exception {
 
-		return new BufferedDataTable[] { exec.createColumnRearrangeTable(
-				inData[0], cr, exec) };
+		ColumnRearranger cr = createColumnRearranger(inData[0].getDataTableSpec());
+		return new BufferedDataTable[] { exec.createColumnRearrangeTable(inData[0], cr, exec) };
 
 	}
 
@@ -76,42 +72,38 @@ public class RMSDCalculatorNodeModel extends NodeModel {
 	 */
 	@Override
 	protected void reset() {
-		// TODO Code executed on reset.
-		// Models build during execute are cleared here.
-		// Also data handled in load/saveInternals will be erased here.
+
+		// nothing to do
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	protected DataTableSpec[] configure(final DataTableSpec[] inSpecs)
-			throws InvalidSettingsException {
+	protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
 
 		if (m_settings.molColumnName() == null) {
-            String name = null;
-            for (DataColumnSpec s : inSpecs[0]) {
-                if (s.getType().isCompatible(CDKValue.class)) {
-                    name = s.getName();
-                }
-            }
-            if (name != null) {
-                m_settings.molColumnName(name);
-                setWarningMessage("Auto configuration: Using column \"" + name
-                        + "\"");
-            } else {
-                throw new InvalidSettingsException(
-                        "No CDK compatible column in input table");
-            }
-        }
+			String name = null;
+			for (DataColumnSpec s : inSpecs[0]) {
+				if (s.getType().isCompatible(CDKValue.class)) {
+					name = s.getName();
+				}
+			}
+			if (name != null) {
+				m_settings.molColumnName(name);
+				setWarningMessage("Auto configuration: Using column \"" + name + "\"");
+			} else {
+				throw new InvalidSettingsException("No CDK compatible column in input table");
+			}
+		}
 		// creates a new column with the correct specifications
 		ColumnRearranger arranger = createColumnRearranger(inSpecs[0]);
 
 		return new DataTableSpec[] { arranger.createSpec() };
 	}
 
-	private ColumnRearranger createColumnRearranger(final DataTableSpec inSpecs)
-			throws InvalidSettingsException {
+	private ColumnRearranger createColumnRearranger(final DataTableSpec inSpecs) throws InvalidSettingsException {
+
 		// get column name and check if it is defined
 		String molcolname = m_settings.molColumnName();
 		if (molcolname == null || !inSpecs.containsName(molcolname)) {
@@ -124,8 +116,7 @@ public class RMSDCalculatorNodeModel extends NodeModel {
 			throw new InvalidSettingsException("No CDK column: " + molcolname);
 		}
 		String newColName = DataTableSpec.getUniqueColumnName(inSpecs, "RMSD");
-		DataColumnSpecCreator c = new DataColumnSpecCreator(newColName,
-				DistanceVectorDataCell.TYPE);
+		DataColumnSpecCreator c = new DataColumnSpecCreator(newColName, DistanceVectorDataCell.TYPE);
 		DataColumnSpec appendSpec = c.createSpec();
 
 		final int molColIndex = inSpecs.findColumnIndex(molcolname);
@@ -136,6 +127,7 @@ public class RMSDCalculatorNodeModel extends NodeModel {
 
 			@Override
 			public DataCell getCell(final DataRow row) {
+
 				if (row.getCell(molColIndex).isMissing()) {
 					return DataType.getMissingCell();
 				}
@@ -151,29 +143,18 @@ public class RMSDCalculatorNodeModel extends NodeModel {
 					}
 
 					for (int i = 0; i < molList.size(); i++) {
-						if (m_settings.alignmentType().equals(
-								AlignmentTypes.Isomorphic)) {
+						if (m_settings.alignmentType().equals(AlignmentTypes.Isomorphic)) {
 							Map<Integer, Integer> map = new HashMap<Integer, Integer>();
-							if (molList.get(i).getAtomCount() > con
-									.getAtomCount()) {
-								map = AtomMappingTools
-										.mapAtomsOfAlignedStructures(
-												molList.get(i), con, map);
-								rmsds.add(new DoubleCell(GeometryTools
-										.getAllAtomRMSD(molList.get(i), con,
-												map, true)));
+							if (molList.get(i).getAtomCount() > con.getAtomCount()) {
+								map = AtomMappingTools.mapAtomsOfAlignedStructures(molList.get(i), con, map);
+								rmsds.add(new DoubleCell(GeometryTools.getAllAtomRMSD(molList.get(i), con, map, true)));
 							} else {
-								map = AtomMappingTools
-										.mapAtomsOfAlignedStructures(con,
-												molList.get(i), map);
-								rmsds.add(new DoubleCell(GeometryTools
-										.getAllAtomRMSD(con, molList.get(i),
-												map, true)));
+								map = AtomMappingTools.mapAtomsOfAlignedStructures(con, molList.get(i), map);
+								rmsds.add(new DoubleCell(GeometryTools.getAllAtomRMSD(con, molList.get(i), map, true)));
 							}
 
 						} else {
-							KabschAlignment sa = new KabschAlignment(con,
-									molList.get(i));
+							KabschAlignment sa = new KabschAlignment(con, molList.get(i));
 							sa.align();
 							rmsds.add(new DoubleCell(sa.getRMSD()));
 						}
@@ -184,8 +165,7 @@ public class RMSDCalculatorNodeModel extends NodeModel {
 						rmsdsD[i] = rmsds.get(i).getDoubleValue();
 					}
 
-					return DistanceVectorDataCellFactory.createCell(rmsdsD,
-							rmsdsD.length);
+					return DistanceVectorDataCellFactory.createCell(rmsdsD, rmsdsD.length);
 				} catch (Exception ex) {
 					LOGGER.error("Error while calculating RMSD", ex);
 					return DataType.getMissingCell();
@@ -212,12 +192,7 @@ public class RMSDCalculatorNodeModel extends NodeModel {
 	 * {@inheritDoc}
 	 */
 	@Override
-	protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
-			throws InvalidSettingsException {
-
-		// TODO load (valid) settings from the config object.
-		// It can be safely assumed that the settings are valided by the
-		// method below.
+	protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
 
 		m_settings.loadSettings(settings);
 
@@ -227,13 +202,7 @@ public class RMSDCalculatorNodeModel extends NodeModel {
 	 * {@inheritDoc}
 	 */
 	@Override
-	protected void validateSettings(final NodeSettingsRO settings)
-			throws InvalidSettingsException {
-
-		// TODO check if the settings could be applied to our model
-		// e.g. if the count is in a certain range (which is ensured by the
-		// SettingsModel).
-		// Do not actually set any values of any member variables.
+	protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
 
 		RMSDCalculatorSettings s = new RMSDCalculatorSettings();
 		s.loadSettings(settings);
@@ -247,34 +216,19 @@ public class RMSDCalculatorNodeModel extends NodeModel {
 	 * {@inheritDoc}
 	 */
 	@Override
-	protected void loadInternals(final File internDir,
-			final ExecutionMonitor exec) throws IOException,
+	protected void loadInternals(final File internDir, final ExecutionMonitor exec) throws IOException,
 			CanceledExecutionException {
 
-		// TODO load internal data.
-		// Everything handed to output ports is loaded automatically (data
-		// returned by the execute method, models loaded in loadModelContent,
-		// and user settings set through loadSettingsFrom - is all taken care
-		// of). Load here only the other internals that need to be restored
-		// (e.g. data used by the views).
-
+		// nothing to do
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	protected void saveInternals(final File internDir,
-			final ExecutionMonitor exec) throws IOException,
+	protected void saveInternals(final File internDir, final ExecutionMonitor exec) throws IOException,
 			CanceledExecutionException {
 
-		// TODO save internal models.
-		// Everything written to output ports is saved automatically (data
-		// returned by the execute method, models saved in the saveModelContent,
-		// and user settings saved through saveSettingsTo - is all taken care
-		// of). Save here only the other internals that need to be preserved
-		// (e.g. data used by the views).
-
+		// nothing to do
 	}
-
 }

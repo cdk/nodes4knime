@@ -1,50 +1,35 @@
 /*
  * ------------------------------------------------------------------------
- *
- *  Copyright (C) 2003 - 2011
- *  University of Konstanz, Germany and
- *  KNIME GmbH, Konstanz, Germany
- *  Website: http://www.knime.org; Email: contact@knime.org
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License, Version 3, as
- *  published by the Free Software Foundation.
- *
- *  This program is distributed in the hope that it will be useful, but
- *  WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, see <http://www.gnu.org/licenses>.
- *
- *  Additional permission under GNU GPL version 3 section 7:
- *
- *  KNIME interoperates with ECLIPSE solely via ECLIPSE's plug-in APIs.
- *  Hence, KNIME and ECLIPSE are both independent programs and are not
- *  derived from each other. Should, however, the interpretation of the
- *  GNU GPL Version 3 ("License") under any applicable laws result in
- *  KNIME and ECLIPSE being a combined program, KNIME GMBH herewith grants
- *  you the additional permission to use and propagate KNIME together with
- *  ECLIPSE with only the license terms in place for ECLIPSE applying to
- *  ECLIPSE and the GNU GPL Version 3 applying for KNIME, provided the
- *  license terms of ECLIPSE themselves allow for the respective use and
- *  propagation of ECLIPSE together with KNIME.
- *
- *  Additional permission relating to nodes for KNIME that extend the Node
- *  Extension (and in particular that are based on subclasses of NodeModel,
- *  NodeDialog, and NodeView) and that only interoperate with KNIME through
- *  standard APIs ("Nodes"):
- *  Nodes are deemed to be separate and independent programs and to not be
- *  covered works.  Notwithstanding anything to the contrary in the
- *  License, the License does not apply to Nodes, you are not required to
- *  license Nodes under the License, and you are granted a license to
- *  prepare and propagate Nodes, in each case even if such Nodes are
- *  propagated with or for interoperation with KNIME.  The owner of a Node
- *  may freely choose the license terms applicable to such Node, including
- *  when such Node is propagated with or for interoperation with KNIME.
+ * 
+ * Copyright (C) 2003 - 2011 University of Konstanz, Germany and KNIME GmbH, Konstanz, Germany Website:
+ * http://www.knime.org; Email: contact@knime.org
+ * 
+ * This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public
+ * License, Version 3, as published by the Free Software Foundation.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with this program; if not, see
+ * <http://www.gnu.org/licenses>.
+ * 
+ * Additional permission under GNU GPL version 3 section 7:
+ * 
+ * KNIME interoperates with ECLIPSE solely via ECLIPSE's plug-in APIs. Hence, KNIME and ECLIPSE are both independent
+ * programs and are not derived from each other. Should, however, the interpretation of the GNU GPL Version 3
+ * ("License") under any applicable laws result in KNIME and ECLIPSE being a combined program, KNIME GMBH herewith
+ * grants you the additional permission to use and propagate KNIME together with ECLIPSE with only the license terms in
+ * place for ECLIPSE applying to ECLIPSE and the GNU GPL Version 3 applying for KNIME, provided the license terms of
+ * ECLIPSE themselves allow for the respective use and propagation of ECLIPSE together with KNIME.
+ * 
+ * Additional permission relating to nodes for KNIME that extend the Node Extension (and in particular that are based on
+ * subclasses of NodeModel, NodeDialog, and NodeView) and that only interoperate with KNIME through standard APIs
+ * ("Nodes"): Nodes are deemed to be separate and independent programs and to not be covered works. Notwithstanding
+ * anything to the contrary in the License, the License does not apply to Nodes, you are not required to license Nodes
+ * under the License, and you are granted a license to prepare and propagate Nodes, in each case even if such Nodes are
+ * propagated with or for interoperation with KNIME. The owner of a Node may freely choose the license terms applicable
+ * to such Node, including when such Node is propagated with or for interoperation with KNIME.
  * -------------------------------------------------------------------
- *
  */
 package org.openscience.cdk.knime.molprops;
 
@@ -99,20 +84,17 @@ public final class MolPropsLibrary {
 	public static final String CDK_DESCRIPTOR_PACKAGE = "org.openscience.cdk.qsar.descriptors.molecular";
 
 	/**
-	 * Hashes the class name of the IMolecularDescriptor to the actual object
-	 * that performs the calculation.
+	 * Hashes the class name of the IMolecularDescriptor to the actual object that performs the calculation.
 	 */
 	private static final LinkedHashMap<String, IMolecularDescriptor> DESCRIPTOR_HASH = new LinkedHashMap<String, IMolecularDescriptor>();
 
 	/**
-	 * Hashes the class name of the IMolecularDescriptor to a column spec oject
-	 * suitable to be put into a DataTableSpec.
+	 * Hashes the class name of the IMolecularDescriptor to a column spec oject suitable to be put into a DataTableSpec.
 	 */
 	private static final LinkedHashMap<String, DataColumnSpec> DESCRIPTOR_COLSPEC_HASH = new LinkedHashMap<String, DataColumnSpec>();
 
 	/**
-	 * Figure out what are the possible properties that this class can
-	 * calculate.
+	 * Figure out what are the possible properties that this class can calculate.
 	 */
 	static {
 		// file in the cdk-qsar.jar that contains all available descriptors
@@ -198,13 +180,13 @@ public final class MolPropsLibrary {
 	}
 
 	/**
-	 * Get a representative {@link DataColumnSpec} object for a given
-	 * descriptor.
+	 * Get a representative {@link DataColumnSpec} object for a given descriptor.
 	 * 
 	 * @param descriptorClassName The internal class name for the descriptor.
 	 * @return The spec to be used.
 	 */
 	public static DataColumnSpec getColumnSpec(final String descriptorClassName) {
+
 		if (descriptorClassName == null) {
 			throw new NullPointerException("Argument must not be null.");
 		} else if (descriptorClassName.equals("molecularformula")) {
@@ -226,10 +208,10 @@ public final class MolPropsLibrary {
 	 * @param rowKey Name of row - used error message.
 	 * @param mol The input molecule
 	 * @param descriptorClassName class name of the descriptor
-	 * @return a <code>DataCell</code> with the property or a missing cell if
-	 *         something goes wrong
+	 * @return a <code>DataCell</code> with the property or a missing cell if something goes wrong
 	 */
 	public static DataCell getProperty(final String rowKey, final IAtomContainer mol, final String descriptorClassName) {
+
 		if (descriptorClassName == null) {
 			throw new NullPointerException("Description must not be null.");
 		}
@@ -297,6 +279,7 @@ public final class MolPropsLibrary {
 	}
 
 	private MolPropsLibrary() {
-		// eh eh, don't do this.
+
+		// nothing to do
 	}
 }

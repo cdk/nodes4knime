@@ -16,6 +16,7 @@ import org.knime.core.data.def.DoubleCell;
 import org.knime.core.node.ExecutionMonitor;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtomContainer;
+import org.openscience.cdk.knime.CDKNodeUtils;
 import org.openscience.cdk.knime.type.CDKValue;
 import org.openscience.cdk.qsar.DescriptorValue;
 import org.openscience.cdk.qsar.IMolecularDescriptor;
@@ -53,7 +54,7 @@ public class Whim3dGenerator implements CellFactory {
 	private void getWeightingSchemes() {
 
 		weightingSchemes = new ArrayList<Whim3dSchemes>();
-		
+
 		for (DataColumnSpec outputColumnSpec : dataColumnSpec) {
 
 			if (outputColumnSpec.getName().equals(Whim3dSchemes.UNITY_WEIGHTS.getTitle()))
@@ -76,17 +77,23 @@ public class Whim3dGenerator implements CellFactory {
 	public DataCell[] getCells(DataRow row) {
 
 		DataCell cdkCell = row.getCell(molColIndex);
+		DataCell[] whimValueCells = new DataCell[dataColumnSpec.length];
 
 		if (cdkCell.isMissing()) {
-			DataCell[] missingCells = new DataCell[dataColumnSpec.length];
-			Arrays.fill(missingCells, DataType.getMissingCell());
-			return missingCells;
+			Arrays.fill(whimValueCells, DataType.getMissingCell());
+			return whimValueCells;
 		}
 
 		checkIsCdkCell(cdkCell);
 
-		IAtomContainer molecule = ((CDKValue) row.getCell(molColIndex)).getAtomContainer();
-		DataCell[] whimValueCells = calculateWhimValues(molecule);
+		try {
+			IAtomContainer molecule = CDKNodeUtils.getExplicitClone(((CDKValue) row.getCell(molColIndex))
+					.getAtomContainer());
+			whimValueCells = calculateWhimValues(molecule);
+		} catch (CDKException exception) {
+			Arrays.fill(whimValueCells, DataType.getMissingCell());
+			return whimValueCells;
+		}
 
 		return whimValueCells;
 	}

@@ -5,9 +5,9 @@
     <shortDescription>Handles unconnected molecules</shortDescription>
     <fullDescription>
         <intro>
-            This node lets you handle CDK molecules which are fragmented into different parts. This is useful because
+            This node lets you handle unconnected CDK molecules. This is necessary because
             some algorithms won't work with unconnected structures. You have either the choice to completely remove the
-            rows that contain fragmented molecules, or to remove all fragments except the biggest one.
+            rows that contain unconnected molecules, or to remove all molecule parts except the biggest one.
         </intro>
         <option name="Column with molecules">Select the column containing the molecular structure</option>
         <option name="Remove complete row">
@@ -23,7 +23,7 @@
     </fullDescription>
     <ports>
         <inPort index="0" name="Molecule input">Table containing molecular structures</inPort>
-        <outPort index="0" name="Input without fragmemts">As input but without unconnected molecules</outPort>
+        <outPort index="0" name="Split molecule input">As input but without unconnected molecules</outPort>
     </ports>
 </knimeNode>
 

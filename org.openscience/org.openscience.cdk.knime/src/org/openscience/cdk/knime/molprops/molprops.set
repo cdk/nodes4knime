@@ -73,9 +73,7 @@ org.openscience.cdk.qsar.descriptors.molecular.RotatableBondsCountDescriptor
 # org.openscience.cdk.qsar.descriptors.molecular.RuleOfFiveDescriptor
 
 org.openscience.cdk.qsar.descriptors.molecular.TaeAminoAcidDescriptor
-
 org.openscience.cdk.qsar.descriptors.molecular.TPSADescriptor
-
 org.openscience.cdk.qsar.descriptors.molecular.VAdjMaDescriptor
 # temporarily disabled because of obvious CDK bug
 # org.openscience.cdk.qsar.descriptors.molecular.ValenceCarbonConnectivityOrderOneDescriptor

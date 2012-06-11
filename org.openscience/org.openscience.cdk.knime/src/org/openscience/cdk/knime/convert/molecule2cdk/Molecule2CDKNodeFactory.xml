@@ -3,7 +3,7 @@
 <knimeNode icon="./mol2cdk.png" type="Manipulator">
     <name>Molecule to CDK</name>
     <shortDescription>
-        Translates various string representations into a specialized CDK type for further processing in CDK based nodes.
+        Translates various string representations into a specialised CDK type for further processing in CDK based nodes.
     </shortDescription>
     <fullDescription>
         <intro>
@@ -34,9 +34,6 @@
             Without this option, 2D coordinates will only be generated for molecules that do not only have any (usually
             detected by an all zero z-coordinate). If this options is enabled the coordinates will be generated in any
             case.
-        </option>
-        <option name="Add explicit hydrogens">
-            Enabling this option will add missing explicit hydrogens to the converted molecules.
         </option>
         <option name="Parse timeout in ms">
             Parsing Smiles and generating 2D coordinates can take very long for certain molecules. Here you can set a

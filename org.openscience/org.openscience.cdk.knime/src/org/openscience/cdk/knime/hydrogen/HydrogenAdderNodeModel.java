@@ -1,48 +1,34 @@
 /*
  * ------------------------------------------------------------------------
- *
- *  Copyright (C) 2003 - 2011
- *  University of Konstanz, Germany and
- *  KNIME GmbH, Konstanz, Germany
- *  Website: http://www.knime.org; Email: contact@knime.org
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License, Version 3, as
- *  published by the Free Software Foundation.
- *
- *  This program is distributed in the hope that it will be useful, but
- *  WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, see <http://www.gnu.org/licenses>.
- *
- *  Additional permission under GNU GPL version 3 section 7:
- *
- *  KNIME interoperates with ECLIPSE solely via ECLIPSE's plug-in APIs.
- *  Hence, KNIME and ECLIPSE are both independent programs and are not
- *  derived from each other. Should, however, the interpretation of the
- *  GNU GPL Version 3 ("License") under any applicable laws result in
- *  KNIME and ECLIPSE being a combined program, KNIME GMBH herewith grants
- *  you the additional permission to use and propagate KNIME together with
- *  ECLIPSE with only the license terms in place for ECLIPSE applying to
- *  ECLIPSE and the GNU GPL Version 3 applying for KNIME, provided the
- *  license terms of ECLIPSE themselves allow for the respective use and
- *  propagation of ECLIPSE together with KNIME.
- *
- *  Additional permission relating to nodes for KNIME that extend the Node
- *  Extension (and in particular that are based on subclasses of NodeModel,
- *  NodeDialog, and NodeView) and that only interoperate with KNIME through
- *  standard APIs ("Nodes"):
- *  Nodes are deemed to be separate and independent programs and to not be
- *  covered works.  Notwithstanding anything to the contrary in the
- *  License, the License does not apply to Nodes, you are not required to
- *  license Nodes under the License, and you are granted a license to
- *  prepare and propagate Nodes, in each case even if such Nodes are
- *  propagated with or for interoperation with KNIME.  The owner of a Node
- *  may freely choose the license terms applicable to such Node, including
- *  when such Node is propagated with or for interoperation with KNIME.
+ * 
+ * Copyright (C) 2003 - 2011 University of Konstanz, Germany and KNIME GmbH, Konstanz, Germany Website:
+ * http://www.knime.org; Email: contact@knime.org
+ * 
+ * This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public
+ * License, Version 3, as published by the Free Software Foundation.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with this program; if not, see
+ * <http://www.gnu.org/licenses>.
+ * 
+ * Additional permission under GNU GPL version 3 section 7:
+ * 
+ * KNIME interoperates with ECLIPSE solely via ECLIPSE's plug-in APIs. Hence, KNIME and ECLIPSE are both independent
+ * programs and are not derived from each other. Should, however, the interpretation of the GNU GPL Version 3
+ * ("License") under any applicable laws result in KNIME and ECLIPSE being a combined program, KNIME GMBH herewith
+ * grants you the additional permission to use and propagate KNIME together with ECLIPSE with only the license terms in
+ * place for ECLIPSE applying to ECLIPSE and the GNU GPL Version 3 applying for KNIME, provided the license terms of
+ * ECLIPSE themselves allow for the respective use and propagation of ECLIPSE together with KNIME.
+ * 
+ * Additional permission relating to nodes for KNIME that extend the Node Extension (and in particular that are based on
+ * subclasses of NodeModel, NodeDialog, and NodeView) and that only interoperate with KNIME through standard APIs
+ * ("Nodes"): Nodes are deemed to be separate and independent programs and to not be covered works. Notwithstanding
+ * anything to the contrary in the License, the License does not apply to Nodes, you are not required to license Nodes
+ * under the License, and you are granted a license to prepare and propagate Nodes, in each case even if such Nodes are
+ * propagated with or for interoperation with KNIME. The owner of a Node may freely choose the license terms applicable
+ * to such Node, including when such Node is propagated with or for interoperation with KNIME.
  * ------------------------------------------------------------------- *
  */
 package org.openscience.cdk.knime.hydrogen;
@@ -68,29 +54,23 @@ import org.knime.core.data.DataType;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.openscience.cdk.interfaces.IAtomContainer;
-import org.openscience.cdk.knime.hydrogen.HydrogenAdderSettings.Conversion;
+import org.openscience.cdk.knime.CDKNodeUtils;
 import org.openscience.cdk.knime.type.CDKCell;
 import org.openscience.cdk.knime.type.CDKValue;
-import org.openscience.cdk.nonotify.NoNotificationChemObjectBuilder;
 import org.openscience.cdk.normalize.SMSDNormalizer;
-import org.openscience.cdk.tools.CDKHydrogenAdder;
-import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 
 /**
- * This is the model for the hydrogen node that performs all computation by
- * using CDK functionality.
+ * This is the model for the hydrogen node that performs all computation by using CDK functionality.
  * 
  * @author Thorsten Meinl, University of Konstanz
  * @author Stephan Beisken, EMBL-EBI
  */
 public class HydrogenAdderNodeModel extends ThreadedColAppenderNodeModel {
-	private static final Map<String, String> NO_PROP_2D;
 
-	private static final NodeLogger LOGGER = NodeLogger.getLogger(HydrogenAdderNodeModel.class);
+	private static final Map<String, String> NO_PROP_2D;
 
 	static {
 		Map<String, String> temp = new TreeMap<String, String>();
@@ -104,6 +84,7 @@ public class HydrogenAdderNodeModel extends ThreadedColAppenderNodeModel {
 	 * Creates a new model having one input and one output node.
 	 */
 	public HydrogenAdderNodeModel() {
+
 		super(1, 1);
 	}
 
@@ -112,6 +93,7 @@ public class HydrogenAdderNodeModel extends ThreadedColAppenderNodeModel {
 	 */
 	@Override
 	protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
+
 		int molCol = inSpecs[0].findColumnIndex(m_settings.molColumnName());
 		if (molCol == -1) {
 			for (DataColumnSpec dcs : inSpecs[0]) {
@@ -164,13 +146,13 @@ public class HydrogenAdderNodeModel extends ThreadedColAppenderNodeModel {
 	}
 
 	/**
-	 * Creates the column spec that is used to represent the new column, either
-	 * replaced or appended.
+	 * Creates the column spec that is used to represent the new column, either replaced or appended.
 	 * 
 	 * @param in The original input spec.
 	 * @return The single column spec to use.
 	 */
 	private DataColumnSpec createColSpec(final DataTableSpec in) {
+
 		if (m_settings.replaceColumn()) {
 			DataColumnSpec original = in.getColumnSpec(m_settings.molColumnName());
 			DataColumnSpecCreator creator = new DataColumnSpecCreator(original);
@@ -188,6 +170,7 @@ public class HydrogenAdderNodeModel extends ThreadedColAppenderNodeModel {
 	@Override
 	protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec) throws IOException,
 			CanceledExecutionException {
+
 		// nothing to do
 	}
 
@@ -196,6 +179,7 @@ public class HydrogenAdderNodeModel extends ThreadedColAppenderNodeModel {
 	 */
 	@Override
 	protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
+
 		m_settings.loadSettings(settings);
 	}
 
@@ -204,6 +188,7 @@ public class HydrogenAdderNodeModel extends ThreadedColAppenderNodeModel {
 	 */
 	@Override
 	protected void reset() {
+
 		// nothing to do
 	}
 
@@ -213,6 +198,7 @@ public class HydrogenAdderNodeModel extends ThreadedColAppenderNodeModel {
 	@Override
 	protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec) throws IOException,
 			CanceledExecutionException {
+
 		// nothing to do
 	}
 
@@ -221,6 +207,7 @@ public class HydrogenAdderNodeModel extends ThreadedColAppenderNodeModel {
 	 */
 	@Override
 	protected void saveSettingsTo(final NodeSettingsWO settings) {
+
 		m_settings.saveSettings(settings);
 	}
 
@@ -229,6 +216,7 @@ public class HydrogenAdderNodeModel extends ThreadedColAppenderNodeModel {
 	 */
 	@Override
 	protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
+
 		HydrogenAdderSettings s = new HydrogenAdderSettings();
 		s.loadSettings(settings);
 		if ((s.molColumnName() == null) || (s.molColumnName().length() == 0)) {
@@ -241,35 +229,32 @@ public class HydrogenAdderNodeModel extends ThreadedColAppenderNodeModel {
 	 */
 	@Override
 	protected ExtendedCellFactory[] prepareExecute(final DataTable[] data) throws Exception {
+
 		final int molColIndex = data[0].getDataTableSpec().findColumnIndex(m_settings.molColumnName());
 		ExtendedCellFactory cf = new ExtendedCellFactory() {
+
 			@Override
 			public DataCell[] getCells(final DataRow row) {
+
 				DataCell molCell = row.getCell(molColIndex);
 				if (molCell.isMissing()) {
 					return new DataCell[] { DataType.getMissingCell() };
 				}
 
 				try {
-					IAtomContainer oldMol = ((CDKValue) molCell).getAtomContainer();
-					IAtomContainer newMol = (IAtomContainer) oldMol.clone();
-					CDKHydrogenAdder hyda = CDKHydrogenAdder.getInstance(NoNotificationChemObjectBuilder.getInstance());
-					hyda.addImplicitHydrogens(newMol);
-					if (m_settings.getConversion().equals(Conversion.ToExplicit)) {
-						AtomContainerManipulator.convertImplicitToExplicitHydrogens(newMol);
-					} else if (m_settings.getConversion().equals(Conversion.ToImplicit)) {
-						newMol = SMSDNormalizer.convertExplicitToImplicitHydrogens(newMol);
-					}
+					IAtomContainer newMol = (IAtomContainer) ((CDKValue) molCell).getAtomContainer().clone();
+					newMol = SMSDNormalizer.convertExplicitToImplicitHydrogens(newMol);
+					CDKNodeUtils.getStandardMolecule(newMol);
 					CDKCell newCell = new CDKCell(newMol);
 					return new DataCell[] { newCell };
 				} catch (Throwable t) {
-					LOGGER.warn(t);
 					return new DataCell[] { DataType.getMissingCell() };
 				}
 			}
 
 			@Override
 			public ColumnDestination[] getColumnDestinations() {
+
 				if (m_settings.replaceColumn()) {
 					return new ColumnDestination[] { new ReplaceColumn(molColIndex) };
 				} else {
@@ -279,6 +264,7 @@ public class HydrogenAdderNodeModel extends ThreadedColAppenderNodeModel {
 
 			@Override
 			public DataColumnSpec[] getColumnSpecs() {
+
 				return new DataColumnSpec[] { createColSpec(data[0].getDataTableSpec()) };
 			}
 		};

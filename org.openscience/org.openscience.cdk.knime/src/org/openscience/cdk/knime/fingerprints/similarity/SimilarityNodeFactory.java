@@ -7,52 +7,54 @@ import org.knime.core.node.NodeView;
 /**
  * <code>NodeFactory</code> for the "Similarity" Node.
  * 
- *
+ * 
  * @author Stephan Beisken
  */
-public class SimilarityNodeFactory 
-        extends NodeFactory<SimilarityNodeModel> {
+public class SimilarityNodeFactory extends NodeFactory<SimilarityNodeModel> {
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public SimilarityNodeModel createNodeModel() {
-        return new SimilarityNodeModel();
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public SimilarityNodeModel createNodeModel() {
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public int getNrNodeViews() {
-        return 1;
-    }
+		return new SimilarityNodeModel();
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeView<SimilarityNodeModel> createNodeView(final int viewIndex,
-            final SimilarityNodeModel nodeModel) {
-        return null;
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public int getNrNodeViews() {
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean hasDialog() {
-        return true;
-    }
+		return 0;
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeDialogPane createNodeDialogPane() {
-        return new SimilarityNodeDialog();
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public NodeView<SimilarityNodeModel> createNodeView(final int viewIndex, final SimilarityNodeModel nodeModel) {
+
+		return null;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public boolean hasDialog() {
+
+		return true;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public NodeDialogPane createNodeDialogPane() {
+
+		return new SimilarityNodeDialog();
+	}
 
 }
-

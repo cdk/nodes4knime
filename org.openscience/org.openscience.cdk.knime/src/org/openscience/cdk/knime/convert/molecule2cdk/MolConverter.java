@@ -1,57 +1,46 @@
 /*
  * ------------------------------------------------------------------------
- *
- *  Copyright (C) 2003 - 2011
- *  University of Konstanz, Germany and
- *  KNIME GmbH, Konstanz, Germany
- *  Website: http://www.knime.org; Email: contact@knime.org
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License, Version 3, as
- *  published by the Free Software Foundation.
- *
- *  This program is distributed in the hope that it will be useful, but
- *  WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, see <http://www.gnu.org/licenses>.
- *
- *  Additional permission under GNU GPL version 3 section 7:
- *
- *  KNIME interoperates with ECLIPSE solely via ECLIPSE's plug-in APIs.
- *  Hence, KNIME and ECLIPSE are both independent programs and are not
- *  derived from each other. Should, however, the interpretation of the
- *  GNU GPL Version 3 ("License") under any applicable laws result in
- *  KNIME and ECLIPSE being a combined program, KNIME GMBH herewith grants
- *  you the additional permission to use and propagate KNIME together with
- *  ECLIPSE with only the license terms in place for ECLIPSE applying to
- *  ECLIPSE and the GNU GPL Version 3 applying for KNIME, provided the
- *  license terms of ECLIPSE themselves allow for the respective use and
- *  propagation of ECLIPSE together with KNIME.
- *
- *  Additional permission relating to nodes for KNIME that extend the Node
- *  Extension (and in particular that are based on subclasses of NodeModel,
- *  NodeDialog, and NodeView) and that only interoperate with KNIME through
- *  standard APIs ("Nodes"):
- *  Nodes are deemed to be separate and independent programs and to not be
- *  covered works.  Notwithstanding anything to the contrary in the
- *  License, the License does not apply to Nodes, you are not required to
- *  license Nodes under the License, and you are granted a license to
- *  prepare and propagate Nodes, in each case even if such Nodes are
- *  propagated with or for interoperation with KNIME.  The owner of a Node
- *  may freely choose the license terms applicable to such Node, including
- *  when such Node is propagated with or for interoperation with KNIME.
+ * 
+ * Copyright (C) 2003 - 2011 University of Konstanz, Germany and KNIME GmbH, Konstanz, Germany Website:
+ * http://www.knime.org; Email: contact@knime.org
+ * 
+ * This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public
+ * License, Version 3, as published by the Free Software Foundation.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with this program; if not, see
+ * <http://www.gnu.org/licenses>.
+ * 
+ * Additional permission under GNU GPL version 3 section 7:
+ * 
+ * KNIME interoperates with ECLIPSE solely via ECLIPSE's plug-in APIs. Hence, KNIME and ECLIPSE are both independent
+ * programs and are not derived from each other. Should, however, the interpretation of the GNU GPL Version 3
+ * ("License") under any applicable laws result in KNIME and ECLIPSE being a combined program, KNIME GMBH herewith
+ * grants you the additional permission to use and propagate KNIME together with ECLIPSE with only the license terms in
+ * place for ECLIPSE applying to ECLIPSE and the GNU GPL Version 3 applying for KNIME, provided the license terms of
+ * ECLIPSE themselves allow for the respective use and propagation of ECLIPSE together with KNIME.
+ * 
+ * Additional permission relating to nodes for KNIME that extend the Node Extension (and in particular that are based on
+ * subclasses of NodeModel, NodeDialog, and NodeView) and that only interoperate with KNIME through standard APIs
+ * ("Nodes"): Nodes are deemed to be separate and independent programs and to not be covered works. Notwithstanding
+ * anything to the contrary in the License, the License does not apply to Nodes, you are not required to license Nodes
+ * under the License, and you are granted a license to prepare and propagate Nodes, in each case even if such Nodes are
+ * propagated with or for interoperation with KNIME. The owner of a Node may freely choose the license terms applicable
+ * to such Node, including when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
- *
- * History
- *   12.09.2008 (thor): created
+ * 
+ * History 12.09.2008 (thor): created
  */
 package org.openscience.cdk.knime.convert.molecule2cdk;
 
 import java.io.ByteArrayInputStream;
 import java.io.StringReader;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import org.knime.base.node.parallel.appender.AppendColumn;
 import org.knime.base.node.parallel.appender.ColumnDestination;
@@ -68,29 +57,20 @@ import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
-import org.knime.core.node.NodeLogger;
-import org.knime.core.util.Pointer;
-import org.openscience.cdk.CDKConstants;
-import org.openscience.cdk.Molecule;
-import org.openscience.cdk.aromaticity.CDKHueckelAromaticityDetector;
+import org.knime.core.data.StringValue;
 import org.openscience.cdk.exception.CDKException;
-import org.openscience.cdk.geometry.GeometryTools;
-import org.openscience.cdk.graph.ConnectivityChecker;
+import org.openscience.cdk.inchi.InChIGeneratorFactory;
+import org.openscience.cdk.inchi.InChIToStructure;
 import org.openscience.cdk.interfaces.IAtomContainer;
-import org.openscience.cdk.interfaces.IMolecule;
-import org.openscience.cdk.interfaces.IMoleculeSet;
 import org.openscience.cdk.io.CMLReader;
-import org.openscience.cdk.io.MDLReader;
 import org.openscience.cdk.io.MDLV2000Reader;
 import org.openscience.cdk.io.Mol2Reader;
-import org.openscience.cdk.knime.convert.TimeoutThreadPool;
+import org.openscience.cdk.io.iterator.IteratingSDFReader;
+import org.openscience.cdk.knime.CDKNodeUtils;
 import org.openscience.cdk.knime.type.CDKCell;
-import org.openscience.cdk.layout.StructureDiagramGenerator;
-import org.openscience.cdk.nonotify.NoNotificationChemObjectBuilder;
 import org.openscience.cdk.normalize.SMSDNormalizer;
+import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.smiles.SmilesParser;
-import org.openscience.cdk.tools.CDKHydrogenAdder;
-import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 
 /**
  * Helper class for converting string representations into CDK molecules.
@@ -99,9 +79,9 @@ import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
  * @author Stephan Beisken, EMBL-EBI
  */
 class MolConverter implements ExtendedCellFactory {
-	private static final NodeLogger LOGGER = NodeLogger.getLogger(Molecule2CDKNodeModel.class);
 
 	private interface Conv {
+
 		/**
 		 * Converts a molecule's string representation into a CDK object.
 		 * 
@@ -109,88 +89,112 @@ class MolConverter implements ExtendedCellFactory {
 		 * @return a CDK molecule
 		 * @throws CDKException if an error occurs during conversion
 		 */
-		public IMolecule conv(DataCell cell) throws CDKException;
+		public IAtomContainer conv(DataCell cell) throws Exception;
 	}
 
 	private class SdfConv implements Conv {
+
 		/**
 		 * {@inheritDoc}
 		 */
 		@Override
-		public IMolecule conv(final DataCell cell) throws CDKException {
+		public IAtomContainer conv(final DataCell cell) throws Exception, NumberFormatException {
+
 			String sdf = ((SdfValue) cell).getSdfValue();
 
-			MDLV2000Reader reader = new MDLV2000Reader(new StringReader(sdf));
-			return reader.read(new Molecule());
+			IteratingSDFReader reader = new IteratingSDFReader(new StringReader(sdf),
+					SilentChemObjectBuilder.getInstance());
+			return (IAtomContainer) reader.next();
 		}
 	}
 
 	private class MolConv implements Conv {
+
 		/**
 		 * {@inheritDoc}
 		 */
 		@Override
-		public IMolecule conv(final DataCell cell) throws CDKException {
+		public IAtomContainer conv(final DataCell cell) throws Exception {
+
 			String mol = ((MolValue) cell).getMolValue();
 
-			MDLReader reader = new MDLReader(new StringReader(mol));
-			return (IMolecule) reader.read(new Molecule());
+			MDLV2000Reader reader = new MDLV2000Reader(new StringReader(mol));
+			return reader.read(SilentChemObjectBuilder.getInstance().newInstance(IAtomContainer.class));
 		}
 	}
 
 	private class Mol2Conv implements Conv {
+
 		/**
 		 * {@inheritDoc}
 		 */
 		@Override
-		public IMolecule conv(final DataCell cell) throws CDKException {
+		public IAtomContainer conv(final DataCell cell) throws Exception {
+
 			String mol2 = ((Mol2Value) cell).getMol2Value();
 
 			Mol2Reader reader = new Mol2Reader(new StringReader(mol2));
-			return reader.read(new Molecule());
+			return reader.read(SilentChemObjectBuilder.getInstance().newInstance(IAtomContainer.class));
 		}
 	}
 
 	private class CMLConv implements Conv {
+
 		/**
 		 * {@inheritDoc}
 		 */
 		@Override
-		public IMolecule conv(final DataCell cell) throws CDKException {
+		public IAtomContainer conv(final DataCell cell) throws Exception {
+
 			String cml = ((CMLValue) cell).getCMLValue();
 
 			CMLReader reader = new CMLReader(new ByteArrayInputStream(cml.getBytes()));
-			return (IMolecule) reader.read(new Molecule());
+			return reader.read(SilentChemObjectBuilder.getInstance().newInstance(IAtomContainer.class));
 		}
 	}
 
 	private class SmilesConv implements Conv {
+
 		/**
 		 * {@inheritDoc}
 		 */
 		@Override
-		public IMolecule conv(final DataCell cell) throws CDKException {
+		public IAtomContainer conv(final DataCell cell) throws Exception {
+
 			final String smiles = ((SmilesValue) cell).getSmilesValue();
 
-			final SmilesParser parser = new SmilesParser(NoNotificationChemObjectBuilder.getInstance());
-			IAtomContainer cdkMol = parser.parseSmiles(smiles);
+			final SmilesParser reader = new SmilesParser(SilentChemObjectBuilder.getInstance());
+			reader.setPreservingAromaticity(true);
+			IAtomContainer cdkMol = reader.parseSmiles(smiles);
 			// CMLWriter crashes if chiral centers are not eradicated
-			IAtomContainer cdkContainer = SMSDNormalizer.convertExplicitToImplicitHydrogens(cdkMol);
-			return (IMolecule) cdkContainer;
+			cdkMol = SMSDNormalizer.convertExplicitToImplicitHydrogens(cdkMol);
+			return cdkMol;
+		}
+	}
+
+	private class InChIConv implements Conv {
+
+		/**
+		 * {@inheritDoc}
+		 */
+		@Override
+		public IAtomContainer conv(final DataCell cell) throws Exception {
+
+			final String inchi = ((StringValue) cell).getStringValue();
+
+			final InChIGeneratorFactory inchiFactory = InChIGeneratorFactory.getInstance();
+			InChIToStructure gen = inchiFactory.getInChIToStructure(inchi, SilentChemObjectBuilder.getInstance());
+
+			return gen.getAtomContainer();
 		}
 	}
 
 	private final ColumnDestination[] m_colDest;
-
 	private final DataColumnSpec[] m_colSpec;
-
 	private final Molecule2CDKSettings m_settings;
-
 	private final int m_colIndex;
-
 	private final Conv m_converter;
-
-	private final TimeoutThreadPool m_pool;
+	private final ExecutorService executor;
 
 	/**
 	 * Creates a new converter.
@@ -199,7 +203,8 @@ class MolConverter implements ExtendedCellFactory {
 	 * @param settings the settings of the converter node
 	 * @param pool the thread pool that should be used for converting
 	 */
-	public MolConverter(final DataTableSpec inSpec, final Molecule2CDKSettings settings, final TimeoutThreadPool pool) {
+	public MolConverter(final DataTableSpec inSpec, final Molecule2CDKSettings settings, final ExecutorService executor) {
+
 		m_colIndex = inSpec.findColumnIndex(settings.columnName());
 		if (settings.replaceColumn()) {
 			m_colSpec = new DataColumnSpec[] { new DataColumnSpecCreator(settings.columnName(), CDKCell.TYPE)
@@ -220,94 +225,75 @@ class MolConverter implements ExtendedCellFactory {
 			m_converter = new Mol2Conv();
 		} else if (cs.getType().isCompatible(CMLValue.class)) {
 			m_converter = new CMLConv();
-		} else {
+		} else if (cs.getType().isCompatible(SmilesValue.class)) {
 			m_converter = new SmilesConv();
+		} else {
+			m_converter = new InChIConv();
 		}
 
 		m_settings = settings;
-		m_pool = pool;
+		this.executor = executor;
 	}
 
 	@Override
 	public DataCell[] getCells(final DataRow row) {
+
 		final DataCell cell = row.getCell(m_colIndex);
 
 		if (cell.isMissing()) {
 			return new DataCell[] { DataType.getMissingCell() };
 		}
 
-		final Pointer<IMolecule> molP = new Pointer<IMolecule>();
+		Callable<IAtomContainer> r = new Callable<IAtomContainer>() {
 
-		Runnable r = new Runnable() {
-			@Override
-			public void run() {
-				runWithTimeout(cell, molP);
+			public IAtomContainer call() {
+
+				IAtomContainer mol;
+				try {
+					mol = getAtomContainer(cell);
+				} catch (RuntimeException e) {
+					mol = null;
+				} catch (Exception e) {
+					mol = null;
+				}
+				return mol;
 			}
 		};
+
+		Future<IAtomContainer> future = (Future<IAtomContainer>) executor.submit(r);
+		IAtomContainer molP = null;
 		try {
-			if (!m_pool.run(r, m_settings.timeout())) {
-				LOGGER.error("Timeout while converting molecule " + row.getKey());
-				return new DataCell[] { DataType.getMissingCell() };
-			} else if (molP.get() == null) {
-				return new DataCell[] { DataType.getMissingCell() };
-			}
-		} catch (InterruptedException ex) {
-			LOGGER.error("Error converting molecule: " + ex.getMessage(), ex);
+			molP = future.get(m_settings.timeout(), TimeUnit.MILLISECONDS);
+			if (molP == null)
+				throw new CDKException("Error retrieving molecule.");
+			CDKNodeUtils.calculateSmiles(molP);
+		} catch (Exception e) {
 			return new DataCell[] { DataType.getMissingCell() };
 		}
 
-		if (molP.get().getID() == null) {
-			if (molP.get().getProperty(CDKConstants.TITLE) != null) {
-				molP.get().setID(molP.get().getProperty(CDKConstants.TITLE).toString());
-			} else {
-				molP.get().setID(row.getKey().toString());
-			}
-		}
-
-		return new DataCell[] { new CDKCell(molP.get()) };
+		return new DataCell[] { new CDKCell(molP) };
 	}
 
-	private void runWithTimeout(final DataCell cell, final Pointer<IMolecule> mol) {
-		try {
-			IMolecule cdkMol = m_converter.conv(cell);
-			AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(cdkMol);
-			
-			CDKHydrogenAdder hyda = CDKHydrogenAdder.getInstance(NoNotificationChemObjectBuilder.getInstance());
-			hyda.addImplicitHydrogens(cdkMol);
-			CDKHueckelAromaticityDetector.detectAromaticity(cdkMol);
-			if (m_settings.addHydrogens()) {
-				AtomContainerManipulator.convertImplicitToExplicitHydrogens(cdkMol);
-			} else {
-				IAtomContainer cdkContainer = SMSDNormalizer.convertExplicitToImplicitHydrogens(cdkMol);
-				cdkMol = (IMolecule) cdkContainer;
-			}
+	private IAtomContainer getAtomContainer(final DataCell cell) throws RuntimeException, Exception {
 
-			if (m_settings.generate2D()) {
-				if (m_settings.force2D() || (GeometryTools.has2DCoordinatesNew(cdkMol) != 2)) {
-					if (!ConnectivityChecker.isConnected(cdkMol)) {
-						IMoleculeSet set = ConnectivityChecker.partitionIntoMolecules(cdkMol);
-						for (int i = 0; i < set.getMoleculeCount(); i++) {
-							new StructureDiagramGenerator(set.getMolecule(i)).generateCoordinates();
-						}
-					} else {
-						new StructureDiagramGenerator(cdkMol).generateCoordinates();
-					}
-				}
-			}
-			mol.set(cdkMol);
-		} catch (Exception ex) {
-			mol.set(null);
-			LOGGER.error("Could not convert molecule: " + ex.getMessage(), ex);
-		}
+		IAtomContainer cdkMol = m_converter.conv(cell);
+
+		CDKNodeUtils.getStandardMolecule(cdkMol);
+		if (m_settings.generate2D())
+			cdkMol = CDKNodeUtils.calculateCoordinates(cdkMol, m_settings.force2D());
+
+		return cdkMol;
 	}
 
 	@Override
 	public ColumnDestination[] getColumnDestinations() {
+
 		return m_colDest;
 	}
 
 	@Override
 	public DataColumnSpec[] getColumnSpecs() {
+
 		return m_colSpec;
 	}
 }

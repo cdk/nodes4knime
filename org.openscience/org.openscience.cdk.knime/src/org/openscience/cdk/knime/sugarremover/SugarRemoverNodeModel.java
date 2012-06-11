@@ -29,10 +29,9 @@ import org.openscience.cdk.exception.InvalidSmilesException;
 import org.openscience.cdk.graph.ConnectivityChecker;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
+import org.openscience.cdk.interfaces.IAtomContainerSet;
 import org.openscience.cdk.interfaces.IBond;
 import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.interfaces.IMolecule;
-import org.openscience.cdk.interfaces.IMoleculeSet;
 import org.openscience.cdk.interfaces.IRing;
 import org.openscience.cdk.interfaces.IRingSet;
 import org.openscience.cdk.isomorphism.UniversalIsomorphismTester;
@@ -47,7 +46,6 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 /**
  * This is the model implementation of SugarRemover.
- * 
  * 
  * @author ldpf
  */
@@ -64,7 +62,6 @@ public class SugarRemoverNodeModel extends NodeModel {
 	 */
 	protected SugarRemoverNodeModel() {
 
-		// TODO one incoming port and one outgoing port is assumed
 		super(1, 1);
 	}
 
@@ -74,6 +71,7 @@ public class SugarRemoverNodeModel extends NodeModel {
 	@Override
 	protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
 			throws Exception {
+
 		String[] smilesList = { "C(C(C(C(C(C=O)O)O)O)O)O", "C(C(CC(C(CO)O)O)O)(O)=O", "C(C(C(CC(=O)O)O)O)O",
 				"C(C(C(C(C(CO)O)O)O)=O)O", "C(C(C(C(C(CO)O)O)O)O)O", "C(C(C(C(CC=O)O)O)O)O", "occ(o)co",
 				"OCC(O)C(O)C(O)C(O)CO", "O=CC(O)C(O)C(O)C(O)CO", "CC(=O)OCC(O)CO", "CCCCC(O)C(=O)O",
@@ -116,7 +114,6 @@ public class SugarRemoverNodeModel extends NodeModel {
 			} else {
 				IAtomContainer oldMol = ((CDKValue) inRow.getCell(molColIndex)).getAtomContainer();
 				IAtomContainer clonedMol = (IAtomContainer) oldMol.clone();
-				AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(clonedMol);
 
 				// keep track of the state of the Hydrogens
 				SMSDNormalizer.convertExplicitToImplicitHydrogens(clonedMol);
@@ -139,7 +136,6 @@ public class SugarRemoverNodeModel extends NodeModel {
 						DataCell[] newRow = buildRow(molColIndex, tbspecs, inCells, newMols.get(i));
 						container.addRowToTable(new DefaultRow(inRow.getKey() + "_" + count, newRow));
 						count++;
-
 					}
 				}
 			}
@@ -151,8 +147,7 @@ public class SugarRemoverNodeModel extends NodeModel {
 	}
 
 	/**
-	 * Build a new row by copying the previous entries and append of replace
-	 * column with new value
+	 * Build a new row by copying the previous entries and append of replace column with new value
 	 * 
 	 * @param molColIndex
 	 * @param tbspecs
@@ -161,6 +156,7 @@ public class SugarRemoverNodeModel extends NodeModel {
 	 * @return
 	 */
 	private DataCell[] buildRow(final int molColIndex, DataTableSpec tbspecs, DataCell[] inCells, CDKCell newMol) {
+
 		DataCell[] newRow = new DataCell[tbspecs.getNumColumns()];
 		// Copying the cell that is going to be replace could be avoided...
 		System.arraycopy(inCells, 0, newRow, 0, inCells.length);
@@ -177,6 +173,7 @@ public class SugarRemoverNodeModel extends NodeModel {
 	 * remove the sugar rings from a molecule
 	 */
 	private List<CDKCell> removeSugars(IAtomContainer atomContainer) {
+
 		// find all the rings in the molecule
 		SSSRFinder molecule_ring = new SSSRFinder(atomContainer);
 		IRingSet ringset = molecule_ring.findSSSR();
@@ -212,23 +209,23 @@ public class SugarRemoverNodeModel extends NodeModel {
 		Map<Object, Object> properties = atomContainer.getProperties();
 		// get the set of atom containers remaining after removing the glycoside
 		// bond
-		IMoleculeSet molset = ConnectivityChecker.partitionIntoMolecules(atomContainer);
-		List<CDKCell> remainingMols = new ArrayList<CDKCell>(molset.getMoleculeCount());
+		IAtomContainerSet molset = ConnectivityChecker.partitionIntoMolecules(atomContainer);
+		List<CDKCell> remainingMols = new ArrayList<CDKCell>(molset.getAtomContainerCount());
 		int addedMol = 0;
 		// Remove all sugars with an open ring structure
-		for (int i = 0; i < molset.getMoleculeCount(); i++) {
+		for (int i = 0; i < molset.getAtomContainerCount(); i++) {
 
 			// set the properties of the atom container as in the original
 			// molecule
-			molset.getMolecule(i).setProperties(properties);
-			int size = molset.getMolecule(i).getBondCount();
+			molset.getAtomContainer(i).setProperties(properties);
+			int size = molset.getAtomContainer(i).getBondCount();
 			// remove atomcontainers with less than 5 bounds
 			// this may be too restrictive
 			if (size >= 5) {
-				if (!hasSugarChains(molset.getMolecule(i), ringset.getAtomContainerCount())) {
+				if (!hasSugarChains(molset.getAtomContainer(i), ringset.getAtomContainerCount())) {
 					if (explicitH_flag)
-						AtomContainerManipulator.convertImplicitToExplicitHydrogens(molset.getMolecule(i));
-					remainingMols.add(new CDKCell(molset.getMolecule(i)));
+						AtomContainerManipulator.convertImplicitToExplicitHydrogens(molset.getAtomContainer(i));
+					remainingMols.add(new CDKCell(molset.getAtomContainer(i)));
 					addedMol++;
 				}
 			}
@@ -243,15 +240,15 @@ public class SugarRemoverNodeModel extends NodeModel {
 	 * @param atomContainerCount
 	 * @return
 	 */
-	private boolean hasSugarChains(IMolecule molecule, int atomContainerCount) {
-		IAtomContainer target = molecule;
+	private boolean hasSugarChains(IAtomContainer molecule, int atomContainerCount) {
+
 		boolean isSubstructure = false;
 		int ringCount = atomContainerCount;
 		if (ringCount == 0) {
 			try {
 				for (IAtomContainer atomcontainer : sugarChains) {
 					IAtomContainer query = atomcontainer;
-					isSubstructure = UniversalIsomorphismTester.isSubgraph(target, query);
+					isSubstructure = UniversalIsomorphismTester.isSubgraph(molecule, query);
 					return isSubstructure;
 				}
 			} catch (CDKException ex) {
@@ -272,6 +269,7 @@ public class SugarRemoverNodeModel extends NodeModel {
 	 * @return
 	 */
 	private boolean hasGlycosideBond(IAtomContainer ring, IAtomContainer molecule, IRingSet ringset) {
+
 		IAtomContainer sugarRing = ring;
 		IRingSet sugarRingsSet = ringset;
 		IRingSet connectedRings = sugarRingsSet.getConnectedRings((IRing) ring);
@@ -325,8 +323,8 @@ public class SugarRemoverNodeModel extends NodeModel {
 	}
 
 	/**
-	 * this method returns all the a glycoside bond in the iatomcontainer
-	 * attaching the oxygen to the carbon in the sugar ring
+	 * this method returns all the a glycoside bond in the iatomcontainer attaching the oxygen to the carbon in the
+	 * sugar ring
 	 * 
 	 * @param ring
 	 * @param molecule
@@ -335,6 +333,7 @@ public class SugarRemoverNodeModel extends NodeModel {
 	 */
 	@SuppressWarnings("unused")
 	private IBond getGlycosideBond(IAtomContainer ring, IAtomContainer molecule, IRingSet ringset) {
+
 		IAtomContainer sugarRing = ring;
 		IRingSet sugarRingsSet = ringset;
 		IRingSet connectedRings = sugarRingsSet.getConnectedRings((IRing) ring);
@@ -386,6 +385,7 @@ public class SugarRemoverNodeModel extends NodeModel {
 	 */
 	@Override
 	protected void reset() {
+
 		// TODO Code executed on reset.
 		// Models build during execute are cleared here.
 		// Also data handled in load/saveInternals will be erased here.
@@ -396,6 +396,7 @@ public class SugarRemoverNodeModel extends NodeModel {
 	 */
 	@Override
 	protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
+
 		// set the molcolumn, check if is compatible, etc...
 		int molCol = inSpecs[0].findColumnIndex(m_settings.molColumnName());
 		if (molCol == -1) {
@@ -447,6 +448,7 @@ public class SugarRemoverNodeModel extends NodeModel {
 	 * @return
 	 */
 	private DataColumnSpec[] createColSpec(final DataTableSpec in) {
+
 		DataColumnSpec[] colSpecs = new DataColumnSpec[in.getNumColumns() + (m_settings.replaceColumn() ? 0 : 1)];
 		// iterate through the column specs and copy them to the new column
 		// specs
