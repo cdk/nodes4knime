@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./3D.png" type="Other">
+    <name>3D Coordinates</name>
+    
+    <shortDescription>
+        Integrates the CDK 3D Model Builder to calculate 3D coordinates for CDK molecules.
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>As a prerequisite for the calculation of 3D coordinates, all hydrogens are converted to explicit hydrogens for template recognition. 
+        The resulting molecular structures have 3D coordinates calculated for all atoms, including the explicit hydrogens. Molecular structures 
+        for which the calculations failed are returned as missing values.<br /><br />
+        Standing problems:
+        <ul>
+        	<li>condensed ring systems which are unknown for the template class</li>
+        	<li>vdWaals clashes</li>
+        	<li>stereochemistry</li>
+        	<li>chains running through ring systems</li>
+        </ul></intro>
+        
+        <option name="Column Selection">Select the column containing the molecular structures.</option>
+    </fullDescription>
+    <ports>
+        <inPort index="0" name="Molecule input (2D)">Table containing molecular structures.</inPort>
+        <outPort index="0" name="Molecule input (3D)">As input table but with 3D coordinates added.</outPort>
+    </ports>    
+</knimeNode>

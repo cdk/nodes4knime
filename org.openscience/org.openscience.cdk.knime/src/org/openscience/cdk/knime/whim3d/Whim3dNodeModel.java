@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2012, Stephan Beisken (sbeisken@gmail.com). All rights reserved.
+ * 
+ * This file is part of the KNIME CDK plugin.
+ * 
+ * The KNIME CDK plugin is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
+ * General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your
+ * option) any later version.
+ * 
+ * The KNIME CDK plugin is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
+ * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License
+ * for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License along with the plugin. If not, see
+ * <http://www.gnu.org/licenses/>.
+ */
 package org.openscience.cdk.knime.whim3d;
 
 import java.io.File;
@@ -26,11 +42,12 @@ import org.openscience.cdk.knime.type.CDKValue;
  * This is the model implementation of Whim3d. Holistic descriptors described by Todeschini et al. The descriptors are
  * based on a number of atom weightings. There are 5 different possible weightings implemented.
  * 
- * @author Stephan Beisken
+ * @author Stephan Beisken, European Bioinformatics Institute
  */
 public class Whim3dNodeModel extends NodeModel {
 
 	private Whim3dSettings settings = new Whim3dSettings();
+	private int columnIndex;
 
 	/**
 	 * Constructor for the node model.
@@ -120,47 +137,30 @@ public class Whim3dNodeModel extends NodeModel {
 	@Override
 	protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
 
-		int molCol = inSpecs[0].findColumnIndex(settings.getMolColumnName());
-
-		if (molCol == -1) {
-			searchForCompatibleColumn(molCol, inSpecs[0]);
-			setColumn(molCol, inSpecs[0]);
-		}
-
-		return new DataTableSpec[] { inSpecs[0], inSpecs[0] };
-	}
-
-	/**
-	 * Searches for a compatible column in the input table specification.
-	 */
-	private void searchForCompatibleColumn(int molCol, DataTableSpec inSpec) {
-
-		for (DataColumnSpec dcs : inSpec) {
-			if (dcs.getType().isCompatible(CDKValue.class)) {
-				if (molCol >= 0) {
-					molCol = -1;
-					break;
-				} else {
-					molCol = inSpec.findColumnIndex(dcs.getName());
+		columnIndex = inSpecs[0].findColumnIndex(settings.getMolColumnName());
+		if (columnIndex == -1) {
+			int i = 0;
+			for (DataColumnSpec spec : inSpecs[0]) {
+				if (spec.getType().isCompatible(CDKValue.class)) {
+					if (columnIndex != -1) {
+						setWarningMessage("Column '" + spec.getName() + "' automatically chosen as molecule column");
+					}
+					columnIndex = i;
 				}
+				i++;
+			}
+
+			if (columnIndex == -1) {
+				throw new InvalidSettingsException("Column does not exist");
 			}
 		}
-	}
 
-	/**
-	 * Sets the compatible column as input column or throws error.
-	 * 
-	 * @throws InvalidSettingsException no compatible column in input table specification
-	 */
-	private void setColumn(int molCol, DataTableSpec inSpec) throws InvalidSettingsException {
-
-		if (molCol != -1) {
-			String name = inSpec.getColumnSpec(molCol).getName();
-			setWarningMessage("Using '" + name + "' as molecule column");
-			settings.setMolColumnName(name);
-		} else {
-			throw new InvalidSettingsException("Molecule column '" + settings.getMolColumnName() + "' does not exist");
+		if (!inSpecs[0].getColumnSpec(columnIndex).getType().isCompatible(CDKValue.class)) {
+			throw new InvalidSettingsException("Column does not contain CDK cells");
 		}
+
+		ColumnRearranger arranger = createColumnRearranger(inSpecs[0]);
+		return new DataTableSpec[] { arranger.createSpec() };
 	}
 
 	/**

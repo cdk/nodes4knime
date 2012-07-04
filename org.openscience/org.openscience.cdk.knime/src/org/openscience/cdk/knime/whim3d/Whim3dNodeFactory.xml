@@ -13,12 +13,12 @@
 	<fullDescription>
 		<intro>
 			Creates new columns holding the calculated WHIM molecular properties
-			computed for each 3D structure. The computations are based on the
-			<a href="http://cdk.sf.net">CDK</a> toolkit.
+			computed for each <i>fully configured</i> 3D structure. The computations are based on the
+			<a href="http://cdk.sf.net">CDK</a> toolkit. For unconnected molecules only the largest fragment 
+			is used by the descriptor.
 		</intro>
 
-		<option name="Column Selection">Select the column containing the molecular
-			structure.</option>
+		<option name="Column Selection">Select the column containing the molecular structures.</option>
 		<option name="Weightings">Possible weighting schemes used for the properties
 			calculations.</option>
 	</fullDescription>

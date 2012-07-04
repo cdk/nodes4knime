@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2012, Stephan Beisken (sbeisken@gmail.com). All rights reserved.
+ * 
+ * This file is part of the KNIME CDK plugin.
+ * 
+ * The KNIME CDK plugin is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
+ * General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your
+ * option) any later version.
+ * 
+ * The KNIME CDK plugin is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
+ * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License
+ * for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License along with the plugin. If not, see
+ * <http://www.gnu.org/licenses/>.
+ */
 package org.openscience.cdk.knime.whim3d;
 
 import java.util.ArrayList;
@@ -15,8 +31,8 @@ import org.knime.core.data.container.CellFactory;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.node.ExecutionMonitor;
 import org.openscience.cdk.exception.CDKException;
+import org.openscience.cdk.graph.ConnectivityChecker;
 import org.openscience.cdk.interfaces.IAtomContainer;
-import org.openscience.cdk.knime.CDKNodeUtils;
 import org.openscience.cdk.knime.type.CDKValue;
 import org.openscience.cdk.qsar.DescriptorValue;
 import org.openscience.cdk.qsar.IMolecularDescriptor;
@@ -26,7 +42,7 @@ import org.openscience.cdk.qsar.result.DoubleArrayResult;
 /**
  * Cell factory for the moleculer WHIM descriptors.
  * 
- * @author Stephan Beisken
+ * @author Stephan Beisken, European Bioinformatics Institute
  */
 public class Whim3dGenerator implements CellFactory {
 
@@ -86,14 +102,11 @@ public class Whim3dGenerator implements CellFactory {
 
 		checkIsCdkCell(cdkCell);
 
-		try {
-			IAtomContainer molecule = CDKNodeUtils.getExplicitClone(((CDKValue) row.getCell(molColIndex))
-					.getAtomContainer());
-			whimValueCells = calculateWhimValues(molecule);
-		} catch (CDKException exception) {
-			Arrays.fill(whimValueCells, DataType.getMissingCell());
-			return whimValueCells;
-		}
+		IAtomContainer molecule = ((CDKValue) row.getCell(molColIndex)).getAtomContainer();
+		if (!ConnectivityChecker.isConnected(molecule))
+			molecule = ConnectivityChecker.partitionIntoMolecules(molecule).getAtomContainer(0);
+		
+		whimValueCells = calculateWhimValues(molecule);
 
 		return whimValueCells;
 	}
@@ -111,7 +124,6 @@ public class Whim3dGenerator implements CellFactory {
 
 		int cellIndex = 0;
 		for (Whim3dSchemes weightingScheme : weightingSchemes) {
-
 			whimValueCells[cellIndex] = calculateValueForScheme(weightingScheme, molecule);
 			cellIndex++;
 		}

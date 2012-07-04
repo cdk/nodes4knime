@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: KNIME CDK Integration
 Bundle-SymbolicName: org.openscience.cdk.knime;singleton:=true
-Bundle-Version: 1.1.0.qualifier
+Bundle-Version: 1.2.0.qualifier
 Bundle-Vendor: KNIME GmbH, Konstanz and EMBL-EBI, Cambridge
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ClassPath: knime-cdk.jar,
@@ -74,6 +74,9 @@ Export-Package: net.sf.jniinchi,
  org.openscience.cdk.knime.convert.cdk2molecule,
  org.openscience.cdk.knime.convert.molecule2cdk,
  org.openscience.cdk.knime.coord2d,
+ org.openscience.cdk.knime.coord3d,
+ org.openscience.cdk.knime.distance3d,
+ org.openscience.cdk.knime.distance3d.similarity,
  org.openscience.cdk.knime.elementfilter,
  org.openscience.cdk.knime.fingerprints,
  org.openscience.cdk.knime.fingerprints.similarity,
