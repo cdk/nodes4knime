@@ -50,9 +50,7 @@ import org.openscience.cdk.smiles.SmilesParser;
 public class SSSearchNodeModel extends ThreadedTableBuilderNodeModel {
 
 	private IAtomContainer m_fragment;
-
 	private int m_columnIndex;
-
 	private final SSSearchSettings m_settings = new SSSearchSettings();
 
 	/**
@@ -61,9 +59,6 @@ public class SSSearchNodeModel extends ThreadedTableBuilderNodeModel {
 	public SSSearchNodeModel() {
 
 		super(1, 2);
-		
-		// add search term flow variable
-//		pushFlowVariableString("smiles", value)
 	}
 
 	/**

@@ -1,9 +1,7 @@
-/* 
- *  Copyright (C) 2003 - 2012
- *  University of Konstanz, Germany and
- *  KNIME GmbH, Konstanz, Germany
- *  Website: http://www.knime.org; Email: contact@knime.org
- *
+/*
+ * Copyright (C) 2003 - 2012 University of Konstanz, Germany and KNIME GmbH, Konstanz, Germany Website:
+ * http://www.knime.org; Email: contact@knime.org
+ * 
  * This file is part of the KNIME CDK plugin.
  * 
  * The KNIME CDK plugin is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
@@ -29,66 +27,70 @@ import org.knime.core.node.NodeSettingsWO;
  * @author Thorsten Meinl, University of Konstanz
  */
 public class SSSearchSettings {
-    private String[] m_smilesFragments;
 
-    private String m_molColumnName;
+	private String[] m_smilesFragments;
+	private String m_molColumnName;
 
-    /**
-     * Returns Smiles strings containing the fragment.
-     * 
-     * @return the fragments in Smiles
-     */
-    public String[] smilesFragments() {
-        return m_smilesFragments;
-    }
+	/**
+	 * Returns Smiles strings containing the fragment.
+	 * 
+	 * @return the fragments in Smiles
+	 */
+	public String[] smilesFragments() {
 
-    /**
-     * Sets the Smiles strings containing the fragments.
-     * 
-     * @param cml the fragments in Smiles
-     */
-    public void smilesFragments(final String... cml) {
-        m_smilesFragments = cml;
-    }
+		return m_smilesFragments;
+	}
 
-    /**
-     * Returns the name of the column containing the molecules.
-     * 
-     * @return the molecules' column name
-     */
-    public String molColName() {
-        return m_molColumnName;
-    }
+	/**
+	 * Sets the Smiles strings containing the fragments.
+	 * 
+	 * @param cml the fragments in Smiles
+	 */
+	public void smilesFragments(final String... cml) {
 
-    /**
-     * Sets the name of the column containing the molecules.
-     * 
-     * @param colName the molecules' column name
-     */
-    public void molColName(final String colName) {
-        m_molColumnName = colName;
-    }
+		m_smilesFragments = cml;
+	}
 
-    /**
-     * Saves the settings into the given node settings object.
-     * 
-     * @param settings a node settings object
-     */
-    public void saveSettings(final NodeSettingsWO settings) {
-        settings.addString("molColumn", m_molColumnName);
-        settings.addStringArray("fragments", m_smilesFragments);
-    }
+	/**
+	 * Returns the name of the column containing the molecules.
+	 * 
+	 * @return the molecules' column name
+	 */
+	public String molColName() {
 
-    /**
-     * Loads the settings from the given node settings object.
-     * 
-     * @param settings a node settings object
-     * @throws InvalidSettingsException if not all required settings are
-     *             available
-     */
-    public void loadSettings(final NodeSettingsRO settings)
-            throws InvalidSettingsException {
-        m_molColumnName = settings.getString("molColumn");
-        m_smilesFragments = settings.getStringArray("fragments");
-    }
+		return m_molColumnName;
+	}
+
+	/**
+	 * Sets the name of the column containing the molecules.
+	 * 
+	 * @param colName the molecules' column name
+	 */
+	public void molColName(final String colName) {
+
+		m_molColumnName = colName;
+	}
+
+	/**
+	 * Saves the settings into the given node settings object.
+	 * 
+	 * @param settings a node settings object
+	 */
+	public void saveSettings(final NodeSettingsWO settings) {
+
+		settings.addString("molColumn", m_molColumnName);
+		settings.addStringArray("fragments", m_smilesFragments);
+	}
+
+	/**
+	 * Loads the settings from the given node settings object.
+	 * 
+	 * @param settings a node settings object
+	 * @throws InvalidSettingsException if not all required settings are available
+	 */
+	public void loadSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
+
+		m_molColumnName = settings.getString("molColumn");
+		m_smilesFragments = settings.getStringArray("fragments");
+	}
 }

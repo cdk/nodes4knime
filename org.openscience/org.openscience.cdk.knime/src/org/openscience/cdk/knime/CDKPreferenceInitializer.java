@@ -20,6 +20,8 @@
 package org.openscience.cdk.knime;
 
 import org.eclipse.core.runtime.preferences.AbstractPreferenceInitializer;
+import org.eclipse.jface.preference.IPreferenceStore;
+import org.openscience.cdk.knime.CDKPreferencePage.LABELS;
 
 /**
  * Initializer for KNIME's CDK plugin preferences.
@@ -29,16 +31,8 @@ import org.eclipse.core.runtime.preferences.AbstractPreferenceInitializer;
  */
 public class CDKPreferenceInitializer extends AbstractPreferenceInitializer {
 
-	/** Preference key for the "show implicit hydrogens" setting. */
-	// public static final String PREF_SHOW_IMPLICIT_HYDROGENS =
-	// "knime.cdk.implicitHydrogens";
-
-	/** Preference key for the "show explicit hydrogens" setting. */
-	// public static final String PREF_SHOW_EXPLICIT_HYDROGENS = "knime.cdk.explicitHydrogens";
-
-	/** Preference key for the "use multiple threads" setting. */
-	// public static final String PREF_USE_MULTIPLE_THREADS =
-	// "knime.cdk.multipleThreads";
+	/** Preference key for the "show numbers" setting. */
+	 public static final String SHOW_NUMBERS = "knime.cdk.numbers";
 
 	/**
 	 * {@inheritDoc}
@@ -47,11 +41,9 @@ public class CDKPreferenceInitializer extends AbstractPreferenceInitializer {
 	public void initializeDefaultPreferences() {
 
 		// get the preference store for the UI plugin
-		// IPreferenceStore store = CDKNodePlugin.getDefault().getPreferenceStore();
+		 IPreferenceStore store = CDKNodePlugin.getDefault().getPreferenceStore();
 
 		// set default values
-		// store.setDefault(PREF_SHOW_IMPLICIT_HYDROGENS, false);
-		// store.setDefault(PREF_SHOW_EXPLICIT_HYDROGENS, false);
-		// store.setDefault(PREF_USE_MULTIPLE_THREADS, false);
+		 store.setDefault(SHOW_NUMBERS, LABELS.NONE.name());
 	}
 }

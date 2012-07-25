@@ -3,7 +3,7 @@
  * 
  * Copyright (C) 2003 - 2011 University of Konstanz, Germany and KNIME GmbH, Konstanz, Germany Website:
  * http://www.knime.org; Email: contact@knime.org
- *
+ * 
  * This file is part of the KNIME CDK plugin.
  * 
  * The KNIME CDK plugin is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
@@ -20,6 +20,8 @@
 package org.openscience.cdk.knime;
 
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
+import org.eclipse.jface.preference.RadioGroupFieldEditor;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 
@@ -30,6 +32,10 @@ import org.eclipse.ui.IWorkbenchPreferencePage;
  * @author Stephan Beisken, European Bioinformatics Institute
  */
 public class CDKPreferencePage extends FieldEditorPreferencePage implements IWorkbenchPreferencePage {
+
+	public enum LABELS {
+		NONE, ALL, CARBON, HYDROGEN
+	};
 
 	/**
 	 * Creates a new preference page.
@@ -49,25 +55,16 @@ public class CDKPreferencePage extends FieldEditorPreferencePage implements IWor
 	@Override
 	protected void createFieldEditors() {
 
-		// Composite parent = getFieldEditorParent();
+		Composite parent = getFieldEditorParent();
 
-		// BooleanFieldEditor showImplicitHydrogens =
-		// new BooleanFieldEditor(
-		// CDKPreferenceInitializer.PREF_SHOW_IMPLICIT_HYDROGENS,
-		// "Show implicit hydrogens in structure diagrams", parent);
-		// addField(showImplicitHydrogens);
+		String[][] labelsAndValues = new String[][] { { "No Atoms", LABELS.NONE.name() },
+				{ "All Atoms", LABELS.ALL.name() }, { "Carbon Atoms", LABELS.CARBON.name() },
+				{ "Hydrogen Atoms", LABELS.HYDROGEN.name() } };
 
-		// BooleanFieldEditor showExplicitHydrogens =
-		// new BooleanFieldEditor(
-		// CDKPreferenceInitializer.PREF_SHOW_EXPLICIT_HYDROGENS,
-		// "Show explicit hydrogens in structure diagrams", parent);
-		// addField(showExplicitHydrogens);
+		RadioGroupFieldEditor showNumbers = new RadioGroupFieldEditor(CDKPreferenceInitializer.SHOW_NUMBERS,
+				"Show atom numbers for: ", 1, labelsAndValues, parent);
 
-		// BooleanFieldEditor useMultipleThreads =
-		// new BooleanFieldEditor(
-		// CDKPreferenceInitializer.PREF_USE_MULTIPLE_THREADS,
-		// "Use CDK with multiple threads", parent);
-		// addField(useMultipleThreads);
+		addField(showNumbers);
 	}
 
 	/**

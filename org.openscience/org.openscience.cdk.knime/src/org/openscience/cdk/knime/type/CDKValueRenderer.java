@@ -36,6 +36,9 @@ import org.openscience.cdk.graph.ConnectivityChecker;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IAtomContainerSet;
+import org.openscience.cdk.knime.CDKNodePlugin;
+import org.openscience.cdk.knime.type.renderer.ElementNumberGenerator;
+import org.openscience.cdk.knime.type.renderer.ElementNumberGenerator.TYPE;
 import org.openscience.jchempaint.renderer.AtomContainerRenderer;
 import org.openscience.jchempaint.renderer.RendererModel;
 import org.openscience.jchempaint.renderer.font.AWTFontManager;
@@ -62,8 +65,8 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 	static {
 		AtomContainerRenderer renderer = null;
 		try {
-			renderer = new AtomContainerRenderer(Arrays.asList(new BasicBondGenerator(), new BasicAtomGenerator()),
-					new AWTFontManager(), true);
+			renderer = new AtomContainerRenderer(Arrays.asList(new BasicBondGenerator(), new BasicAtomGenerator(),
+					new ElementNumberGenerator()), new AWTFontManager(), true);
 
 			RendererModel renderer2dModel = renderer.getRenderer2DModel();
 			renderer2dModel.setUseAntiAliasing(true);
@@ -81,6 +84,33 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 	private IAtomContainer m_mol;
 
 	private static final Font NO_2D_FONT = new Font(Font.SANS_SERIF, Font.PLAIN, 11);
+
+	public CDKValueRenderer() {
+
+		super();
+
+		switch (CDKNodePlugin.showNumbers()) {
+
+		case ALL:
+			setNumberRenderer(TYPE.ALL_ATOMS);
+			break;
+		case CARBON:
+			setNumberRenderer(TYPE.C_ATOMS);
+			break;
+		case HYDROGEN:
+			setNumberRenderer(TYPE.H_ATOMS);
+			break;
+		default:
+			RENDERER.getRenderer2DModel().setDrawNumbers(false);
+			break;
+		}
+	}
+
+	private void setNumberRenderer(TYPE type) {
+
+		((ElementNumberGenerator) RENDERER.getGenerators().get(2)).setType(type);
+		RENDERER.getRenderer2DModel().setDrawNumbers(true);
+	}
 
 	/**
 	 * Sets a new object to be rendered.

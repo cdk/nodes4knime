@@ -72,7 +72,7 @@ public class JMolSketcherPanel extends JChemPaintPanel {
 	 * @param smiles a list of Smiles strings
 	 * @throws Exception if an exception occurs
 	 */
-	public void loadStructures(final String... smiles) throws Exception {
+	public void loadStructures(String[] smiles) throws Exception {
 
 		IChemModel chemModel = getChemModel();
 		IAtomContainerSet moleculeSet = new AtomContainerSet();
