@@ -37,6 +37,10 @@ public class CDKPreferencePage extends FieldEditorPreferencePage implements IWor
 		NONE, ALL, CARBON, HYDROGEN
 	};
 
+	public enum NUMBERING {
+		CANONICAL, SEQUENTIAL
+	};
+
 	/**
 	 * Creates a new preference page.
 	 */
@@ -57,14 +61,21 @@ public class CDKPreferencePage extends FieldEditorPreferencePage implements IWor
 
 		Composite parent = getFieldEditorParent();
 
-		String[][] labelsAndValues = new String[][] { { "No Atoms", LABELS.NONE.name() },
+		String[][] numberLabelsAndValues = new String[][] { { "No Atoms", LABELS.NONE.name() },
 				{ "All Atoms", LABELS.ALL.name() }, { "Carbon Atoms", LABELS.CARBON.name() },
 				{ "Hydrogen Atoms", LABELS.HYDROGEN.name() } };
 
 		RadioGroupFieldEditor showNumbers = new RadioGroupFieldEditor(CDKPreferenceInitializer.SHOW_NUMBERS,
-				"Show atom numbers for: ", 1, labelsAndValues, parent);
+				"Show atom numbers for: ", 1, numberLabelsAndValues, parent);
+
+		String[][] numberingLabelsAndValues = new String[][] { { "Canonical", NUMBERING.CANONICAL.name() },
+				{ "Sequential", NUMBERING.SEQUENTIAL.name() } };
+
+		RadioGroupFieldEditor numbering = new RadioGroupFieldEditor(CDKPreferenceInitializer.NUMBERING_TYPE,
+				"Atom number type: ", 1, numberingLabelsAndValues, parent);
 
 		addField(showNumbers);
+		addField(numbering);
 	}
 
 	/**

@@ -22,6 +22,7 @@ package org.openscience.cdk.knime;
 import org.eclipse.core.runtime.preferences.AbstractPreferenceInitializer;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.openscience.cdk.knime.CDKPreferencePage.LABELS;
+import org.openscience.cdk.knime.CDKPreferencePage.NUMBERING;
 
 /**
  * Initializer for KNIME's CDK plugin preferences.
@@ -33,6 +34,9 @@ public class CDKPreferenceInitializer extends AbstractPreferenceInitializer {
 
 	/** Preference key for the "show numbers" setting. */
 	 public static final String SHOW_NUMBERS = "knime.cdk.numbers";
+	 
+	 /** Preference key for the "numbering type" setting. */
+	 public static final String NUMBERING_TYPE = "knime.cdk.numbering";
 
 	/**
 	 * {@inheritDoc}
@@ -45,5 +49,6 @@ public class CDKPreferenceInitializer extends AbstractPreferenceInitializer {
 
 		// set default values
 		 store.setDefault(SHOW_NUMBERS, LABELS.NONE.name());
+		 store.setDefault(NUMBERING_TYPE, NUMBERING.CANONICAL.name());
 	}
 }

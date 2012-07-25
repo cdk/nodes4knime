@@ -38,6 +38,7 @@ import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IAtomContainerSet;
 import org.openscience.cdk.knime.CDKNodePlugin;
 import org.openscience.cdk.knime.type.renderer.ElementNumberGenerator;
+import org.openscience.cdk.knime.type.renderer.ElementNumberGenerator.NUMBERING;
 import org.openscience.cdk.knime.type.renderer.ElementNumberGenerator.TYPE;
 import org.openscience.jchempaint.renderer.AtomContainerRenderer;
 import org.openscience.jchempaint.renderer.RendererModel;
@@ -88,17 +89,29 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 	public CDKValueRenderer() {
 
 		super();
+		
+		NUMBERING numbering;
+		
+		switch (CDKNodePlugin.numbering()) {
+		
+		case SEQUENTIAL:
+			numbering = NUMBERING.SEQUENTIAL;
+			break;
+		default:
+			numbering = NUMBERING.CANONICAL;
+			break;
+		}
 
 		switch (CDKNodePlugin.showNumbers()) {
 
 		case ALL:
-			setNumberRenderer(TYPE.ALL_ATOMS);
+			setNumberRenderer(TYPE.ALL_ATOMS, numbering);
 			break;
 		case CARBON:
-			setNumberRenderer(TYPE.C_ATOMS);
+			setNumberRenderer(TYPE.C_ATOMS, numbering);
 			break;
 		case HYDROGEN:
-			setNumberRenderer(TYPE.H_ATOMS);
+			setNumberRenderer(TYPE.H_ATOMS, numbering);
 			break;
 		default:
 			RENDERER.getRenderer2DModel().setDrawNumbers(false);
@@ -106,9 +119,9 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 		}
 	}
 
-	private void setNumberRenderer(TYPE type) {
+	private void setNumberRenderer(TYPE type, NUMBERING numbering) {
 
-		((ElementNumberGenerator) RENDERER.getGenerators().get(2)).setType(type);
+		((ElementNumberGenerator) RENDERER.getGenerators().get(2)).setType(type, numbering);
 		RENDERER.getRenderer2DModel().setDrawNumbers(true);
 	}
 

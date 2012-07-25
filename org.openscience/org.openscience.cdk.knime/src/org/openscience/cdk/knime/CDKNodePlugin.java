@@ -37,6 +37,7 @@ import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.knime.ext.chem.moss.CDKMolConverter;
 import org.knime.ext.chem.moss.MolConverter;
 import org.openscience.cdk.knime.CDKPreferencePage.LABELS;
+import org.openscience.cdk.knime.CDKPreferencePage.NUMBERING;
 import org.osgi.framework.BundleContext;
 
 /**
@@ -54,6 +55,7 @@ public class CDKNodePlugin extends AbstractUIPlugin {
 	private static CDKNodePlugin plugin;
 
 	private static LABELS showNumbers = LABELS.NONE;
+	private static NUMBERING numbering = NUMBERING.CANONICAL;
 
 	/**
 	 * The constructor.
@@ -92,11 +94,14 @@ public class CDKNodePlugin extends AbstractUIPlugin {
 
 				if (event.getProperty().equals(CDKPreferenceInitializer.SHOW_NUMBERS)) {
 					showNumbers = LABELS.valueOf(pStore.getString(CDKPreferenceInitializer.SHOW_NUMBERS));
+				} else if (event.getProperty().equals(CDKPreferenceInitializer.NUMBERING_TYPE)) {
+					numbering = NUMBERING.valueOf(pStore.getString(CDKPreferenceInitializer.NUMBERING_TYPE));
 				}
 			}
 		});
 
 		showNumbers = LABELS.valueOf(pStore.getString(CDKPreferenceInitializer.SHOW_NUMBERS));
+		numbering = NUMBERING.valueOf(pStore.getString(CDKPreferenceInitializer.NUMBERING_TYPE));
 
 		try {
 			// may fail if MoSS is not installed
@@ -137,5 +142,15 @@ public class CDKNodePlugin extends AbstractUIPlugin {
 	public static LABELS showNumbers() {
 
 		return showNumbers;
+	}
+
+	/**
+	 * Returns the numbering type that should be used for the atom ids.
+	 * 
+	 * @return the numbering type
+	 */
+	public static NUMBERING numbering() {
+
+		return numbering;
 	}
 }

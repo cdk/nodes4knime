@@ -42,16 +42,22 @@ public class ElementNumberGenerator implements IGenerator {
 		ALL_ATOMS, C_ATOMS, H_ATOMS
 	};
 
+	public enum NUMBERING {
+		CANONICAL, SEQUENTIAL
+	}
+
 	private TYPE elementType;
+	private NUMBERING numbering;
 
 	public ElementNumberGenerator() {
 
 		this.elementType = TYPE.ALL_ATOMS;
 	}
-	
-	public void setType(TYPE elementType) {
-		
+
+	public void setType(TYPE elementType, NUMBERING numbering) {
+
 		this.elementType = elementType;
+		this.numbering = numbering;
 	}
 
 	public IRenderingElement generate(IAtomContainer ac, RendererModel model) {
@@ -60,23 +66,42 @@ public class ElementNumberGenerator implements IGenerator {
 		if (!model.drawNumbers())
 			return numbers;
 
-		switch (elementType) {
+		if (numbering == NUMBERING.CANONICAL) {
+			
+			switch (elementType) {
 
-		case ALL_ATOMS:
-			addNumbers(numbers, ac);
-			break;
-		case C_ATOMS:
-			addNumbers(numbers, ac, "C");
-			break;
-		case H_ATOMS:
-			addNumbers(numbers, ac, "H");
-			break;
+			case ALL_ATOMS:
+				addNumbersCanonical(numbers, ac);
+				break;
+			case C_ATOMS:
+				addNumbersCanonical(numbers, ac, "C");
+				break;
+			case H_ATOMS:
+				addNumbersCanonical(numbers, ac, "H");
+				break;
+			}
+			
+		} else if (numbering == NUMBERING.SEQUENTIAL) {
+			
+			switch (elementType) {
+
+			case ALL_ATOMS:
+				addNumbersSequential(numbers, ac);
+				break;
+			case C_ATOMS:
+				addNumbersSequential(numbers, ac, "C");
+				break;
+			case H_ATOMS:
+				addNumbersSequential(numbers, ac, "H");
+				break;
+			}
+			
 		}
 
 		return numbers;
 	}
 
-	private void addNumbers(ElementGroup numbers, IAtomContainer ac, String symbol) {
+	private void addNumbersCanonical(ElementGroup numbers, IAtomContainer ac, String symbol) {
 
 		for (IAtom atom : ac.atoms()) {
 
@@ -87,12 +112,36 @@ public class ElementNumberGenerator implements IGenerator {
 		}
 	}
 
-	private void addNumbers(ElementGroup numbers, IAtomContainer ac) {
+	private void addNumbersCanonical(ElementGroup numbers, IAtomContainer ac) {
 
 		for (IAtom atom : ac.atoms()) {
 
 			Point2d p = atom.getPoint2d();
 			numbers.add(new TextElement(p.x, p.y, atom.getID(), Color.BLACK));
+		}
+	}
+	
+	private void addNumbersSequential(ElementGroup numbers, IAtomContainer ac, String symbol) {
+
+		int number = 1;
+		for (IAtom atom : ac.atoms()) {
+
+			if (atom.getSymbol().equals(symbol)) {
+				Point2d p = atom.getPoint2d();
+				numbers.add(new TextElement(p.x, p.y, String.valueOf(number), Color.BLACK));
+			}
+			number++;
+		}
+	}
+
+	private void addNumbersSequential(ElementGroup numbers, IAtomContainer ac) {
+
+		int number = 1;
+		for (IAtom atom : ac.atoms()) {
+
+			Point2d p = atom.getPoint2d();
+			numbers.add(new TextElement(p.x, p.y, String.valueOf(number), Color.BLACK));
+			number++;
 		}
 	}
 
