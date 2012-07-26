@@ -40,6 +40,8 @@ import org.knime.core.node.NodeSettingsWO;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
+import org.openscience.cdk.knime.CDKNodePlugin;
+import org.openscience.cdk.knime.CDKPreferencePage.NUMBERING;
 import org.openscience.cdk.knime.atomsignature.AtomSignatureSettings.AtomTypes;
 import org.openscience.cdk.knime.atomsignature.AtomSignatureSettings.SignatureTypes;
 import org.openscience.cdk.knime.type.CDKValue;
@@ -76,7 +78,7 @@ public class AtomSignatureNodeModel extends NodeModel {
 		final int molColIndex = inData[0].getDataTableSpec().findColumnIndex(m_settings.molColumnName());
 
 		// declare the column to be rearranged
-		int addNbColumns = m_settings.isHeightSet() ? m_settings.getMaxHeight() - m_settings.getMinHeight() + 1 : 1;
+		int addNbColumns = m_settings.isHeightSet() ? m_settings.getMaxHeight() - m_settings.getMinHeight() + 2 : 2;
 
 		DataColumnSpec[] clmspecs = configCSpecs(inData[0].getDataTableSpec());
 
@@ -111,17 +113,26 @@ public class AtomSignatureNodeModel extends NodeModel {
 
 				int count = 0;
 				// loop through the atoms and calculate the signatures
+				int atomID = 1;
 				for (IAtom atom : molTmp.atoms()) {
 					if (atom.getSymbol().equals(m_settings.atomType().toString())) {
 						// create a new row
 						DataCell[] newRow = new DataCell[inCells.length + addNbColumns];
 						// copy cells from the input row to the new row
 						System.arraycopy(inCells, 0, newRow, 0, inCells.length);
-						DataCell[] signatures = computeSignatures(atom, molTmp, addNbColumns);
-						System.arraycopy(signatures, 0, newRow, inCells.length, signatures.length);
+						DataCell[] atomCannonical = null;
+						if(CDKNodePlugin.numbering() == NUMBERING.CANONICAL) {
+							atomCannonical = new DataCell[] { new StringCell(atom.getID()) };
+						} else {
+							atomCannonical = new DataCell[] { new StringCell("" + atomID) };
+						}
+						System.arraycopy(atomCannonical, 0, newRow, inCells.length, 1);
+						DataCell[] signatures = computeSignatures(atom, molTmp, addNbColumns-1);
+						System.arraycopy(signatures, 0, newRow, inCells.length+1, signatures.length);
 						container.addRowToTable(new DefaultRow(inRow.getKey() + "_" + Integer.toString(count), newRow));
 						count++;
 					}
+					atomID++;
 				}
 			}
 		}
@@ -215,7 +226,7 @@ public class AtomSignatureNodeModel extends NodeModel {
 
 		// add a new column to the specs...
 		int inNbColumns = inSpecs.getNumColumns();
-		int addNbColumns = m_settings.isHeightSet() ? m_settings.getMaxHeight() - m_settings.getMinHeight() + 1 : 1;
+		int addNbColumns = m_settings.isHeightSet() ? m_settings.getMaxHeight() - m_settings.getMinHeight() + 2 : 2;
 
 		DataColumnSpec[] cs = new DataColumnSpec[inNbColumns + addNbColumns];
 
@@ -224,11 +235,16 @@ public class AtomSignatureNodeModel extends NodeModel {
 			cs[i] = inSpecs.getColumnSpec(i);
 		// add the columnspecs for the new columns
 		for (int i = inNbColumns; i < (inNbColumns + addNbColumns); i++) {
+			String name = null;
+			if(i == inNbColumns){
+				name = "Atom Cannonical Number";
+			} else {
 			// Check if the name we want for the new column already exists and if so generate a different one
-			String name = m_settings.signatureType().equals(SignatureTypes.AtomSignatures) ? DataTableSpec
+			name = m_settings.signatureType().equals(SignatureTypes.AtomSignatures) ? DataTableSpec
 					.getUniqueColumnName(inSpecs, "Signature " + (i + m_settings.getMinHeight() - inNbColumns))
 					: DataTableSpec.getUniqueColumnName(inSpecs, "HOSE "
 							+ (i + m_settings.getMinHeight() - inNbColumns));
+			}
 			cs[i] = new DataColumnSpecCreator(name, StringCell.TYPE).createSpec();
 		}
 		return cs;
