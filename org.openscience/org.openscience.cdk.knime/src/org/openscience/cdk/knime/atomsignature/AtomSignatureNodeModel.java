@@ -120,13 +120,13 @@ public class AtomSignatureNodeModel extends NodeModel {
 						DataCell[] newRow = new DataCell[inCells.length + addNbColumns];
 						// copy cells from the input row to the new row
 						System.arraycopy(inCells, 0, newRow, 0, inCells.length);
-						DataCell[] atomCannonical = null;
+						DataCell[] atomCanonicalNb = null;
 						if(CDKNodePlugin.numbering() == NUMBERING.CANONICAL) {
-							atomCannonical = new DataCell[] { new StringCell(atom.getID()) };
+							atomCanonicalNb = new DataCell[] { new StringCell(atom.getID()) };
 						} else {
-							atomCannonical = new DataCell[] { new StringCell("" + atomID) };
+							atomCanonicalNb = new DataCell[] { new StringCell("" + atomID) };
 						}
-						System.arraycopy(atomCannonical, 0, newRow, inCells.length, 1);
+						System.arraycopy(atomCanonicalNb, 0, newRow, inCells.length, 1);
 						DataCell[] signatures = computeSignatures(atom, molTmp, addNbColumns-1);
 						System.arraycopy(signatures, 0, newRow, inCells.length+1, signatures.length);
 						container.addRowToTable(new DefaultRow(inRow.getKey() + "_" + Integer.toString(count), newRow));
@@ -237,7 +237,7 @@ public class AtomSignatureNodeModel extends NodeModel {
 		for (int i = inNbColumns; i < (inNbColumns + addNbColumns); i++) {
 			String name = null;
 			if(i == inNbColumns){
-				name = "Atom Cannonical Number";
+				name = "Atom ID";
 			} else {
 			// Check if the name we want for the new column already exists and if so generate a different one
 			name = m_settings.signatureType().equals(SignatureTypes.AtomSignatures) ? DataTableSpec
