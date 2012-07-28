@@ -159,7 +159,7 @@ public class AtomSignatureNodeModel extends NodeModel {
 				try {
 					sign = hoseGen.getHOSECode(mol, atom, (i + m_settings.getMinHeight()));
 				} catch (CDKException e) {
-					// nothing to do
+					// do nothing
 				}
 			}
 
@@ -241,9 +241,9 @@ public class AtomSignatureNodeModel extends NodeModel {
 			} else {
 			// Check if the name we want for the new column already exists and if so generate a different one
 			name = m_settings.signatureType().equals(SignatureTypes.AtomSignatures) ? DataTableSpec
-					.getUniqueColumnName(inSpecs, "Signature " + (i + m_settings.getMinHeight() - inNbColumns))
+					.getUniqueColumnName(inSpecs, "Signature " + (i - 1 + m_settings.getMinHeight() - inNbColumns))
 					: DataTableSpec.getUniqueColumnName(inSpecs, "HOSE "
-							+ (i + m_settings.getMinHeight() - inNbColumns));
+							+ (i - 1 + m_settings.getMinHeight() - inNbColumns));
 			}
 			cs[i] = new DataColumnSpecCreator(name, StringCell.TYPE).createSpec();
 		}
