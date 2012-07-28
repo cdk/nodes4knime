@@ -108,7 +108,11 @@ public class SSSearchNodeDialog extends NodeDialogPane {
 	@Override
 	protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
 
-		m_settings.smilesFragments(m_panel.getAllSmiles());
+		if (m_panel.getAllSmiles().length == 0) {
+			m_settings.smilesFragments(new String[] { "/" });
+		} else {
+			m_settings.smilesFragments(m_panel.getAllSmiles());
+		}
 		m_settings.molColName(m_molColumnName.getSelectedColumn());
 		m_settings.saveSettings(settings);
 	}
