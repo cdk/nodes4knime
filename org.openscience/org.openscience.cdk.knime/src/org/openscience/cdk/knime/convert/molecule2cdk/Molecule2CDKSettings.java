@@ -34,6 +34,7 @@ public class Molecule2CDKSettings {
 	private String m_newColName;
 	private boolean m_generate2D = true;
 	private boolean m_force2D = false;
+	private boolean convertOrder = false;
 
 	private int m_timeout = 10000;
 
@@ -138,6 +139,26 @@ public class Molecule2CDKSettings {
 	}
 
 	/**
+	 * Returns if bond order of type 4 should be converted to bond orders 1 and 2.
+	 * 
+	 * @return <code>true</code> if they should be converted, <code>false</code> otherwise
+	 */
+	public boolean convertOrder() {
+
+		return convertOrder;
+	}
+
+	/**
+	 * Sets if 2D bond order of type 4 should be converted to bond orders 1 and 2.
+	 * 
+	 * @param force <code>true</code> if they should be converted, <code>false</code> otherwise
+	 */
+	public void convertOrder(final boolean conertOrder) {
+
+		this.convertOrder = conertOrder;
+	}
+
+	/**
 	 * Sets the timeout after which the conversion is forcefully stopped.
 	 * 
 	 * @param t the timeout in milliseconds
@@ -170,6 +191,7 @@ public class Molecule2CDKSettings {
 		m_newColName = settings.getString("newColName");
 		m_generate2D = settings.getBoolean("generate2D");
 		m_force2D = settings.getBoolean("force2D");
+		convertOrder = settings.getBoolean("bondOrder");
 		m_timeout = settings.getInt("timeout");
 	}
 
@@ -185,6 +207,7 @@ public class Molecule2CDKSettings {
 		m_newColName = settings.getString("newColName", "");
 		m_generate2D = settings.getBoolean("generate2D", false);
 		m_force2D = settings.getBoolean("force2D", false);
+		convertOrder = settings.getBoolean("bondOrder", false);
 		m_timeout = settings.getInt("timeout", m_timeout);
 	}
 
@@ -200,6 +223,7 @@ public class Molecule2CDKSettings {
 		settings.addString("newColName", m_newColName);
 		settings.addBoolean("generate2D", m_generate2D);
 		settings.addBoolean("force2D", m_force2D);
+		settings.addBoolean("bondOrder", convertOrder);
 		settings.addInt("timeout", m_timeout);
 	}
 }

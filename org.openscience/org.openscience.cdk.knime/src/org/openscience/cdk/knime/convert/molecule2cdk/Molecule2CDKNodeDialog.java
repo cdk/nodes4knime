@@ -67,6 +67,10 @@ public class Molecule2CDKNodeDialog extends NodeDialogPane {
 	private final JLabel m_force2DLabel;
 
 	private final JCheckBox m_force2D = new JCheckBox();
+	
+	private final JLabel convertBondFourLabel;
+	
+	private final JCheckBox convertBondFour = new JCheckBox();
 
 	private final JSpinner m_timeout = new JSpinner(new SpinnerNumberModel(10000, 0, Integer.MAX_VALUE, 10));
 
@@ -133,6 +137,14 @@ public class Molecule2CDKNodeDialog extends NodeDialogPane {
 				m_force2D.setEnabled(m_generate2D.isSelected());
 			}
 		});
+	
+		
+		c.gridy++;
+		c.gridx = 0;
+		convertBondFourLabel = new JLabel("Convert bond order '4'   ");
+		p.add(convertBondFourLabel, c);
+		c.gridx = 1;
+		p.add(convertBondFour, c);
 
 		c.gridy++;
 		c.gridx = 0;
@@ -162,6 +174,7 @@ public class Molecule2CDKNodeDialog extends NodeDialogPane {
 		m_force2DLabel.setEnabled(m_settings.generate2D());
 		m_force2D.setEnabled(m_settings.generate2D());
 		m_force2D.setSelected(m_settings.force2D());
+		convertBondFour.setSelected(m_settings.convertOrder());
 
 		m_timeout.setValue(m_settings.timeout());
 	}
@@ -177,6 +190,7 @@ public class Molecule2CDKNodeDialog extends NodeDialogPane {
 		m_settings.newColumnName(m_newColName.getText());
 		m_settings.generate2D(m_generate2D.isSelected());
 		m_settings.force2D(m_force2D.isSelected());
+		m_settings.convertOrder(convertBondFour.isSelected());
 		m_settings.timeout((Integer) m_timeout.getValue());
 		m_settings.saveSettings(settings);
 	}
