@@ -52,6 +52,8 @@ public class SSSearchNodeModel extends ThreadedTableBuilderNodeModel {
 	private IAtomContainer m_fragment;
 	private int m_columnIndex;
 	private final SSSearchSettings m_settings = new SSSearchSettings();
+	
+	private final UniversalIsomorphismTester isomorphismTester = new UniversalIsomorphismTester();
 
 	/**
 	 * Creates a new model with 1 input and 2 output ports.
@@ -95,7 +97,7 @@ public class SSSearchNodeModel extends ThreadedTableBuilderNodeModel {
 				CDKHueckelAromaticityDetector.detectAromaticity(mol);
 			}
 
-			if (UniversalIsomorphismTester.isSubgraph(mol, m_fragment)) {
+			if (isomorphismTester.isSubgraph(mol, m_fragment)) {
 				outputTables[0].addRowToTable(inRow);
 			} else {
 				outputTables[1].addRowToTable(inRow);

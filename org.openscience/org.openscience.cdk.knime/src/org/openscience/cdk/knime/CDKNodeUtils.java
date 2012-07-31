@@ -88,7 +88,7 @@ public class CDKNodeUtils {
 	public synchronized static IAtomContainer calculateCoordinates(IAtomContainer molecule, boolean force)
 			throws CDKException {
 
-		if (force || (GeometryTools.has2DCoordinatesNew(molecule) != 2)) {
+		if (force || (GeometryTools.has2DCoordinates(molecule))) {
 			if (!ConnectivityChecker.isConnected(molecule)) {
 				IAtomContainerSet set = ConnectivityChecker.partitionIntoMolecules(molecule);
 				molecule = SilentChemObjectBuilder.getInstance().newInstance(IAtomContainer.class);

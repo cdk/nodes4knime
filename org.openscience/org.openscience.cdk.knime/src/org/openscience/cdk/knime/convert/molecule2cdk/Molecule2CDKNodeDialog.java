@@ -70,7 +70,7 @@ public class Molecule2CDKNodeDialog extends NodeDialogPane {
 	
 	private final JLabel convertBondFourLabel;
 	
-	private final JCheckBox convertBondFour = new JCheckBox();
+	private final JCheckBox convertBondFour = new JCheckBox("(experimental)");
 
 	private final JSpinner m_timeout = new JSpinner(new SpinnerNumberModel(10000, 0, Integer.MAX_VALUE, 10));
 
@@ -138,19 +138,18 @@ public class Molecule2CDKNodeDialog extends NodeDialogPane {
 			}
 		});
 	
-		
-		c.gridy++;
-		c.gridx = 0;
-		convertBondFourLabel = new JLabel("Convert bond order '4'   ");
-		p.add(convertBondFourLabel, c);
-		c.gridx = 1;
-		p.add(convertBondFour, c);
-
 		c.gridy++;
 		c.gridx = 0;
 		p.add(new JLabel("Processing timeout   "), c);
 		c.gridx = 1;
 		p.add(m_timeout, c);
+		
+		c.gridy++;
+		c.gridx = 0;
+		convertBondFourLabel = new JLabel("Kekulize structure");
+		p.add(convertBondFourLabel, c);
+		c.gridx = 1;
+		p.add(convertBondFour, c);
 
 		addTab("Standard settings", p);
 	}

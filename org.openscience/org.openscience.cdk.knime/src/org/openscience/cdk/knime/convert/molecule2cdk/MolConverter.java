@@ -52,7 +52,7 @@ import org.openscience.cdk.knime.CDKNodeUtils;
 import org.openscience.cdk.knime.type.CDKCell;
 import org.openscience.cdk.normalize.SMSDNormalizer;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
-import org.openscience.cdk.smiles.DeduceBondSystemTool;
+import org.openscience.cdk.smiles.FixBondOrdersTool;
 import org.openscience.cdk.smiles.SmilesParser;
 
 /**
@@ -87,7 +87,7 @@ class MolConverter implements ExtendedCellFactory {
 
 			IteratingSDFReader reader = new IteratingSDFReader(new StringReader(sdf),
 					SilentChemObjectBuilder.getInstance());
-			return (IAtomContainer) reader.next();
+			return reader.next();
 		}
 	}
 
@@ -177,7 +177,7 @@ class MolConverter implements ExtendedCellFactory {
 	private final Molecule2CDKSettings m_settings;
 	private final int m_colIndex;
 	private final Conv m_converter;
-	private final DeduceBondSystemTool bondDeducer;
+	private final FixBondOrdersTool bondDeducer;
 	private final ExecutorService executor;
 
 	/**
@@ -215,7 +215,7 @@ class MolConverter implements ExtendedCellFactory {
 			m_converter = new InChIConv();
 		}
 
-		bondDeducer = new DeduceBondSystemTool();
+		bondDeducer = new FixBondOrdersTool();
 
 		m_settings = settings;
 		this.executor = executor;
@@ -266,8 +266,8 @@ class MolConverter implements ExtendedCellFactory {
 
 		CDKNodeUtils.getStandardMolecule(cdkMol);
 
-		if (m_settings.convertOrder()) 
-			cdkMol = bondDeducer.fixAromaticBondOrders(cdkMol);
+		if (m_settings.convertOrder())
+			cdkMol = bondDeducer.kekuliseAromaticRings(cdkMol);
 
 		if (m_settings.generate2D())
 			cdkMol = CDKNodeUtils.calculateCoordinates(cdkMol, m_settings.force2D());

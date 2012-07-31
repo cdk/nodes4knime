@@ -42,7 +42,7 @@ public class AtomSignatureNodeFactory extends NodeFactory<AtomSignatureNodeModel
 	@Override
 	public int getNrNodeViews() {
 
-		return 1;
+		return 0;
 	}
 
 	/**
@@ -51,7 +51,6 @@ public class AtomSignatureNodeFactory extends NodeFactory<AtomSignatureNodeModel
 	@Override
 	public NodeView<AtomSignatureNodeModel> createNodeView(final int viewIndex, final AtomSignatureNodeModel nodeModel) {
 
-		// Why this has to be turn as null?
 		return null;
 	}
 

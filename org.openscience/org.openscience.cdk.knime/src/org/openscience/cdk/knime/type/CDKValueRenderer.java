@@ -179,7 +179,7 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 		}
 
 		boolean threeD = false;
-		if (GeometryTools.has2DCoordinatesNew(m_mol) < 2) {
+		if (!GeometryTools.has2DCoordinates(m_mol)) {
 			if (GeometryTools.has3DCoordinates(m_mol)) {
 				g.drawString("3D view not supported", 2, 14);
 				threeD = true;
@@ -190,7 +190,7 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 
 		}
 
-		if (GeometryTools.has2DCoordinatesNew(m_mol) == 2 && GeometryTools.has3DCoordinates(m_mol)) {
+		if (GeometryTools.has2DCoordinates(m_mol) && GeometryTools.has3DCoordinates(m_mol)) {
 			g.drawString("3D view not supported", 2, 14);
 			threeD = true;
 		}

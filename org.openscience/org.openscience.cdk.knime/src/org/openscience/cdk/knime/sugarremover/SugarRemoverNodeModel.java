@@ -70,6 +70,7 @@ public class SugarRemoverNodeModel extends NodeModel {
 	private final SugarRemoverSettings m_settings = new SugarRemoverSettings();
 
 	private static List<IAtomContainer> sugarChains;
+	private final UniversalIsomorphismTester isomorphismTester = new UniversalIsomorphismTester();
 
 	private boolean explicitH_flag = false;
 
@@ -264,7 +265,7 @@ public class SugarRemoverNodeModel extends NodeModel {
 			try {
 				for (IAtomContainer atomcontainer : sugarChains) {
 					IAtomContainer query = atomcontainer;
-					isSubstructure = UniversalIsomorphismTester.isSubgraph(molecule, query);
+					isSubstructure = isomorphismTester.isSubgraph(molecule, query);
 					return isSubstructure;
 				}
 			} catch (CDKException ex) {

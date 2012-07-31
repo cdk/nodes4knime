@@ -240,7 +240,7 @@ public class Coord2DNodeModel extends ThreadedColAppenderNodeModel {
 				boolean hasCoords = false;
 				if (!m_force) {
 					try { // sometimes this check throws an exception...
-						hasCoords = (GeometryTools.has2DCoordinatesNew(m) == 2);
+						hasCoords = (GeometryTools.has2DCoordinates(m));
 					} catch (Exception e) {
 						hasCoords = false;
 					}

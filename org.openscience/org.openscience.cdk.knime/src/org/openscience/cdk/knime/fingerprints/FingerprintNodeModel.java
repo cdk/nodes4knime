@@ -138,7 +138,7 @@ public class FingerprintNodeModel extends NodeModel {
 				try {
 					BitSet fingerprint;
 					IAtomContainer con = CDKNodeUtils.getExplicitClone(mol.getAtomContainer());
-					fingerprint = fp.getFingerprint(con);
+					fingerprint = fp.getBitFingerprint(con).asBitSet();
 					// transfer the bitset into a dense bit vector
 					DenseBitVector bitVector = new DenseBitVector(fingerprint.size());
 					for (int i = fingerprint.nextSetBit(0); i >= 0; i = fingerprint.nextSetBit(i + 1)) {

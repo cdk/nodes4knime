@@ -121,7 +121,7 @@ public class SumFormulaGenerator implements CellFactory {
 			if (exclude && validSum != 1) {
 				continue;
 			}
-			hillStrings.add(new StringCell(MolecularFormulaManipulator.getHillString(formula)));
+			hillStrings.add(new StringCell(MolecularFormulaManipulator.getString(formula)));
 			sumDoubles.add(new DoubleCell(validSum));
 		}
 

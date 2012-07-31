@@ -96,7 +96,7 @@ final class MolPropsGenerator implements CellFactory {
 			String prop = m_descClassNames[i];
 			if (prop.equals("molecularformula")) {
 				IMolecularFormula formula = MolecularFormulaManipulator.getMolecularFormula(mol);
-				newCells[i] = new StringCell(MolecularFormulaManipulator.getHillString(formula));
+				newCells[i] = new StringCell(MolecularFormulaManipulator.getString(formula));
 			} else if (prop.equals("heavyatoms")) {
 				newCells[i] = new IntCell(AtomContainerManipulator.getHeavyAtoms(mol).size());
 			} else if (prop.equals("molarmass")) {

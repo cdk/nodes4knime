@@ -19,6 +19,10 @@ package org.openscience.cdk.knime.atomsignature;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
@@ -111,28 +115,80 @@ public class AtomSignatureNodeModel extends NodeModel {
 					molTmp = SMSDNormalizer.convertExplicitToImplicitHydrogens(molTmp);
 				}
 
-				int count = 0;
-				// loop through the atoms and calculate the signatures
-				int atomID = 1;
-				for (IAtom atom : molTmp.atoms()) {
-					if (atom.getSymbol().equals(m_settings.atomType().toString())) {
-						// create a new row
-						DataCell[] newRow = new DataCell[inCells.length + addNbColumns];
-						// copy cells from the input row to the new row
-						System.arraycopy(inCells, 0, newRow, 0, inCells.length);
-						DataCell[] atomCanonicalNb = null;
-						if(CDKNodePlugin.numbering() == NUMBERING.CANONICAL) {
-							atomCanonicalNb = new DataCell[] { new StringCell(atom.getID()) };
-						} else {
-							atomCanonicalNb = new DataCell[] { new StringCell("" + atomID) };
-						}
-						System.arraycopy(atomCanonicalNb, 0, newRow, inCells.length, 1);
-						DataCell[] signatures = computeSignatures(atom, molTmp, addNbColumns-1);
-						System.arraycopy(signatures, 0, newRow, inCells.length+1, signatures.length);
-						container.addRowToTable(new DefaultRow(inRow.getKey() + "_" + Integer.toString(count), newRow));
-						count++;
+				int atomId = 1;
+				Map<String, Integer> parentIdMap = new HashMap<String, Integer>();
+				if (CDKNodePlugin.numbering() == NUMBERING.SEQUENTIAL) {
+
+					for (IAtom atom : molTmp.atoms()) {
+						parentIdMap.put(atom.getID(), atomId);
+						atomId++;
 					}
-					atomID++;
+				}
+
+				int count = 0;
+				String parentId = "";
+				Set<String> parentSet = new HashSet<String>();
+				String atomType = m_settings.atomType().toString();
+
+				// loop through the atoms and calculate the signatures
+				if (atomType.equals("H")) {
+
+					for (IAtom atom : molTmp.atoms()) {
+
+						if (atom.getSymbol().equals("H")) {
+							String columnAtomId = "" + atom.getID();
+							if (molTmp.getConnectedAtomsList(atom).size() != 0)
+								parentId = molTmp.getConnectedAtomsList(atom).get(0).getID();
+							else 
+								continue;
+							columnAtomId = parentId;
+
+							if (parentSet.contains(parentId)) {
+								continue;
+							}
+
+							// create a new row
+							DataCell[] newRow = new DataCell[inCells.length + addNbColumns];
+							// copy cells from the input row to the new row
+							System.arraycopy(inCells, 0, newRow, 0, inCells.length);
+							DataCell[] atomCanonicalNb = null;
+							if (CDKNodePlugin.numbering() == NUMBERING.CANONICAL) {
+								atomCanonicalNb = new DataCell[] { new StringCell(columnAtomId) };
+							} else {
+								atomCanonicalNb = new DataCell[] { new StringCell("" + parentIdMap.get(parentId)) };
+							}
+							System.arraycopy(atomCanonicalNb, 0, newRow, inCells.length, 1);
+							DataCell[] signatures = computeSignatures(atom, molTmp, addNbColumns - 1);
+							System.arraycopy(signatures, 0, newRow, inCells.length + 1, signatures.length);
+							container.addRowToTable(new DefaultRow(inRow.getKey() + "_" + Integer.toString(count),
+									newRow));
+							parentSet.add(columnAtomId);
+							count++;
+						}
+					}
+				} else { // Carbon only
+
+					for (IAtom atom : molTmp.atoms()) {
+
+						if (atom.getSymbol().equals("C")) {
+							// create a new row
+							DataCell[] newRow = new DataCell[inCells.length + addNbColumns];
+							// copy cells from the input row to the new row
+							System.arraycopy(inCells, 0, newRow, 0, inCells.length);
+							DataCell[] atomCanonicalNb = null;
+							if (CDKNodePlugin.numbering() == NUMBERING.CANONICAL) {
+								atomCanonicalNb = new DataCell[] { new StringCell(atom.getID()) };
+							} else {
+								atomCanonicalNb = new DataCell[] { new StringCell("" + parentIdMap.get(atom.getID())) };
+							}
+							System.arraycopy(atomCanonicalNb, 0, newRow, inCells.length, 1);
+							DataCell[] signatures = computeSignatures(atom, molTmp, addNbColumns - 1);
+							System.arraycopy(signatures, 0, newRow, inCells.length + 1, signatures.length);
+							container.addRowToTable(new DefaultRow(inRow.getKey() + "_" + Integer.toString(count),
+									newRow));
+							count++;
+						}
+					}
 				}
 			}
 		}
@@ -236,14 +292,14 @@ public class AtomSignatureNodeModel extends NodeModel {
 		// add the columnspecs for the new columns
 		for (int i = inNbColumns; i < (inNbColumns + addNbColumns); i++) {
 			String name = null;
-			if(i == inNbColumns){
+			if (i == inNbColumns) {
 				name = "Atom ID";
 			} else {
-			// Check if the name we want for the new column already exists and if so generate a different one
-			name = m_settings.signatureType().equals(SignatureTypes.AtomSignatures) ? DataTableSpec
-					.getUniqueColumnName(inSpecs, "Signature " + (i - 1 + m_settings.getMinHeight() - inNbColumns))
-					: DataTableSpec.getUniqueColumnName(inSpecs, "HOSE "
-							+ (i - 1 + m_settings.getMinHeight() - inNbColumns));
+				// Check if the name we want for the new column already exists and if so generate a different one
+				name = m_settings.signatureType().equals(SignatureTypes.AtomSignatures) ? DataTableSpec
+						.getUniqueColumnName(inSpecs, "Signature " + (i - 1 + m_settings.getMinHeight() - inNbColumns))
+						: DataTableSpec.getUniqueColumnName(inSpecs, "HOSE "
+								+ (i - 1 + m_settings.getMinHeight() - inNbColumns));
 			}
 			cs[i] = new DataColumnSpecCreator(name, StringCell.TYPE).createSpec();
 		}
