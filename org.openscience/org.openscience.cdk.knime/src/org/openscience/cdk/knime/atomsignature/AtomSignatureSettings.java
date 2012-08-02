@@ -32,7 +32,7 @@ public class AtomSignatureSettings {
 	}
 
 	public enum AtomTypes {
-		H, C
+		H, C, F, N, O, B, Si, S, P
 	}
 
 	private SignatureTypes m_signatureType = SignatureTypes.AtomSignatures;

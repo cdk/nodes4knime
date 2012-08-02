@@ -125,6 +125,7 @@ public class AtomSignatureNodeModel extends NodeModel {
 					}
 				}
 
+				int contSize = container.size();
 				int count = 0;
 				String parentId = "";
 				Set<String> parentSet = new HashSet<String>();
@@ -135,7 +136,7 @@ public class AtomSignatureNodeModel extends NodeModel {
 
 					for (IAtom atom : molTmp.atoms()) {
 
-						if (atom.getSymbol().equals("H")) {
+						if (atom.getSymbol().equals(AtomTypes.H.name())) {
 							String columnAtomId = "" + atom.getID();
 							if (molTmp.getConnectedAtomsList(atom).size() != 0)
 								parentId = molTmp.getConnectedAtomsList(atom).get(0).getID();
@@ -166,11 +167,11 @@ public class AtomSignatureNodeModel extends NodeModel {
 							count++;
 						}
 					}
-				} else { // Carbon only
+				} else {
 
 					for (IAtom atom : molTmp.atoms()) {
 
-						if (atom.getSymbol().equals("C")) {
+						if (atom.getSymbol().equals(m_settings.atomType().name())) {
 							// create a new row
 							DataCell[] newRow = new DataCell[inCells.length + addNbColumns];
 							// copy cells from the input row to the new row
@@ -189,6 +190,14 @@ public class AtomSignatureNodeModel extends NodeModel {
 							count++;
 						}
 					}
+				}
+				if (contSize == container.size()) {
+					DataCell[] newRow = new DataCell[inCells.length + addNbColumns];
+					DataCell[] missings = new DataCell[addNbColumns];
+					Arrays.fill(missings, DataType.getMissingCell());
+					System.arraycopy(inCells, 0, newRow, 0, inCells.length);
+					System.arraycopy(missings, 0, newRow, inCells.length, missings.length);
+					container.addRowToTable(new DefaultRow(inRow.getKey(), newRow));
 				}
 			}
 		}

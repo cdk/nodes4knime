@@ -21,6 +21,7 @@ import java.awt.GridBagLayout;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
@@ -54,8 +55,7 @@ public class AtomSignatureNodeDialog extends NodeDialogPane {
 	private final JRadioButton m_hosecodes = new JRadioButton("Hose Codes");
 	private final JRadioButton m_atomsignature = new JRadioButton("Atom Signatures");
 
-	private final JRadioButton m_protons = new JRadioButton("H");
-	private final JRadioButton m_carbons = new JRadioButton("C");
+	private final JComboBox atomBox = new JComboBox(new String[] { "H", "C", "F", "N", "O", "B", "Si", "S", "P" });
 
 	private final JCheckBox m_heightChecker = new JCheckBox("Set signature height");
 	private final JTextField m_minHeight = new JTextField(8);
@@ -92,17 +92,14 @@ public class AtomSignatureNodeDialog extends NodeDialogPane {
 		c.gridx = 0;
 		p.add(new JLabel("Atom of interest   "), c);
 		c.gridx = 1;
-		p.add(m_protons, c);
-		c.gridy++;
-		p.add(m_carbons, c);
+		p.add(atomBox, c);
+			
+		atomBox.setSelectedIndex(0);
+		atomBox.setSize(10, 10);
 
 		ButtonGroup bg = new ButtonGroup();
 		bg.add(m_hosecodes);
 		bg.add(m_atomsignature);
-
-		ButtonGroup bg2 = new ButtonGroup();
-		bg2.add(m_protons);
-		bg2.add(m_carbons);
 
 		c.gridy++;
 		c.gridx = 0;
@@ -171,11 +168,8 @@ public class AtomSignatureNodeDialog extends NodeDialogPane {
 			m_atomsignature.setSelected(true);
 		}
 
-		if (m_settings.atomType().equals(AtomTypes.H)) {
-			m_protons.setSelected(true);
-		} else if (m_settings.atomType().equals(AtomTypes.C)) {
-			m_carbons.setSelected(true);
-		}
+		atomBox.setSelectedItem(m_settings.atomType().name());
+
 		if (m_settings.isHeightSet()) {
 			m_heightChecker.setSelected(true);
 			if (m_minHeight.isEnabled())
@@ -215,7 +209,7 @@ public class AtomSignatureNodeDialog extends NodeDialogPane {
 			m_settings.maxHeight(6);
 		}
 
-		m_settings.setAtomType(m_carbons.isSelected() ? AtomTypes.C : AtomTypes.H);
+		m_settings.setAtomType(AtomTypes.valueOf((String)atomBox.getSelectedItem()));
 		m_settings.setSignatureType(m_atomsignature.isSelected() ? SignatureTypes.AtomSignatures : SignatureTypes.Hose);
 
 		m_settings.saveSettings(settings);
