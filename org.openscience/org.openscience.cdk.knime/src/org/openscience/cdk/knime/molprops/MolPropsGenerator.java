@@ -30,7 +30,9 @@ import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.NodeLogger;
+import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
+import org.openscience.cdk.interfaces.IAtomType;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.knime.CDKNodeUtils;
 import org.openscience.cdk.knime.type.CDKValue;
@@ -102,6 +104,9 @@ final class MolPropsGenerator implements CellFactory {
 			} else if (prop.equals("molarmass")) {
 				IMolecularFormula formula = MolecularFormulaManipulator.getMolecularFormula(mol);
 				newCells[i] = new DoubleCell(MolecularFormulaManipulator.getNaturalExactMass(formula));
+			} else if (prop.equals("spthreechar")) {
+				double character = getSp3Character(mol);
+				newCells[i] = character == -1 ? DataType.getMissingCell() : new DoubleCell(character);
 			} else {
 				newCells[i] = MolPropsLibrary.getProperty(row.getKey().toString(), mol, prop);
 			}
@@ -126,5 +131,18 @@ final class MolPropsGenerator implements CellFactory {
 
 		exec.setProgress(curRowNr / (double) rowCount, "Calculated properties for row " + curRowNr + " (\"" + lastKey
 				+ "\")");
+	}
+	
+	private double getSp3Character(IAtomContainer mol) {
+		
+		double sp3 = 0;
+		for (IAtom atom : mol.atoms()) {
+
+			if (!atom.getSymbol().equals("C")) continue;
+			
+			if (atom.getHybridization() == IAtomType.Hybridization.SP3) sp3++;
+		}
+		
+		return sp3 / mol.getAtomCount();
 	}
 }

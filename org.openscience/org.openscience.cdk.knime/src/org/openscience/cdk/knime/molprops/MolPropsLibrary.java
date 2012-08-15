@@ -183,7 +183,11 @@ public final class MolPropsLibrary {
 		} else if (descriptorClassName.equals("molarmass")) {
 			DataColumnSpec mmSpec = new DataColumnSpecCreator("Molar Mass", DoubleCell.TYPE).createSpec();
 			return mmSpec;
+		} else if (descriptorClassName.equals("spthreechar")) {
+			DataColumnSpec spSpec = new DataColumnSpecCreator("SP3 Character", DoubleCell.TYPE).createSpec();
+			return spSpec;
 		}
+		
 		return DESCRIPTOR_COLSPEC_HASH.get(descriptorClassName);
 	}
 

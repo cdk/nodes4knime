@@ -70,6 +70,7 @@ public class CDKNodeUtils {
 		try {
 			clone = (IAtomContainer) molecule.clone();
 			SMSDNormalizer.convertImplicitToExplicitHydrogens(clone);
+			AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(clone);
 		} catch (CloneNotSupportedException exception) {
 			throw new CDKException(exception.getMessage());
 		}

@@ -99,14 +99,18 @@ public class MolPropsNodeModel extends NodeModel {
 				specStringMap.put(s, className);
 			}
 		}
+		// #########################
 		// custom "non-qsar" methods
 		DataColumnSpec mfSpec = new DataColumnSpecCreator("Molecular Formula", StringCell.TYPE).createSpec();
 		DataColumnSpec haSpec = new DataColumnSpecCreator("No. of Heavy Atoms", IntCell.TYPE).createSpec();
 		DataColumnSpec mmSpec = new DataColumnSpecCreator("Molar Mass", DoubleCell.TYPE).createSpec();
+		DataColumnSpec spSpec = new DataColumnSpecCreator("SP3 Character", DoubleCell.TYPE).createSpec();
 		specStringMap.put(mfSpec, "molecularformula");
 		specStringMap.put(haSpec, "heavyatoms");
 		specStringMap.put(mmSpec, "molarmass");
+		specStringMap.put(spSpec, "spthreechar");
 		MOLPROPS_IDENTIFIER_MAP = Collections.unmodifiableMap(specStringMap);
+		// #########################
 	}
 
 	/** Constructor: One input, one output. */
