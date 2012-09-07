@@ -28,7 +28,9 @@ import javax.swing.event.ListSelectionListener;
 import org.knime.chem.types.SdfValue;
 import org.knime.core.data.DataCell;
 import org.knime.core.node.NodeView;
+import org.knime.core.node.tableview.TableContentModel;
 import org.knime.core.node.tableview.TableView;
+import org.openscience.cdk.knime.type.CDKValue;
 
 /**
  * View that shows a table on top and the off structure at the bottom.
@@ -39,6 +41,7 @@ public class JmolViewerNodeView extends NodeView<JmolViewerNodeModel> {
 
 	private final TableView m_tableView;
 	private final JmolViewerPanel m_panel;
+	private final int column;
 
 	/**
 	 * Inits view.
@@ -48,6 +51,11 @@ public class JmolViewerNodeView extends NodeView<JmolViewerNodeModel> {
 	public JmolViewerNodeView(final JmolViewerNodeModel model) {
 
 		super(model);
+		
+		TableContentModel tableContentModel = model.getContentModel();
+		String columnName = model.getSettings().molColumnName();
+		column = tableContentModel.getDataTable().getDataTableSpec().findColumnIndex(columnName);
+		
 		m_panel = new JmolViewerPanel();
 		m_panel.setMinimumSize(new Dimension(200, 200));
 		m_tableView = new TableView(model.getContentModel());
@@ -102,13 +110,18 @@ public class JmolViewerNodeView extends NodeView<JmolViewerNodeModel> {
 			m_panel.setCDKValue(null);
 		} else {
 			JmolViewerNodeModel model = getNodeModel();
-			int structureIndex = model.getStructureColumn();
-			assert structureIndex >= 0;
+			
+			assert column >= 0;
 
-			DataCell cell = model.getContentModel().getValueAt(index, structureIndex);
+			DataCell cell = model.getContentModel().getValueAt(index, column);
 			// CDK method in JMolPanel broken: Does not display bonds and atom types
-			// m_panel.setCDKValue(cell.isMissing() ? null : (CDKValue) cell);
-			m_panel.setSDFValue(cell.isMissing() ? null : (SdfValue) cell);
+			if (cell instanceof SdfValue) {
+				System.out.println("SDF");
+				m_panel.setSDFValue(cell.isMissing() ? null : (SdfValue) cell);
+			} else if (cell instanceof CDKValue) {
+				System.out.println("CDK");
+				m_panel.setCDKValue(cell.isMissing() ? null : (CDKValue) cell);
+			}
 		}
 	}
 }

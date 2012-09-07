@@ -24,6 +24,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.Border;
 
+import org.knime.chem.types.SdfValue;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialogPane;
@@ -40,8 +41,10 @@ import org.openscience.cdk.knime.type.CDKValue;
  */
 public class JmolViewerNodeDialog extends NodeDialogPane {
 
+	JmolViewerSettings settings = new JmolViewerSettings();
+	
 	@SuppressWarnings("unchecked")
-	private final ColumnSelectionComboxBox m_molColumn = new ColumnSelectionComboxBox((Border) null, CDKValue.class);
+	private final ColumnSelectionComboxBox m_molColumn = new ColumnSelectionComboxBox((Border) null, SdfValue.class, CDKValue.class);
 
 	/**
 	 * Creates a new dialog.
@@ -71,14 +74,13 @@ public class JmolViewerNodeDialog extends NodeDialogPane {
 	protected void loadSettingsFrom(final NodeSettingsRO settings, final DataTableSpec[] specs)
 			throws NotConfigurableException {
 
-		String colName = null;
 		try {
-			colName = settings.getString(JmolViewerNodeModel.CFG_COLNAME);
+			this.settings.loadSettings(settings);
 		} catch (InvalidSettingsException ex) {
 			// ignore it
 		}
 
-		m_molColumn.update(specs[0], colName);
+		m_molColumn.update(specs[0], this.settings.molColumnName());
 	}
 
 	/**
@@ -87,6 +89,7 @@ public class JmolViewerNodeDialog extends NodeDialogPane {
 	@Override
 	protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
 
-		settings.addString(JmolViewerNodeModel.CFG_COLNAME, m_molColumn.getSelectedColumn());
+		this.settings.molColumnName(m_molColumn.getSelectedColumn());
+		this.settings.saveSettings(settings);
 	}
 }

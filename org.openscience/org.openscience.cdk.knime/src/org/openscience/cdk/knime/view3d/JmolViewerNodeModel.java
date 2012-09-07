@@ -20,6 +20,7 @@ package org.openscience.cdk.knime.view3d;
 import java.io.File;
 import java.io.IOException;
 
+import org.knime.chem.types.SdfValue;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.BufferedDataTable;
@@ -39,30 +40,15 @@ import org.openscience.cdk.knime.type.CDKValue;
  * @author Stephan Beisken, European Bioinformatics Institute
  */
 public class JmolViewerNodeModel extends NodeModel implements BufferedDataTableHolder {
-	
-	private final TableContentModel m_contentModel;
 
-	/** Config key for column name. */
-	static final String CFG_COLNAME = "colName";
-	static final String COL_INDEX = "colIndex";
-	private String colName;
-	private int colIndex = -1;
+	private final JmolViewerSettings settings = new JmolViewerSettings();
+	private final TableContentModel m_contentModel;
 
 	/** Public constructor */
 	public JmolViewerNodeModel() {
 
 		super(1, 0);
 		m_contentModel = new TableContentModel();
-	}
-
-	/**
-	 * Get the index of the selected structure column.
-	 * 
-	 * @return The structure column (SDF or CDK) or -1 if none has been selected.
-	 */
-	int getStructureColumn() {
-
-		return colIndex;
 	}
 
 	/**
@@ -76,13 +62,22 @@ public class JmolViewerNodeModel extends NodeModel implements BufferedDataTableH
 	}
 
 	/**
+	 * Returns the node settings.
+	 * 
+	 * @return the settings object
+	 */
+	public JmolViewerSettings getSettings() {
+
+		return settings;
+	}
+
+	/**
 	 * {@inheritDoc}
 	 */
 	@Override
 	protected void saveSettingsTo(NodeSettingsWO settings) {
 
-		settings.addString(CFG_COLNAME, colName);
-		settings.addInt(COL_INDEX, colIndex);
+		this.settings.saveSettings(settings);
 	}
 
 	/**
@@ -91,9 +86,10 @@ public class JmolViewerNodeModel extends NodeModel implements BufferedDataTableH
 	@Override
 	protected void validateSettings(NodeSettingsRO settings) throws InvalidSettingsException {
 
-		String column = settings.getString(CFG_COLNAME);
-		if ((column == null) || (column.length() == 0)) {
-			throw new InvalidSettingsException("No CDK molecule column chosen");
+		JmolViewerSettings s = new JmolViewerSettings();
+		s.loadSettings(settings);
+		if ((s.molColumnName() == null) || (s.molColumnName().length() == 0)) {
+			throw new InvalidSettingsException("No molecule column chosen");
 		}
 	}
 
@@ -103,8 +99,7 @@ public class JmolViewerNodeModel extends NodeModel implements BufferedDataTableH
 	@Override
 	protected void loadValidatedSettingsFrom(NodeSettingsRO settings) throws InvalidSettingsException {
 
-		colName = settings.getString(CFG_COLNAME);
-		colIndex = settings.getInt(COL_INDEX);
+		this.settings.loadSettings(settings);
 	}
 
 	/**
@@ -133,32 +128,30 @@ public class JmolViewerNodeModel extends NodeModel implements BufferedDataTableH
 	@Override
 	protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
 
-		int molColIndex = inSpecs[0].findColumnIndex(colName);
-		if (molColIndex == -1) {
+		int molCol = inSpecs[0].findColumnIndex(settings.molColumnName());
+		String name = "";
+
+		if (molCol == -1) {
 			int i = 0;
-			for (DataColumnSpec spec : inSpecs[0]) {
-				if (spec.getType().isCompatible(CDKValue.class)) {
-					if (molColIndex != -1) {
-						setWarningMessage("Column '" + spec.getName() + "' automatically chosen as molecule column");
-					}
-					molColIndex = i;
-					colName = spec.getName();
+			for (DataColumnSpec dcs : inSpecs[0]) {
+				if (dcs.getType().isCompatible(CDKValue.class) || dcs.getType().isCompatible(SdfValue.class)) {
+					molCol = i;
 				}
 				i++;
 			}
 
-			if (molColIndex == -1) {
-				throw new InvalidSettingsException("Column '" + colName + "' does not exist");
+			if (molCol != -1) {
+				name = inSpecs[0].getColumnSpec(molCol).getName();
+				settings.molColumnName(name);
 			}
 		}
 
-		if (!inSpecs[0].getColumnSpec(molColIndex).getType().isCompatible(CDKValue.class)) {
-			throw new InvalidSettingsException("Column '" + colName + "' does not contain CDK cells");
+		if (inSpecs[0].getColumnSpec(molCol).getType().isCompatible(CDKValue.class)
+				|| inSpecs[0].getColumnSpec(molCol).getType().isCompatible(SdfValue.class)) {
+			return null;
+		} else {
+			throw new InvalidSettingsException("Target cell column " + settings.molColumnName() + " not found");
 		}
-		
-		colIndex = molColIndex;
-
-		return null;
 	}
 
 	/** {@inheritDoc} */
