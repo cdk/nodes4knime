@@ -32,13 +32,20 @@ public class SimilaritySettings {
 		Minimum, Maximum, Average
 	}
 
+	/** Enum for the different fingerprint types. */
 	public enum FingerprintTypes {
 		Standard, Extended, EState, MACCS, Pubchem
+	}
+
+	/** Enum for the two return type options. */
+	public enum ReturnType {
+		String, Collection
 	}
 
 	private String m_fingerprintColumn = null;
 	private String m_fingerprintRefColumn = null;
 	private AggregationMethod m_aggregation = AggregationMethod.Average;
+	private ReturnType returnType = ReturnType.String;
 
 	/**
 	 * Returns the name of the column that holds the fingerprints.
@@ -101,6 +108,26 @@ public class SimilaritySettings {
 	}
 
 	/**
+	 * Returns the return type that should be used.
+	 * 
+	 * @return the return type
+	 */
+	public ReturnType returnType() {
+
+		return returnType;
+	}
+
+	/**
+	 * Sets the return type that should be used.
+	 * 
+	 * @param returnType the return type
+	 */
+	public void returnType(final ReturnType returnType) {
+
+		this.returnType = returnType;
+	}
+
+	/**
 	 * Loads the settings from the given node settings object.
 	 * 
 	 * @param settings node settings
@@ -110,6 +137,7 @@ public class SimilaritySettings {
 
 		m_fingerprintColumn = settings.getString("molColumn");
 		m_fingerprintRefColumn = settings.getString("molRefColumn");
+		returnType = ReturnType.valueOf(settings.getString("returnType"));
 		m_aggregation = AggregationMethod.valueOf(settings.getString("aggregationMethod"));
 	}
 
@@ -122,6 +150,7 @@ public class SimilaritySettings {
 
 		settings.addString("molColumn", m_fingerprintColumn);
 		settings.addString("molRefColumn", m_fingerprintRefColumn);
+		settings.addString("returnType", returnType.toString());
 		settings.addString("aggregationMethod", m_aggregation.toString());
 	}
 }

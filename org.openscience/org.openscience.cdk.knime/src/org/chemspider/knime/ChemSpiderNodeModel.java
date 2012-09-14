@@ -1,19 +1,15 @@
 /*
-
-Copyright (C) 2007 Egon Willighagen <egon.willighagen@gmail.com>
-
-Permission to use, copy, modify, and/or distribute this software for any 
-purpose with or without fee is hereby granted, provided that the above 
-copyright notice and this permission notice appear in all copies.
-
-THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES 
-WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
-AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, 
-INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
-OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
-TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF 
-THIS SOFTWARE.
-
+ * 
+ * Copyright (C) 2007 Egon Willighagen <egon.willighagen@gmail.com>
+ * 
+ * Permission to use, copy, modify, and/or distribute this software for any purpose with or without fee is hereby
+ * granted, provided that the above copyright notice and this permission notice appear in all copies.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+ * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN
+ * AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ * PERFORMANCE OF THIS SOFTWARE.
  */
 package org.chemspider.knime;
 
@@ -45,103 +41,91 @@ import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 
-
 /**
- * This is the model implementation of ChemSpider.
- * Download Structures from ChemSpider.com.
- *
- * @TODO   should also work with InChI
- *
+ * This is the model implementation of ChemSpider. Download Structures from ChemSpider.com.
+ * 
+ * @TODO should also work with InChI
+ * 
  * @author Egon Willighagen
  */
 public class ChemSpiderNodeModel extends NodeModel {
 
 	private String inchikeyColumnName = null;
 
-    // the logger instance
-    private static final NodeLogger logger = NodeLogger
-            .getLogger(ChemSpiderNodeModel.class);
+	// the logger instance
+	private static final NodeLogger logger = NodeLogger.getLogger(ChemSpiderNodeModel.class);
 
-    private static final Pattern pattern = Pattern.compile("Chemical-Structure.(\\d*).html");
+	private static final Pattern pattern = Pattern.compile("Chemical-Structure.(\\d*).html");
 
-    /**
-     * Constructor for the node model.
-     */
-    protected ChemSpiderNodeModel() {
+	/**
+	 * Constructor for the node model.
+	 */
+	protected ChemSpiderNodeModel() {
 
-        // TODO one incoming port and one outgoing port is assumed
-        super(1, 1);
-    }
+		super(1, 1);
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
-            final ExecutionContext exec) throws Exception {
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
+			throws Exception {
 
-    	ColumnRearranger rearranger = rearrangeColumns(inData[0].getDataTableSpec());
+		ColumnRearranger rearranger = rearrangeColumns(inData[0].getDataTableSpec());
 
-    	BufferedDataTable someName = exec.createColumnRearrangeTable(
-    		inData[0], rearranger, exec
-    	);
+		BufferedDataTable someName = exec.createColumnRearrangeTable(inData[0], rearranger, exec);
 
-    	return new BufferedDataTable[] { someName };
+		return new BufferedDataTable[] { someName };
 
-    }
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void reset() {
-        // TODO Code executed on reset.
-        // Models build during execute are cleared here.
-        // Also data handled in load/saveInternals will be erased here.
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected void reset() {
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs)
-            throws InvalidSettingsException {
+		// do nothing
+	}
 
-    	if (inSpecs[0].findColumnIndex(inchikeyColumnName) == -1) {
-            throw new InvalidSettingsException("Cannot find the InChIKey column!");
-        }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
 
-    	ColumnRearranger rearranger = rearrangeColumns(inSpecs[0]);
+		if (inSpecs[0].findColumnIndex(inchikeyColumnName) == -1) {
+			throw new InvalidSettingsException("Cannot find the InChIKey column!");
+		}
 
-        return new DataTableSpec[]{ rearranger.createSpec() };
-    }
+		ColumnRearranger rearranger = rearrangeColumns(inSpecs[0]);
 
-    private ColumnRearranger rearrangeColumns(final DataTableSpec inSpecs) {
-    	ColumnRearranger bla = new ColumnRearranger(inSpecs);
-    	DataColumnSpecCreator specCreator = new DataColumnSpecCreator(
-    	        DataTableSpec.getUniqueColumnName(inSpecs, "Mol File"),
-    	        MolCell.TYPE);
+		return new DataTableSpec[] { rearranger.createSpec() };
+	}
 
-    	final int colIndex = inSpecs.findColumnIndex(inchikeyColumnName);
+	private ColumnRearranger rearrangeColumns(final DataTableSpec inSpecs) {
 
-    	bla.append(new SingleCellFactory(specCreator.createSpec()) {
+		ColumnRearranger bla = new ColumnRearranger(inSpecs);
+		DataColumnSpecCreator specCreator = new DataColumnSpecCreator(DataTableSpec.getUniqueColumnName(inSpecs,
+				"Mol File"), MolCell.TYPE);
+
+		final int colIndex = inSpecs.findColumnIndex(inchikeyColumnName);
+
+		bla.append(new SingleCellFactory(specCreator.createSpec()) {
 
 			@Override
 			public DataCell getCell(final DataRow row) {
-				String inchiKey = ((StringValue)row.getCell(colIndex))
-				        .getStringValue();
+
+				String inchiKey = ((StringValue) row.getCell(colIndex)).getStringValue();
 				try {
 					URL url = new URL("http://www.chemspider.com/InChIKey/" + inchiKey);
-					BufferedReader reader = new BufferedReader(
-						new InputStreamReader(
-							url.openConnection().getInputStream()
-						)
-					);
+					BufferedReader reader = new BufferedReader(new InputStreamReader(url.openConnection()
+							.getInputStream()));
 					String line = reader.readLine();
 					String csid = "";
 					while (line != null) {
 						Matcher matcher = pattern.matcher(line);
-						// System.out.println("Line: " + line);
 						if (matcher.find()) {
 							csid = matcher.group(1);
 							logger.debug("Found CSID: " + csid);
@@ -150,11 +134,7 @@ public class ChemSpiderNodeModel extends NodeModel {
 					}
 
 					url = new URL("http://www.chemspider.com/mol/" + csid);
-					reader = new BufferedReader(
-						new InputStreamReader(
-							url.openConnection().getInputStream()
-						)
-					);
+					reader = new BufferedReader(new InputStreamReader(url.openConnection().getInputStream()));
 
 					StringBuilder molFile = new StringBuilder();
 					line = reader.readLine();
@@ -164,53 +144,50 @@ public class ChemSpiderNodeModel extends NodeModel {
 					}
 					return MolCellFactory.create(molFile.toString());
 				} catch (Exception exception) {
-				    logger.error(exception.getMessage(), exception);
-				    return DataType.getMissingCell();
+					logger.error(exception.getMessage(), exception);
+					return DataType.getMissingCell();
 				}
 			}
-    	});
-    	return bla;
-    }
+		});
+		return bla;
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void saveSettingsTo(final NodeSettingsWO settings) {
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected void saveSettingsTo(final NodeSettingsWO settings) {
 
-        settings.addString("inchikeyColumnName", inchikeyColumnName);
+		settings.addString("inchikeyColumnName", inchikeyColumnName);
 
-    }
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
-            throws InvalidSettingsException {
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
 
-        inchikeyColumnName = settings.getString("inchikeyColumnName");
+		inchikeyColumnName = settings.getString("inchikeyColumnName");
 
-    }
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void validateSettings(final NodeSettingsRO settings)
-            throws InvalidSettingsException {
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
 
-    	settings.getString("inchikeyColumnName");
+		settings.getString("inchikeyColumnName");
 
-    }
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void loadInternals(final File internDir,
-            final ExecutionMonitor exec) throws IOException,
-            CanceledExecutionException {
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected void loadInternals(final File internDir, final ExecutionMonitor exec) throws IOException,
+			CanceledExecutionException {
 
 		// TODO load internal data.
 		// Everything handed to output ports is loaded automatically (data
@@ -219,22 +196,21 @@ public class ChemSpiderNodeModel extends NodeModel {
 		// of). Load here only the other internals that need to be restored
 		// (e.g. data used by the views).
 
-    }
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void saveInternals(final File internDir,
-            final ExecutionMonitor exec) throws IOException,
-            CanceledExecutionException {
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected void saveInternals(final File internDir, final ExecutionMonitor exec) throws IOException,
+			CanceledExecutionException {
 
-       	// TODO save internal models.
+		// TODO save internal models.
 		// Everything written to output ports is saved automatically (data
 		// returned by the execute method, models saved in the saveModelContent,
 		// and user settings saved through saveSettingsTo - is all taken care
 		// of). Save here only the other internals that need to be preserved
 		// (e.g. data used by the views).
 
-    }
+	}
 }

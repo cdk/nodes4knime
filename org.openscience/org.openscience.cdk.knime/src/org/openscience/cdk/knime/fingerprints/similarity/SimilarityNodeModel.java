@@ -27,6 +27,7 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.collection.ListCell;
 import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.StringCell;
@@ -39,6 +40,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.openscience.cdk.knime.fingerprints.similarity.SimilaritySettings.ReturnType;
 
 /**
  * This is the model implementation of the similarity node. CDK is used to calculate the Tanimoto coefficient for two
@@ -132,11 +134,17 @@ public class SimilarityNodeModel extends NodeModel {
 			outSpec = new DataColumnSpec[] { colSpec };
 		} else {
 			DataColumnSpec colSpec1 = new DataColumnSpecCreator("Tanimoto", DoubleCell.TYPE).createSpec();
-			DataColumnSpec colSpec2 = new DataColumnSpecCreator("Reference", StringCell.TYPE).createSpec();
+			DataColumnSpec colSpec2 = null;
+			if (m_settings.returnType().equals(ReturnType.String)) {
+				colSpec2 = new DataColumnSpecCreator("Reference", StringCell.TYPE).createSpec();
+			} else if (m_settings.returnType().equals(ReturnType.Collection)) {
+				colSpec2 = new DataColumnSpecCreator("Reference", ListCell.getCollectionType(StringCell.TYPE))
+						.createSpec();
+			}
 			outSpec = new DataColumnSpec[] { colSpec1, colSpec2 };
 		}
 		SimilarityGenerator generator = new SimilarityGenerator(outSpec, fingerprintColIndex, fingerprintRefs,
-				m_settings.aggregationMethod(), rowCount);
+				m_settings.returnType(), m_settings.aggregationMethod(), rowCount);
 		ColumnRearranger arrange = new ColumnRearranger(spec);
 		arrange.append(generator);
 

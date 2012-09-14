@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import org.knime.core.data.DataCell;
@@ -27,6 +28,7 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataType;
 import org.knime.core.data.RowKey;
+import org.knime.core.data.collection.CollectionCellFactory;
 import org.knime.core.data.container.CellFactory;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.StringCell;
@@ -34,6 +36,7 @@ import org.knime.core.data.vector.bitvector.DenseBitVectorCell;
 import org.knime.core.node.ExecutionMonitor;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.knime.fingerprints.similarity.SimilaritySettings.AggregationMethod;
+import org.openscience.cdk.knime.fingerprints.similarity.SimilaritySettings.ReturnType;
 import org.openscience.cdk.similarity.Tanimoto;
 
 /**
@@ -46,6 +49,7 @@ public class SimilarityGenerator implements CellFactory {
 	private final int rowCount;
 	private final int targetColIndex;
 	private final DataColumnSpec[] dataColumnSpec;
+	private final ReturnType returnType;
 	private final AggregationMethod aggregationMethod;
 	private final Map<BitSet, ArrayList<String>> referenceMap;
 
@@ -59,12 +63,15 @@ public class SimilarityGenerator implements CellFactory {
 	 * @param rowCount number of rows in the input table (for avg aggregation)
 	 */
 	public SimilarityGenerator(DataColumnSpec[] dataColumnSpec, int targetColIndex,
-			Map<BitSet, ArrayList<String>> referenceMap, AggregationMethod aggregationMethod, int rowCount) {
+			Map<BitSet, ArrayList<String>> referenceMap, ReturnType returnType, AggregationMethod aggregationMethod,
+			int rowCount) {
 
 		this.dataColumnSpec = dataColumnSpec;
 		this.referenceMap = referenceMap;
 		this.targetColIndex = targetColIndex;
+		this.returnType = returnType;
 		this.aggregationMethod = aggregationMethod;
+
 		this.rowCount = rowCount;
 	}
 
@@ -127,17 +134,27 @@ public class SimilarityGenerator implements CellFactory {
 			}
 
 			newCells[0] = new DoubleCell(pcoeff);
-			String res = "";
+			List<StringCell> res = new ArrayList<StringCell>();
 			for (String st : pkey) {
-				if (res.equals("")) {
-					res += st;
-				} else {
-					res += "|" + st;
-				}
+				res.add(new StringCell(st));
 			}
 
-			if (res.length() > 0) {
-				newCells[1] = new StringCell(res);
+			if (res.size() > 0) {
+				if (returnType.equals(ReturnType.String)) {
+					if (res.size() == 1)
+						newCells[1] = res.get(0);
+					else {
+						String resString = "";
+						for (StringCell cell : res) {
+							resString += (cell.getStringValue() + "|");
+						}
+						resString = resString.substring(0, resString.lastIndexOf("|"));
+						newCells[1] = new StringCell(resString);
+					}
+				} else if (returnType.equals(ReturnType.Collection)) {
+					newCells[1] = CollectionCellFactory.createListCell(res);
+					;
+				}
 			}
 		} catch (CDKException exception) {
 			Arrays.fill(newCells, DataType.getMissingCell());

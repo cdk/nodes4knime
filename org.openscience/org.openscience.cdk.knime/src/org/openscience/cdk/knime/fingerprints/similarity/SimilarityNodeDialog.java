@@ -34,6 +34,7 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.util.ColumnSelectionComboxBox;
 import org.openscience.cdk.knime.fingerprints.similarity.SimilaritySettings.AggregationMethod;
+import org.openscience.cdk.knime.fingerprints.similarity.SimilaritySettings.ReturnType;
 
 /**
  * <code>NodeDialog</code> for the "Similarity" Node.
@@ -52,6 +53,9 @@ public class SimilarityNodeDialog extends NodeDialogPane {
 	private final JRadioButton m_minimum = new JRadioButton("Minimum");
 	private final JRadioButton m_maximum = new JRadioButton("Maximum");
 	private final JRadioButton m_average = new JRadioButton("Average");
+
+	private final JRadioButton returnString = new JRadioButton("String");
+	private final JRadioButton returnCollection = new JRadioButton("Collection");
 
 	private final SimilaritySettings m_settings = new SimilaritySettings();
 
@@ -88,10 +92,23 @@ public class SimilarityNodeDialog extends NodeDialogPane {
 		c.gridy++;
 		p.add(m_average, c);
 
+		c.gridy++;
+		c.gridx = 0;
+		p.add(new JLabel("Return type   "), c);
+		c.gridx = 1;
+		p.add(returnString, c);
+		c.gridy++;
+		p.add(returnCollection, c);
+		returnString.setSelected(true);
+
 		ButtonGroup bg1 = new ButtonGroup();
 		bg1.add(m_minimum);
 		bg1.add(m_maximum);
 		bg1.add(m_average);
+
+		ButtonGroup bg2 = new ButtonGroup();
+		bg2.add(returnString);
+		bg2.add(returnCollection);
 
 		addTab("Similarity Options", p);
 	}
@@ -119,6 +136,12 @@ public class SimilarityNodeDialog extends NodeDialogPane {
 		} else if (m_settings.aggregationMethod().equals(AggregationMethod.Average)) {
 			m_average.setSelected(true);
 		}
+
+		if (m_settings.returnType().equals(ReturnType.String)) {
+			returnString.setSelected(true);
+		} else if (m_settings.returnType().equals(ReturnType.Collection)) {
+			returnCollection.setSelected(true);
+		}
 	}
 
 	/**
@@ -135,6 +158,11 @@ public class SimilarityNodeDialog extends NodeDialogPane {
 			m_settings.aggregationMethod(AggregationMethod.Maximum);
 		} else if (m_average.isSelected()) {
 			m_settings.aggregationMethod(AggregationMethod.Average);
+		}
+		if (returnString.isSelected()) {
+			m_settings.returnType(ReturnType.String);
+		} else if (returnCollection.isSelected()) {
+			m_settings.returnType(ReturnType.Collection);
 		}
 
 		m_settings.saveSettingsTo(settings);

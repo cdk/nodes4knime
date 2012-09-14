@@ -5,7 +5,7 @@
 
 	<shortDescription>
 		Calculates the Tanimoto similarity coefficient for
-		two fingerprints or equal size. 
+		two fingerprints of equal size. 
     </shortDescription>
 
 	<fullDescription>
@@ -13,13 +13,14 @@
 			Creates a new column containing the minimum, maximum or average
 			Tanimoto similarity coefficient for the fingerprints in the first
 			input table against the second input table. The computations
-			are based on the <a href="http://cdk.sf.net">CDK</a> toolkit.
+			are based on the <a href="http://cdk.sf.net">CDK</a> toolkit. For the minimum and maximum option an additional column 
+			is appended to the table containing the row id reference. If the similarity ties, the result will either be returned 
+			as pipe-delimited string (string return) or as collection cell (collection return).
 		</intro>
 
-		<option name="Column with fingerprint">Select the column containing the molecular
-			fingerprint</option>
-		<option name="Combo box with aggregation options">Select the aggregation method for the calculation
-		</option>
+		<option name="Column with fingerprint">Select the column containing the molecular fingerprint</option>
+		<option name="Combo box with aggregation options">Select the aggregation method for the calculation</option>
+		<option name="Combo box with return types">Select the return type: String Cell or Collection Cell</option>
 	</fullDescription>
 
 	<ports>
