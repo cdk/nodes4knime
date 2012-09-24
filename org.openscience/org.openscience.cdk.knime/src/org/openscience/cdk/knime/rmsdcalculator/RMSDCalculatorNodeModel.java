@@ -149,7 +149,7 @@ public class RMSDCalculatorNodeModel extends NodeModel {
 				CDKValue mol = (CDKValue) row.getCell(molColIndex);
 				try {
 					List<DoubleCell> rmsds = new ArrayList<DoubleCell>();
-					IAtomContainer con = mol.getAtomContainer();
+					IAtomContainer con = (IAtomContainer) mol.getAtomContainer().clone();
 					SMSDNormalizer.aromatizeMolecule(con);
 
 					if (!GeometryTools.has3DCoordinates(con)) {

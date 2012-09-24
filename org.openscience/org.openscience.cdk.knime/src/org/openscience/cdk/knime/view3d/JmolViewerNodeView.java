@@ -116,10 +116,8 @@ public class JmolViewerNodeView extends NodeView<JmolViewerNodeModel> {
 			DataCell cell = model.getContentModel().getValueAt(index, column);
 			// CDK method in JMolPanel broken: Does not display bonds and atom types
 			if (cell instanceof SdfValue) {
-				System.out.println("SDF");
 				m_panel.setSDFValue(cell.isMissing() ? null : (SdfValue) cell);
 			} else if (cell instanceof CDKValue) {
-				System.out.println("CDK");
 				m_panel.setCDKValue(cell.isMissing() ? null : (CDKValue) cell);
 			}
 		}
