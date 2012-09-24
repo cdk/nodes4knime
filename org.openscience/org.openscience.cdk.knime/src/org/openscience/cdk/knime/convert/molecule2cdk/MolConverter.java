@@ -40,9 +40,11 @@ import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.StringValue;
+import org.openscience.cdk.aromaticity.CDKHueckelAromaticityDetector;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.inchi.InChIGeneratorFactory;
 import org.openscience.cdk.inchi.InChIToStructure;
+import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.io.CMLReader;
 import org.openscience.cdk.io.MDLV2000Reader;
@@ -54,6 +56,8 @@ import org.openscience.cdk.normalize.SMSDNormalizer;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.smiles.FixBondOrdersTool;
 import org.openscience.cdk.smiles.SmilesParser;
+import org.openscience.cdk.tools.CDKHydrogenAdder;
+import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 
 /**
  * Helper class for converting string representations into CDK molecules.
@@ -62,6 +66,8 @@ import org.openscience.cdk.smiles.SmilesParser;
  * @author Stephan Beisken, European Bioinformatics Institute
  */
 class MolConverter implements ExtendedCellFactory {
+
+	private static final CDKHydrogenAdder hydra = CDKHydrogenAdder.getInstance(SilentChemObjectBuilder.getInstance());
 
 	private interface Conv {
 
@@ -147,7 +153,6 @@ class MolConverter implements ExtendedCellFactory {
 			final String smiles = ((SmilesValue) cell).getSmilesValue();
 
 			final SmilesParser reader = new SmilesParser(SilentChemObjectBuilder.getInstance());
-			reader.setPreservingAromaticity(true);
 			IAtomContainer cdkMol = reader.parseSmiles(smiles);
 			// CMLWriter crashes if chiral centers are not eradicated
 			cdkMol = SMSDNormalizer.convertExplicitToImplicitHydrogens(cdkMol);
@@ -257,6 +262,11 @@ class MolConverter implements ExtendedCellFactory {
 			return new DataCell[] { DataType.getMissingCell() };
 		}
 
+		// remove JCP valency labels
+		for (IAtom atom : molP.atoms()) {
+			atom.setValency(null);
+		}
+		
 		return new DataCell[] { new CDKCell(molP) };
 	}
 
@@ -264,10 +274,14 @@ class MolConverter implements ExtendedCellFactory {
 
 		IAtomContainer cdkMol = m_converter.conv(cell);
 
-		CDKNodeUtils.getStandardMolecule(cdkMol);
-
-		if (m_settings.convertOrder())
+		if (m_settings.convertOrder()) {
+			AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(cdkMol);
 			cdkMol = bondDeducer.kekuliseAromaticRings(cdkMol);
+			hydra.addImplicitHydrogens(cdkMol);
+			CDKHueckelAromaticityDetector.detectAromaticity(cdkMol);
+		} else {
+			CDKNodeUtils.getStandardMolecule(cdkMol);
+		}
 
 		if (m_settings.generate2D())
 			cdkMol = CDKNodeUtils.calculateCoordinates(cdkMol, m_settings.force2D());

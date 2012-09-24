@@ -35,6 +35,7 @@ import org.knime.core.node.NodeSettingsWO;
 import org.openscience.cdk.CDKConstants;
 import org.openscience.cdk.aromaticity.CDKHueckelAromaticityDetector;
 import org.openscience.cdk.exception.CDKException;
+import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.isomorphism.UniversalIsomorphismTester;
 import org.openscience.cdk.knime.type.CDKValue;
@@ -86,11 +87,11 @@ public class SSSearchNodeModel extends ThreadedTableBuilderNodeModel {
 		} else {
 			IAtomContainer mol = ((CDKValue) inRow.getCell(m_columnIndex)).getAtomContainer();
 			boolean hasAromaticFlag = false;
-			for (int i = 0; i < mol.getAtomCount(); i++) {
-				if (mol.getAtom(i).getFlag(CDKConstants.ISAROMATIC)) {
+			for (IAtom atom : mol.atoms()) {
+				if (atom.getFlag(CDKConstants.ISAROMATIC)) {
 					hasAromaticFlag = true;
-					break;
 				}
+				atom.setValency(null);
 			}
 
 			if (!hasAromaticFlag) {

@@ -23,7 +23,6 @@ import org.openscience.cdk.graph.ConnectivityChecker;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IAtomContainerSet;
 import org.openscience.cdk.layout.StructureDiagramGenerator;
-import org.openscience.cdk.normalize.SMSDNormalizer;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.smiles.SmilesGenerator;
 import org.openscience.cdk.tools.CDKHydrogenAdder;
@@ -69,7 +68,7 @@ public class CDKNodeUtils {
 
 		try {
 			clone = (IAtomContainer) molecule.clone();
-			SMSDNormalizer.convertImplicitToExplicitHydrogens(clone);
+			AtomContainerManipulator.convertImplicitToExplicitHydrogens(clone);
 			AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(clone);
 		} catch (CloneNotSupportedException exception) {
 			throw new CDKException(exception.getMessage());
@@ -89,7 +88,7 @@ public class CDKNodeUtils {
 	public synchronized static IAtomContainer calculateCoordinates(IAtomContainer molecule, boolean force)
 			throws CDKException {
 
-		if (force || (GeometryTools.has2DCoordinates(molecule))) {
+		if (force || !(GeometryTools.has2DCoordinates(molecule))) {
 			if (!ConnectivityChecker.isConnected(molecule)) {
 				IAtomContainerSet set = ConnectivityChecker.partitionIntoMolecules(molecule);
 				molecule = SilentChemObjectBuilder.getInstance().newInstance(IAtomContainer.class);

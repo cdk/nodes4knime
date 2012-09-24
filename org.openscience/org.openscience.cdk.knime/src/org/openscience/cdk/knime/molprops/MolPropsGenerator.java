@@ -108,7 +108,21 @@ final class MolPropsGenerator implements CellFactory {
 				double character = getSp3Character(mol);
 				newCells[i] = character == -1 ? DataType.getMissingCell() : new DoubleCell(character);
 			} else {
-				newCells[i] = MolPropsLibrary.getProperty(row.getKey().toString(), mol, prop);
+				Object[] params = new Object[0];
+				if (prop.equalsIgnoreCase("org.openscience.cdk.qsar.descriptors.molecular.XLogPDescriptor")) {
+					params = new Object[] { new Boolean(true), new Boolean(false) };
+				} else if (prop.equalsIgnoreCase("org.openscience.cdk.qsar.descriptors.molecular.RuleOfFiveDescriptor")) {
+					params = new Object[] { new Boolean(true) };
+				} else if (prop.equalsIgnoreCase("org.openscience.cdk.qsar.descriptors.molecular.BCUTDescriptor")) {
+					params = new Object[] { 0, 0.25, new Boolean(true) };
+				} else if (prop.equalsIgnoreCase("org.openscience.cdk.qsar.descriptors.molecular.HBondAcceptorCountDescriptor")) {
+					params = new Object[] { new Boolean(true) };
+				} else if (prop.equalsIgnoreCase("org.openscience.cdk.qsar.descriptors.molecular.HBondDonorCountDescriptor")) {
+					params = new Object[] { new Boolean(true) };
+				} else if (prop.equalsIgnoreCase("org.openscience.cdk.qsar.descriptors.molecular.RotatableBondsCountDescriptor")) {
+					params = new Object[] { new Boolean(true) };
+				}
+				newCells[i] = MolPropsLibrary.getProperty(row.getKey().toString(), mol, prop, params);
 			}
 		}
 		return newCells;
@@ -132,17 +146,19 @@ final class MolPropsGenerator implements CellFactory {
 		exec.setProgress(curRowNr / (double) rowCount, "Calculated properties for row " + curRowNr + " (\"" + lastKey
 				+ "\")");
 	}
-	
+
 	private double getSp3Character(IAtomContainer mol) {
-		
+
 		double sp3 = 0;
 		for (IAtom atom : mol.atoms()) {
 
-			if (!atom.getSymbol().equals("C")) continue;
-			
-			if (atom.getHybridization() == IAtomType.Hybridization.SP3) sp3++;
+			if (!atom.getSymbol().equals("C"))
+				continue;
+
+			if (atom.getHybridization() == IAtomType.Hybridization.SP3)
+				sp3++;
 		}
-		
+
 		return sp3 / mol.getAtomCount();
 	}
 }

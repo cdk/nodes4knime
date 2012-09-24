@@ -18,6 +18,7 @@
 package org.openscience.cdk.knime.convert.cdk2molecule;
 
 import java.io.StringWriter;
+import java.util.Properties;
 
 import org.knime.chem.types.CMLCell;
 import org.knime.chem.types.CMLCellFactory;
@@ -37,6 +38,7 @@ import org.openscience.cdk.io.CMLWriter;
 import org.openscience.cdk.io.MDLV2000Writer;
 import org.openscience.cdk.io.Mol2Writer;
 import org.openscience.cdk.io.SMILESWriter;
+import org.openscience.cdk.io.listener.PropertiesListener;
 import org.openscience.cdk.knime.type.CDKValue;
 
 /**
@@ -74,6 +76,11 @@ class MolConverter extends SingleCellFactory {
 
 			StringWriter out = new StringWriter(1024);
 			MDLV2000Writer writer = new MDLV2000Writer(out);
+			Properties prop = new Properties();
+	        prop.setProperty("WriteAromaticBondTypes","true");
+	        PropertiesListener listener = new PropertiesListener(prop);
+	        writer.addChemObjectIOListener(listener);
+	        writer.customizeJob();
 			writer.writeMolecule(molClone);
 			writer.close();
 			out.append("$$$$");
@@ -107,6 +114,11 @@ class MolConverter extends SingleCellFactory {
 
 			StringWriter out = new StringWriter(1024);
 			SMILESWriter writer = new SMILESWriter(out);
+			Properties prop = new Properties();
+	        prop.setProperty("UseAromaticity","true");
+	        PropertiesListener listener = new PropertiesListener(prop);
+	        writer.addChemObjectIOListener(listener);
+	        writer.customizeJob();
 			writer.writeAtomContainer(mol);
 			writer.close();
 			return new SmilesCell(out.toString().trim());

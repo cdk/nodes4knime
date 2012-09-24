@@ -43,6 +43,7 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.util.Pointer;
 import org.openscience.cdk.AtomContainer;
 import org.openscience.cdk.graph.ConnectivityChecker;
+import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IAtomContainerSet;
 import org.openscience.cdk.knime.coord2d.Coord2DNodeModel;
@@ -231,6 +232,10 @@ public class Coord3dNodeModel extends ThreadedColAppenderNodeModel {
 					Future<?> future = executor.submit(r);
 					future.get(timeout, TimeUnit.MILLISECONDS);
 					if (pClone.get() != null) {
+						// remove JCP valency labels
+						for (IAtom atom : pClone.get().atoms()) {
+							atom.setValency(null);
+						}
 						cells[0] = new CDKCell(pClone.get());
 					} else {
 						cells[0] = DataType.getMissingCell();

@@ -44,7 +44,8 @@ import org.openscience.jchempaint.renderer.AtomContainerRenderer;
 import org.openscience.jchempaint.renderer.RendererModel;
 import org.openscience.jchempaint.renderer.font.AWTFontManager;
 import org.openscience.jchempaint.renderer.generators.BasicAtomGenerator;
-import org.openscience.jchempaint.renderer.generators.BasicBondGenerator;
+import org.openscience.jchempaint.renderer.generators.ExtendedAtomGenerator;
+import org.openscience.jchempaint.renderer.generators.RingGenerator;
 import org.openscience.jchempaint.renderer.visitor.AWTDrawVisitor;
 
 /**
@@ -60,26 +61,41 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 
 	private static final NodeLogger LOGGER = NodeLogger.getLogger(CDKValueRenderer.class);
 
-	private static final AtomContainerRenderer RENDERER;
+	private static AtomContainerRenderer renderer;
+	private static AtomContainerRenderer rendererNumber;
+	
+	private static AtomContainerRenderer RENDERER;
 	private static final double SCALE = 0.9;
 
 	static {
-		AtomContainerRenderer renderer = null;
 		try {
-			renderer = new AtomContainerRenderer(Arrays.asList(new BasicBondGenerator(), new BasicAtomGenerator(),
+			renderer = new AtomContainerRenderer(Arrays.asList(new RingGenerator(), new ExtendedAtomGenerator(),
 					new ElementNumberGenerator()), new AWTFontManager(), true);
 
 			RendererModel renderer2dModel = renderer.getRenderer2DModel();
-			renderer2dModel.setUseAntiAliasing(true);
-			renderer2dModel.setShowAtomAtomMapping(false);
-			renderer2dModel.setShowAtomTypeNames(false);
-			renderer2dModel.setShowExplicitHydrogens(true);
-			renderer2dModel.setShowAromaticity(true);
-
+			setRendererProps(renderer2dModel);
+			
+			rendererNumber = new AtomContainerRenderer(Arrays.asList(new RingGenerator(), new BasicAtomGenerator(),
+					new ElementNumberGenerator()), new AWTFontManager(), true);
+			
+			RendererModel renderer2dModelNumber = rendererNumber.getRenderer2DModel();
+			setRendererProps(renderer2dModelNumber);
+			renderer2dModelNumber.setDrawNumbers(true);
+			
 		} catch (Exception e) {
 			LOGGER.error("Error during renderer initialization!", e);
 		}
+
 		RENDERER = renderer;
+	}
+	
+	private static void setRendererProps(RendererModel renderer2dModel) {
+		
+		renderer2dModel.setUseAntiAliasing(true);
+		renderer2dModel.setShowAtomAtomMapping(false);
+		renderer2dModel.setShowAtomTypeNames(false);
+		renderer2dModel.setShowExplicitHydrogens(true);
+		renderer2dModel.setShowAromaticity(true);
 	}
 
 	private IAtomContainer m_mol;
@@ -89,11 +105,11 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 	public CDKValueRenderer() {
 
 		super();
-		
+
 		NUMBERING numbering;
-		
+
 		switch (CDKNodePlugin.numbering()) {
-		
+
 		case SEQUENTIAL:
 			numbering = NUMBERING.SEQUENTIAL;
 			break;
@@ -114,15 +130,15 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 			setNumberRenderer(TYPE.H_ATOMS, numbering);
 			break;
 		default:
-			RENDERER.getRenderer2DModel().setDrawNumbers(false);
+			RENDERER = renderer;
 			break;
 		}
 	}
 
 	private void setNumberRenderer(TYPE type, NUMBERING numbering) {
 
+		RENDERER = rendererNumber;
 		((ElementNumberGenerator) RENDERER.getGenerators().get(2)).setType(type, numbering);
-		RENDERER.getRenderer2DModel().setDrawNumbers(true);
 	}
 
 	/**
@@ -249,6 +265,7 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 		GeometryTools.translateAllPositive(cont);
 		GeometryTools.scaleMolecule(cont, aPrefferedSize, 0.8f);
 		GeometryTools.center(cont, aPrefferedSize);
+		
 		RENDERER.paintMolecule(cont, new AWTDrawVisitor(g2), new Rectangle(x, y, width, height), true);
 	}
 

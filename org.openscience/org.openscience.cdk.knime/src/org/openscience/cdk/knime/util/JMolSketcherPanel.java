@@ -27,6 +27,7 @@ import javax.vecmath.Vector2d;
 import org.openscience.cdk.AtomContainerSet;
 import org.openscience.cdk.DefaultChemObjectBuilder;
 import org.openscience.cdk.geometry.GeometryTools;
+import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IAtomContainerSet;
 import org.openscience.cdk.interfaces.IChemModel;
@@ -97,6 +98,10 @@ public class JMolSketcherPanel extends JChemPaintPanel {
 					double yShift = tmpRectangle.getCenterY();
 					GeometryTools.translate2DCenterTo(m, new Point2d(new double[] { xShift, yShift }));
 					molRectangle = tmpRectangle;
+				}
+				// remove JCP valency labels
+				for (IAtom atom : m.atoms()) {
+					atom.setValency(null);
 				}
 				moleculeSet.addAtomContainer(m);
 				// if there are no atoms in the actual chemModel

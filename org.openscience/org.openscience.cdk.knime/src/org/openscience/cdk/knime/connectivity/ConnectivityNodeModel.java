@@ -44,6 +44,7 @@ import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.openscience.cdk.graph.ConnectivityChecker;
+import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IAtomContainerSet;
 import org.openscience.cdk.knime.type.CDKCell;
@@ -222,13 +223,23 @@ public class ConnectivityNodeModel extends NodeModel {
 					IAtomContainerSet molSet = ConnectivityChecker.partitionIntoMolecules(mol);
 					List<DataCell> cells = new ArrayList<DataCell>(molSet.getAtomContainerCount());
 
+					IAtomContainer singleMol;
 					for (int i = 0; i < molSet.getAtomContainerCount(); i++) {
-						cells.add(new CDKCell(molSet.getAtomContainer(i)));
+						singleMol = molSet.getAtomContainer(i);
+						// remove JCP valency labels
+						for (IAtom atom : singleMol.atoms()) {
+							atom.setValency(null);
+						}
+						cells.add(new CDKCell(singleMol));
+					}
+					// remove JCP valency labels
+					for (IAtom atom : mol.atoms()) {
+						atom.setValency(null);
 					}
 
 					return CollectionCellFactory.createSetCell(cells);
 				} else {
-					return CollectionCellFactory.createSetCell(Collections.singleton(row.getCell(molColIndex)));
+					return CollectionCellFactory.createSetCell(Collections.singleton(new CDKCell(mol)));
 				}
 			}
 		};

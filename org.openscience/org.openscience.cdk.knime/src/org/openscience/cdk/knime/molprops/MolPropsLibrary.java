@@ -199,7 +199,7 @@ public final class MolPropsLibrary {
 	 * @param descriptorClassName class name of the descriptor
 	 * @return a <code>DataCell</code> with the property or a missing cell if something goes wrong
 	 */
-	public static DataCell getProperty(final String rowKey, final IAtomContainer mol, final String descriptorClassName) {
+	public static DataCell getProperty(final String rowKey, final IAtomContainer mol, final String descriptorClassName, Object[] params) {
 
 		if (descriptorClassName == null) {
 			throw new NullPointerException("Description must not be null.");
@@ -217,6 +217,7 @@ public final class MolPropsLibrary {
 		try {
 			DescriptorValue val;
 			synchronized (engine) {
+				if (params.length > 0) engine.setParameters(params);
 				val = engine.calculate(mol);
 			}
 			IDescriptorResult d = val.getValue();
