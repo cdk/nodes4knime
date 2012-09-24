@@ -4,21 +4,21 @@
     <name>Atom Signatures</name>
     
     <shortDescription>
-        This node allows to generate the signatures describing the neighborhood of a atom in CDK molecules.
+        This node generates atom signatures describing the neighbourhood of individual atoms in CDK molecules.
     </shortDescription>
     <fullDescription>
-        <intro>This node allows to generate the signatures describing the neighborhood of carbon or hydrogen atoms in CDK molecules. 
+        <intro>This node generates atom signatures describing the neighbourhood of carbon or hydrogen atoms in CDK molecules. 
         There are two types of signatures available, HOSE codes or atom signatures. 
         If the minimum and maximum height of the signature are not specified, the signatures will be calculated for height 6. 
-        If the signature of specified height cannot be calculated, the signature with maximum possible height for that atom will be reported.
-        The first column of the Output table contains the atom IDs. To visualize the atom IDs in the molecule cell go to File > Preferences. 
-        In the drop-down list go to KNIME > Chemistry > CDK and then select an option to "show atom numbers for" the atoms you are interested on.
+        If the signature of a specified height cannot be calculated, the signature with the maximum possible height for that atom will be reported.
+        The first column of the output table contains the atom IDs. To visualise the atom IDs in the molecule cell go to "File > Preferences."
+        In the drop-down list go to "KNIME > Chemistry > CDK" and then select an option to "show atom numbers for" the atoms you are interested in.
         In case you change the "Atom number type" after running the node, the atom IDs will only be updated upon reset of the node. 
         </intro>
         <option name="Column with molecules">Select the column containing the molecular structure</option>
         <option name="Signature type">Chose the type of signature to be generated</option>
         <option name="Atom of interest">Chose for which type of atom is the signature going to be generated</option>
-        <option name="Set signature height">Customize the minimum and maximum height of the signature</option>
+        <option name="Set signature height">Customise the minimum and maximum height of the signature</option>
     </fullDescription>
     
     <ports>

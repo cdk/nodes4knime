@@ -5,8 +5,7 @@
     <shortDescription>Generates 2D coordinates for CDK cells</shortDescription>
     <fullDescription>
         <intro>
-        	Generates 2D coordinates and attaches them to the input CDK cells, 
-        	enabling them to be displayed in a 2D viewer.  
+        	Generates 2D coordinates for the input CDK cells, enabling them to be displayed in a 2D viewer.  
         </intro>
     </fullDescription>
     <ports>

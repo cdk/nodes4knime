@@ -6,8 +6,9 @@
     <fullDescription>
         <intro>
             This node lets you handle unconnected CDK molecules. This is necessary because
-            some algorithms won't work with unconnected structures. You have either the choice to completely remove the
-            rows that contain unconnected molecules, or to remove all molecule parts except the biggest one.
+            some algorithms won't work with unconnected structures. You have the choice to completely remove the
+            rows that contain unconnected molecules, remove all molecule parts except the biggest one, or keep all fragments
+            as separate molecules.
         </intro>
         <option name="Column with molecules">Select the column containing the molecular structure</option>
         <option name="Remove complete row">

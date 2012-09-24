@@ -4,9 +4,7 @@
     <name>Hydrogen Manipulator</name>
     <shortDescription>Manipulates hydrogens of CDK molecules</shortDescription>
     <fullDescription>
-        <intro>This node adds missing hydrogens to CDK molecules and forces all hydrogens to be implicit. 
-            <br />      
-        </intro>
+        <intro>This node adds missing hydrogens to CDK molecules and forces all hydrogens to be implicit.</intro>
         <option name="Column with molecules">Select the column containing the molecular structure</option>
         <option name="Append Column">Appends a new molecule column (with the name as specified in the text field) if checked, replaces the original column otherwise.</option>
     </fullDescription>

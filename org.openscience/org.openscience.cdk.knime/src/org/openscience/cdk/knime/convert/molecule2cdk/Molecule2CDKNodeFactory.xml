@@ -40,6 +40,10 @@
             timeout after which the conversion of the current molecules will be aborted. A missing value will be
             inserted in the output table instead of the converted molecule.
         </option>
+        <option name="Kekulize">
+            An experimental feature that tries to infer double bonds in an aromatic system if not given by the input file. E.g., when the bond
+            order in a SDFile is used to indicate aromaticity.
+        </option>
     </fullDescription>
     <ports>
         <inPort index="0" name="Molecules to parse">Table containing molecules to parse</inPort>
