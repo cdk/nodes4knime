@@ -1,17 +1,17 @@
 /*
  * Copyright (C) 2003 - 2012 University of Konstanz, Germany and KNIME GmbH, Konstanz, Germany Website:
  * http://www.knime.org; Email: contact@knime.org
- * 
+ *
  * This file is part of the KNIME CDK plugin.
- * 
+ *
  * The KNIME CDK plugin is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
  * General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your
  * option) any later version.
- * 
+ *
  * The KNIME CDK plugin is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
  * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License
  * for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License along with the plugin. If not, see
  * <http://www.gnu.org/licenses/>.
  */
@@ -23,7 +23,7 @@ import org.knime.core.node.NodeSettingsWO;
 
 /**
  * This class holds the settings for the Molecule->CDK node.
- * 
+ *
  * @author Thorsten Meinl, University of Konstanz
  * @author Stephan Beisken, European Bioinformatics Institute
  */
@@ -40,7 +40,7 @@ public class Molecule2CDKSettings {
 
 	/**
 	 * Sets the name of the source molecule column.
-	 * 
+	 *
 	 * @param colName a column name
 	 */
 	public void columnName(final String colName) {
@@ -50,7 +50,7 @@ public class Molecule2CDKSettings {
 
 	/**
 	 * Returns the name of the source molecule column.
-	 * 
+	 *
 	 * @return a column name
 	 */
 	public String columnName() {
@@ -60,7 +60,7 @@ public class Molecule2CDKSettings {
 
 	/**
 	 * Sets if the node should replace the source column or append an additional column.
-	 * 
+	 *
 	 * @param b <code>true</code> if the source column should be replaced, <code>false</code> otherwise
 	 */
 	public void replaceColumn(final boolean b) {
@@ -70,7 +70,7 @@ public class Molecule2CDKSettings {
 
 	/**
 	 * Returns if the node should replace the source column or append an additional column.
-	 * 
+	 *
 	 * @return <code>true</code> if the source column should be replaced, <code>false</code> otherwise
 	 */
 	public boolean replaceColumn() {
@@ -80,7 +80,7 @@ public class Molecule2CDKSettings {
 
 	/**
 	 * Sets the name of the new column that is used if {@link #replaceColumn()} is <code>false</code>.
-	 * 
+	 *
 	 * @param name the name of the new column
 	 */
 	public void newColumnName(final String name) {
@@ -90,7 +90,7 @@ public class Molecule2CDKSettings {
 
 	/**
 	 * Returns the name of the new column that is used if {@link #replaceColumn()} is <code>false</code>.
-	 * 
+	 *
 	 * @return the name of the new column
 	 */
 	public String newColumnName() {
@@ -100,7 +100,7 @@ public class Molecule2CDKSettings {
 
 	/**
 	 * Sets if 2D coordinates should be generated for all converted molecules.
-	 * 
+	 *
 	 * @param gen <code>true</code> if they should be generated, <code>false</code> otherwise
 	 */
 	public void generate2D(final boolean gen) {
@@ -110,7 +110,7 @@ public class Molecule2CDKSettings {
 
 	/**
 	 * Returns if 2D coordinates should be generated for all converted molecules.
-	 * 
+	 *
 	 * @return <code>true</code> if they should be generated, <code>false</code> otherwise
 	 */
 	public boolean generate2D() {
@@ -120,7 +120,7 @@ public class Molecule2CDKSettings {
 
 	/**
 	 * Sets if 2D coordinate generation should be forced even if the molecules already seem to have 2D coordinates.
-	 * 
+	 *
 	 * @param force <code>true</code> if they should be generated in any case, <code>false</code> otherwise
 	 */
 	public void force2D(final boolean force) {
@@ -130,7 +130,7 @@ public class Molecule2CDKSettings {
 
 	/**
 	 * Returns if 2D coordinate generation should be forced even if the molecules already seem to have 2D coordinates.
-	 * 
+	 *
 	 * @return <code>true</code> if they should be generated in any case, <code>false</code> otherwise
 	 */
 	public boolean force2D() {
@@ -140,7 +140,7 @@ public class Molecule2CDKSettings {
 
 	/**
 	 * Returns if bond order of type 4 should be converted to bond orders 1 and 2.
-	 * 
+	 *
 	 * @return <code>true</code> if they should be converted, <code>false</code> otherwise
 	 */
 	public boolean convertOrder() {
@@ -150,8 +150,8 @@ public class Molecule2CDKSettings {
 
 	/**
 	 * Sets if 2D bond order of type 4 should be converted to bond orders 1 and 2.
-	 * 
-	 * @param force <code>true</code> if they should be converted, <code>false</code> otherwise
+	 *
+	 * @param conertOrder <code>true</code> if they should be converted, <code>false</code> otherwise
 	 */
 	public void convertOrder(final boolean conertOrder) {
 
@@ -160,7 +160,7 @@ public class Molecule2CDKSettings {
 
 	/**
 	 * Sets the timeout after which the conversion is forcefully stopped.
-	 * 
+	 *
 	 * @param t the timeout in milliseconds
 	 */
 	public void timeout(final int t) {
@@ -170,7 +170,7 @@ public class Molecule2CDKSettings {
 
 	/**
 	 * Returns the timeout after which the conversion is forcefully stopped.
-	 * 
+	 *
 	 * @return the timeout in milliseconds
 	 */
 	public int timeout() {
@@ -180,7 +180,7 @@ public class Molecule2CDKSettings {
 
 	/**
 	 * Loads the settings from the given node settings object.
-	 * 
+	 *
 	 * @param settings node settings
 	 * @throws InvalidSettingsException if some settings are missing
 	 */
@@ -191,13 +191,14 @@ public class Molecule2CDKSettings {
 		m_newColName = settings.getString("newColName");
 		m_generate2D = settings.getBoolean("generate2D");
 		m_force2D = settings.getBoolean("force2D");
-		convertOrder = settings.getBoolean("bondOrder");
 		m_timeout = settings.getInt("timeout");
+		// since revision 3744
+		convertOrder = settings.getBoolean("bondOrder", false);
 	}
 
 	/**
 	 * Loads the settings from the given node settings object.
-	 * 
+	 *
 	 * @param settings node settings
 	 */
 	public void loadSettingsForDialog(final NodeSettingsRO settings) {
@@ -213,7 +214,7 @@ public class Molecule2CDKSettings {
 
 	/**
 	 * Saves the settings to the given node settings object.
-	 * 
+	 *
 	 * @param settings node settings
 	 */
 	public void saveSettings(final NodeSettingsWO settings) {
