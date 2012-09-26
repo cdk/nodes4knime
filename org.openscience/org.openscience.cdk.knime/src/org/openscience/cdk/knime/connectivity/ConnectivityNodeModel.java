@@ -189,6 +189,10 @@ public class ConnectivityNodeModel extends NodeModel {
 						}
 					}
 
+					// remove JCP valency labels
+					for (IAtom atom : biggest.atoms()) {
+						atom.setValency(null);
+					}
 					return new CDKCell(biggest);
 				} else {
 					return row.getCell(molColIndex);
