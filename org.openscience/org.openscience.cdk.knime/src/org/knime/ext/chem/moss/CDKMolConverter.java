@@ -29,6 +29,7 @@ import moss.Node;
 import moss.SMILES;
 
 import org.knime.core.data.DataCell;
+import org.knime.core.data.DataType;
 import org.openscience.cdk.CDKConstants;
 import org.openscience.cdk.config.IsotopeFactory;
 import org.openscience.cdk.interfaces.IAtom;
@@ -156,5 +157,10 @@ public class CDKMolConverter extends MolConverter<IAtomContainer, CDKValue> {
 	public DataCell createCell(final Graph graph) {
 
 		return new CDKCell(convert(graph));
+	}
+	
+	@Override
+	public DataType getDataType() {
+	    return CDKCell.TYPE;
 	}
 }
