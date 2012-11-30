@@ -19,8 +19,6 @@ package org.openscience.cdk.knime.convert.molecule2cdk;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.knime.base.data.append.column.AppendedColumnTable;
 import org.knime.base.data.replace.ReplacedColumnsTable;
@@ -34,13 +32,14 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTable;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.StringValue;
 import org.knime.core.data.DataType;
+import org.knime.core.data.StringValue;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.openscience.cdk.knime.CDKNodeUtils;
 import org.openscience.cdk.knime.type.CDKCell;
 
 /**
@@ -61,6 +60,8 @@ public class Molecule2CDKNodeModel extends ThreadedColAppenderNodeModel {
 	public Molecule2CDKNodeModel() {
 
 		super(1, 1);
+		
+		setMaxThreads(CDKNodeUtils.getMaxNumOfThreads());
 	}
 
 	/**
@@ -69,8 +70,7 @@ public class Molecule2CDKNodeModel extends ThreadedColAppenderNodeModel {
 	@Override
 	protected ExtendedCellFactory[] prepareExecute(final DataTable[] data) throws Exception {
 
-		ExecutorService executor = Executors.newCachedThreadPool();
-		return new ExtendedCellFactory[] { new MolConverter(data[0].getDataTableSpec(), m_settings, executor) };
+		return new ExtendedCellFactory[] { new MolConverter(data[0].getDataTableSpec(), m_settings) };
 	}
 
 	/**

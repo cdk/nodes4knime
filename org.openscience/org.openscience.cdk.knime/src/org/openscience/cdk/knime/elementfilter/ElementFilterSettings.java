@@ -28,7 +28,7 @@ import org.knime.core.node.NodeSettingsWO;
 public class ElementFilterSettings {
 
 	private String molColumnName;
-	private String elements;
+	private String elements = "C,H,N,O,P,S";
 
 	/**
 	 * Gets the name of the CDK column.

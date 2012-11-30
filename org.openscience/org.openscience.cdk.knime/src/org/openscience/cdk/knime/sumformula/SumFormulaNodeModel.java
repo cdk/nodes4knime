@@ -18,22 +18,44 @@ package org.openscience.cdk.knime.sumformula;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
+import org.knime.base.node.parallel.appender.AppendColumn;
+import org.knime.base.node.parallel.appender.ColumnDestination;
+import org.knime.base.node.parallel.appender.ExtendedCellFactory;
+import org.knime.base.node.parallel.appender.ThreadedColAppenderNodeModel;
+import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
+import org.knime.core.data.DataRow;
+import org.knime.core.data.DataTable;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataType;
+import org.knime.core.data.DoubleValue;
+import org.knime.core.data.collection.CollectionCellFactory;
 import org.knime.core.data.collection.ListCell;
-import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.StringCell;
-import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
-import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.openscience.cdk.DefaultChemObjectBuilder;
+import org.openscience.cdk.formula.MassToFormulaTool;
+import org.openscience.cdk.formula.MolecularFormulaChecker;
+import org.openscience.cdk.formula.rules.ElementRule;
+import org.openscience.cdk.formula.rules.IRule;
+import org.openscience.cdk.formula.rules.MMElementRule;
+import org.openscience.cdk.formula.rules.NitrogenRule;
+import org.openscience.cdk.formula.rules.RDBERule;
+import org.openscience.cdk.interfaces.IMolecularFormula;
+import org.openscience.cdk.interfaces.IMolecularFormulaSet;
+import org.openscience.cdk.knime.CDKNodeUtils;
+import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 /**
  * This is the model implementation of SumFormula. Node to generate probable molecular formulas based on a given mass
@@ -41,7 +63,7 @@ import org.knime.core.node.NodeSettingsWO;
  * 
  * @author Stephan Beisken, European Bioinformatics Institute
  */
-public class SumFormulaNodeModel extends NodeModel {
+public class SumFormulaNodeModel extends ThreadedColAppenderNodeModel {
 
 	private SumFormulaSettings settings = new SumFormulaSettings();
 
@@ -51,39 +73,98 @@ public class SumFormulaNodeModel extends NodeModel {
 	protected SumFormulaNodeModel() {
 
 		super(1, 1);
+		
+		this.setMaxThreads(CDKNodeUtils.getMaxNumOfThreads());
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
-			throws Exception {
+	protected ExtendedCellFactory[] prepareExecute(final DataTable[] data) throws Exception {
 
-		DataTableSpec inSpec = inData[0].getDataTableSpec();
-		ColumnRearranger rearranger = createColumnRearranger(inSpec);
-		BufferedDataTable outTable = exec.createColumnRearrangeTable(inData[0], rearranger, exec);
+		final int colIndex = data[0].getDataTableSpec().findColumnIndex(settings.getMassColumn());
+		final MassToFormulaTool mtft = new MassToFormulaTool(DefaultChemObjectBuilder.getInstance());
+		final MolecularFormulaChecker mfc = new MolecularFormulaChecker(getRules());
 
-		return new BufferedDataTable[] { outTable };
+		ExtendedCellFactory cf = new ExtendedCellFactory() {
+
+			@Override
+			public DataCell[] getCells(final DataRow row) {
+
+				DataCell massCell = row.getCell(colIndex);
+				DataCell[] newCells = new DataCell[2];
+				if (massCell.isMissing()) {
+					Arrays.fill(newCells, DataType.getMissingCell());
+					return newCells;
+				}
+				if (!(massCell instanceof DoubleValue)) {
+					throw new IllegalArgumentException("No Double cell at " + colIndex + ": "
+							+ massCell.getClass().getName());
+				}
+
+				double mass = ((DoubleValue) row.getCell(colIndex)).getDoubleValue();
+				IMolecularFormulaSet mfSet = null;
+				mfSet = mtft.generate(mass);
+
+				if (mfSet == null || mfSet.size() == 0) {
+					Arrays.fill(newCells, DataType.getMissingCell());
+					return newCells;
+				}
+
+				Collection<StringCell> hillStrings = new ArrayList<StringCell>();
+				Collection<DoubleCell> sumDoubles = new ArrayList<DoubleCell>();
+				for (IMolecularFormula formula : mfSet.molecularFormulas()) {
+
+					double validSum = mfc.isValidSum(formula);
+					if (settings.isExcludeByValidSum() && validSum != 1) {
+						continue;
+					}
+					hillStrings.add(new StringCell(MolecularFormulaManipulator.getString(formula)));
+					sumDoubles.add(new DoubleCell(validSum));
+				}
+
+				newCells[0] = CollectionCellFactory.createListCell(hillStrings);
+				newCells[1] = CollectionCellFactory.createListCell(sumDoubles);
+
+				return newCells;
+			}
+
+			@Override
+			public ColumnDestination[] getColumnDestinations() {
+
+				return new ColumnDestination[] { new AppendColumn() };
+			}
+
+			@Override
+			public DataColumnSpec[] getColumnSpecs() {
+
+				DataColumnSpecCreator crea1 = new DataColumnSpecCreator("Sum Formula", ListCell.getCollectionType(StringCell.TYPE));
+				DataColumnSpecCreator crea2 = new DataColumnSpecCreator("Valid Sum", ListCell.getCollectionType(DoubleCell.TYPE));
+				return new DataColumnSpec[] { crea1.createSpec(), crea2.createSpec() };
+			}
+		};
+
+		return new ExtendedCellFactory[] { cf };
 	}
+	
+	private List<IRule> getRules() {
+		
+		List<IRule> rules = new ArrayList<IRule>();
 
-	private ColumnRearranger createColumnRearranger(DataTableSpec spec) throws InvalidSettingsException {
+		IRule elementRule = new ElementRule();
+		IRule mmElementRule = new MMElementRule();
+		IRule nitrogenRule = new NitrogenRule();
+		IRule rdbeRule = new RDBERule();
 
-		final int colIndex = spec.findColumnIndex(settings.getMassColumn());
-
-		DataColumnSpec[] columnSpecs = new DataColumnSpec[2];
-		columnSpecs[0] = new DataColumnSpecCreator("Sum Formula", ListCell.getCollectionType(StringCell.TYPE))
-				.createSpec();
-		columnSpecs[1] = new DataColumnSpecCreator("Valid Sum", ListCell.getCollectionType(DoubleCell.TYPE))
-				.createSpec();
-
-		SumFormulaGenerator generator = new SumFormulaGenerator(columnSpecs, colIndex, settings.isExcludeByValidSum());
-		ColumnRearranger arrange = new ColumnRearranger(spec);
-		arrange.append(generator);
-
-		return arrange;
+		rules.add(elementRule);
+		rules.add(mmElementRule);
+		rules.add(nitrogenRule);
+		rules.add(rdbeRule);
+		
+		return rules;
 	}
-
+	
 	/**
 	 * {@inheritDoc}
 	 */
@@ -104,9 +185,12 @@ public class SumFormulaNodeModel extends NodeModel {
 			throw new InvalidSettingsException("Mass column '" + settings.getMassColumn() + "' does not exist");
 		}
 
-		DataTableSpec outSpec = createColumnRearranger(inSpecs[0]).createSpec();
-
-		return new DataTableSpec[] { outSpec };
+		DataColumnSpecCreator crea1 = new DataColumnSpecCreator("Sum Formula", ListCell.getCollectionType(StringCell.TYPE));
+		DataColumnSpecCreator crea2 = new DataColumnSpecCreator("Valid Sum", ListCell.getCollectionType(DoubleCell.TYPE));
+		
+		DataTableSpec outDataTableSpec = new DataTableSpec(crea1.createSpec(), crea2.createSpec());
+		
+		return new DataTableSpec[] { new DataTableSpec(inSpecs[0], outDataTableSpec) };
 	}
 
 	/**

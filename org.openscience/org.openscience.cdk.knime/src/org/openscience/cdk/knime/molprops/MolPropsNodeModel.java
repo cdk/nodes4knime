@@ -30,36 +30,47 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 
+import org.knime.base.node.parallel.appender.AppendColumn;
+import org.knime.base.node.parallel.appender.ColumnDestination;
+import org.knime.base.node.parallel.appender.ExtendedCellFactory;
+import org.knime.base.node.parallel.appender.ThreadedColAppenderNodeModel;
+import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
+import org.knime.core.data.DataRow;
+import org.knime.core.data.DataTable;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
-import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.StringCell;
-import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
-import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
-import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.openscience.cdk.interfaces.IAtom;
+import org.openscience.cdk.interfaces.IAtomContainer;
+import org.openscience.cdk.interfaces.IAtomType;
+import org.openscience.cdk.interfaces.IMolecularFormula;
+import org.openscience.cdk.knime.CDKNodeUtils;
 import org.openscience.cdk.knime.type.CDKValue;
+import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
+import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 /**
  * @author Bernd Wiswedel, University of Konstanz
  * @author Stephan Beisken, European Bioinformatics Institute
  */
-public class MolPropsNodeModel extends NodeModel {
+public class MolPropsNodeModel extends ThreadedColAppenderNodeModel {
 
 	private static final NodeLogger LOGGER = NodeLogger.getLogger(MolPropsNodeModel.class);
 
 	/** NodeSettings file containing names. */
 	private static final String MOLPROPS_IDENTIFIER_FILE = MolPropsNodeModel.class.getPackage().getName()
-			.replace('.', '/') + "/molprops.set";
+			.replace('.', '/')
+			+ "/molprops.set";
 
 	private static final Map<DataColumnSpec, String> MOLPROPS_IDENTIFIER_MAP;
 
@@ -117,6 +128,7 @@ public class MolPropsNodeModel extends NodeModel {
 	public MolPropsNodeModel() {
 
 		super(1, 1);
+		setMaxThreads(CDKNodeUtils.getMaxNumOfThreads());
 		m_propDescriptions = new ArrayList<String>();
 	}
 
@@ -153,16 +165,117 @@ public class MolPropsNodeModel extends NodeModel {
 		m_propDescriptions.addAll(Arrays.asList(props));
 	}
 
+	private String[] propsClassNames;
+	private DataColumnSpec[] propsSpec;
+
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
-			throws Exception {
+	protected ExtendedCellFactory[] prepareExecute(final DataTable[] data) throws Exception {
 
-		ColumnRearranger arranger = createColumnRearranger(inData[0].getDataTableSpec());
-		BufferedDataTable t = exec.createColumnRearrangeTable(inData[0], arranger, exec);
-		return new BufferedDataTable[] { t };
+		final int colIndex = data[0].getDataTableSpec().findColumnIndex(m_cdkColumn);
+
+		ExtendedCellFactory cf = new ExtendedCellFactory() {
+
+			@Override
+			public DataCell[] getCells(final DataRow row) {
+
+				DataCell sCell = row.getCell(colIndex);
+				DataCell[] newCells = new DataCell[propsSpec.length];
+				if (sCell.isMissing()) {
+					Arrays.fill(newCells, DataType.getMissingCell());
+					return newCells;
+				}
+				if (!(sCell instanceof CDKValue)) {
+					throw new IllegalArgumentException("No CDK cell at " + colIndex + ": " + sCell.getClass().getName());
+				}
+				IAtomContainer mol = null;
+				try {
+					mol = CDKNodeUtils.getExplicitClone(((CDKValue) sCell).getAtomContainer());
+				} catch (Exception exception) {
+					LOGGER.debug("Unable to parse molecule in row \"" + row.getKey() + "\"", exception);
+				}
+
+				for (int i = 0; i < propsClassNames.length; i++) {
+					String prop = propsClassNames[i];
+					if (prop.equals("molecularformula")) {
+						IMolecularFormula formula = MolecularFormulaManipulator.getMolecularFormula(mol);
+						newCells[i] = new StringCell(MolecularFormulaManipulator.getString(formula));
+					} else if (prop.equals("heavyatoms")) {
+						newCells[i] = new IntCell(AtomContainerManipulator.getHeavyAtoms(mol).size());
+					} else if (prop.equals("molarmass")) {
+						IMolecularFormula formula = MolecularFormulaManipulator.getMolecularFormula(mol);
+						newCells[i] = new DoubleCell(MolecularFormulaManipulator.getNaturalExactMass(formula));
+					} else if (prop.equals("spthreechar")) {
+						double character = getSp3Character(mol);
+						newCells[i] = character == -1 ? DataType.getMissingCell() : new DoubleCell(character);
+					} else {
+						Object[] params = new Object[0];
+						if (prop.equalsIgnoreCase("org.openscience.cdk.qsar.descriptors.molecular.XLogPDescriptor")) {
+							params = new Object[] { new Boolean(false), new Boolean(false) };
+						} else if (prop
+								.equalsIgnoreCase("org.openscience.cdk.qsar.descriptors.molecular.RuleOfFiveDescriptor")) {
+							params = new Object[] { new Boolean(false) };
+						} else if (prop
+								.equalsIgnoreCase("org.openscience.cdk.qsar.descriptors.molecular.BCUTDescriptor")) {
+							params = new Object[] { 0, 0.25, new Boolean(false) };
+						} else if (prop
+								.equalsIgnoreCase("org.openscience.cdk.qsar.descriptors.molecular.HBondAcceptorCountDescriptor")) {
+							params = new Object[] { new Boolean(false) };
+						} else if (prop
+								.equalsIgnoreCase("org.openscience.cdk.qsar.descriptors.molecular.HBondDonorCountDescriptor")) {
+							params = new Object[] { new Boolean(false) };
+						} else if (prop
+								.equalsIgnoreCase("org.openscience.cdk.qsar.descriptors.molecular.RotatableBondsCountDescriptor")) {
+							params = new Object[] { new Boolean(true) };
+						}
+						newCells[i] = MolPropsLibrary.getProperty(row.getKey().toString(), mol, prop, params);
+					}
+				}
+				return newCells;
+			}
+
+			@Override
+			public ColumnDestination[] getColumnDestinations() {
+
+				ColumnDestination[] cd;
+				try {
+					cd = new ColumnDestination[generateOutputColSpec(data[0].getDataTableSpec()).length];
+					Arrays.fill(cd, new AppendColumn());
+				} catch (InvalidSettingsException exception) {
+					return new ColumnDestination[] { new AppendColumn() };
+				}
+				return cd;
+			}
+
+			@Override
+			public DataColumnSpec[] getColumnSpecs() {
+
+				try {
+					return generateOutputColSpec(data[0].getDataTableSpec());
+				} catch (InvalidSettingsException exception) {
+					return null;
+				}
+			}
+
+			private double getSp3Character(IAtomContainer mol) {
+
+				double sp3 = 0;
+				for (IAtom atom : mol.atoms()) {
+
+					if (!atom.getSymbol().equals("C"))
+						continue;
+
+					if (atom.getHybridization() == IAtomType.Hybridization.SP3)
+						sp3++;
+				}
+
+				return sp3 / mol.getAtomCount();
+			}
+		};
+
+		return new ExtendedCellFactory[] { cf };
 	}
 
 	/**
@@ -181,40 +294,39 @@ public class MolPropsNodeModel extends NodeModel {
 
 		DataTableSpec inSpec = inSpecs[0];
 		if (!inSpec.containsCompatibleType(CDKValue.class)) {
-			throw new InvalidSettingsException("No smiles cell in input table");
+			throw new InvalidSettingsException("No CDK cell in input table");
 		}
 		if (m_cdkColumn == null) {
-			// if only one smiles cell, we can safely use it
-			int smilesCellCount = 0;
-			String smilesColName = null;
+			int cdkCellCount = 0;
+			String cdkColName = null;
 			for (int i = 0; i < inSpec.getNumColumns(); i++) {
 				DataType cC = inSpec.getColumnSpec(i).getType();
 				if (cC.isCompatible(CDKValue.class)) {
-					smilesCellCount++;
-					smilesColName = inSpec.getColumnSpec(i).getName();
+					cdkCellCount++;
+					cdkColName = inSpec.getColumnSpec(i).getName();
 				}
 			}
-			assert (smilesCellCount >= 1);
-			if (smilesCellCount == 1) { // only one is found - use it.
-				LOGGER.info("No smiles cell was set: I fix it to \"" + smilesColName + "\".");
-				m_cdkColumn = smilesColName;
-			} else { // ambiguous smiles cell columns
-				throw new InvalidSettingsException("No smiles cell defined");
+			assert (cdkCellCount >= 1);
+			if (cdkCellCount == 1) {
+				LOGGER.info("No CDK cell was set: I fix it to \"" + cdkColName + "\".");
+				m_cdkColumn = cdkColName;
+			} else {
+				throw new InvalidSettingsException("No CDK cell defined");
 			}
 		}
-		int smilesCol = inSpec.findColumnIndex(m_cdkColumn);
-		if (smilesCol < 0) {
-			throw new InvalidSettingsException("No smiles column \"" + m_cdkColumn + "\" in table.");
+		int cdkCol = inSpec.findColumnIndex(m_cdkColumn);
+		if (cdkCol < 0) {
+			throw new InvalidSettingsException("No CDK column \"" + m_cdkColumn + "\" in table.");
 		}
-		DataTableSpec[] outSpecs = new DataTableSpec[1];
-		outSpecs[0] = createColumnRearranger(inSpec).createSpec();
+		DataTableSpec outSpec = new DataTableSpec(generateOutputColSpec(inSpec));
+		DataTableSpec[] outSpecs = new DataTableSpec[] { new DataTableSpec(inSpec, outSpec) };
 		return outSpecs;
 	}
 
-	private ColumnRearranger createColumnRearranger(final DataTableSpec spec) throws InvalidSettingsException {
+	private DataColumnSpec[] generateOutputColSpec(final DataTableSpec spec) throws InvalidSettingsException {
 
 		HashSet<String> hash = new HashSet<String>(m_propDescriptions);
-		String[] propsClassNames = new String[m_propDescriptions.size()];
+		propsClassNames = new String[m_propDescriptions.size()];
 		int index = 0;
 		for (Map.Entry<DataColumnSpec, String> entry : MOLPROPS_IDENTIFIER_MAP.entrySet()) {
 			if (hash.remove(entry.getKey().getName())) {
@@ -225,9 +337,8 @@ public class MolPropsNodeModel extends NodeModel {
 			throw new InvalidSettingsException("Some properties are unknown: " + Arrays.toString(hash.toArray()));
 		}
 		assert index == propsClassNames.length;
-		// MolPropsGenerator needs the column specs of the new columns,
-		// we need to generate that
-		DataColumnSpec[] propsSpec = new DataColumnSpec[propsClassNames.length];
+		// MolPropsGenerator needs the column specs of the new columns, we need to generate that
+		propsSpec = new DataColumnSpec[propsClassNames.length];
 		for (int i = 0; i < propsClassNames.length; i++) {
 			String s = propsClassNames[i];
 			DataColumnSpec colSpec = MolPropsLibrary.getColumnSpec(s);
@@ -244,11 +355,7 @@ public class MolPropsNodeModel extends NodeModel {
 			}
 			propsSpec[i] = colSpec;
 		}
-		int smilesIn = spec.findColumnIndex(m_cdkColumn);
-		MolPropsGenerator generator = new MolPropsGenerator(smilesIn, propsClassNames, propsSpec);
-		ColumnRearranger arrange = new ColumnRearranger(spec);
-		arrange.append(generator);
-		return arrange;
+		return propsSpec;
 	}
 
 	/**

@@ -21,6 +21,7 @@ import java.io.ByteArrayInputStream;
 import java.io.StringReader;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
@@ -40,24 +41,24 @@ import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.StringValue;
-import org.openscience.cdk.aromaticity.CDKHueckelAromaticityDetector;
+import org.knime.core.data.xml.XMLValue;
+import org.openscience.cdk.ChemFile;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.inchi.InChIGeneratorFactory;
 import org.openscience.cdk.inchi.InChIToStructure;
-import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
+import org.openscience.cdk.interfaces.IChemFile;
 import org.openscience.cdk.io.CMLReader;
 import org.openscience.cdk.io.MDLV2000Reader;
 import org.openscience.cdk.io.Mol2Reader;
-import org.openscience.cdk.io.iterator.IteratingSDFReader;
 import org.openscience.cdk.knime.CDKNodeUtils;
 import org.openscience.cdk.knime.type.CDKCell;
 import org.openscience.cdk.normalize.SMSDNormalizer;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.smiles.FixBondOrdersTool;
 import org.openscience.cdk.smiles.SmilesParser;
-import org.openscience.cdk.tools.CDKHydrogenAdder;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
+import org.openscience.cdk.tools.manipulator.ChemFileManipulator;
 
 /**
  * Helper class for converting string representations into CDK molecules.
@@ -66,8 +67,6 @@ import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
  * @author Stephan Beisken, European Bioinformatics Institute
  */
 class MolConverter implements ExtendedCellFactory {
-
-	private static final CDKHydrogenAdder hydra = CDKHydrogenAdder.getInstance(SilentChemObjectBuilder.getInstance());
 
 	private interface Conv {
 
@@ -87,13 +86,18 @@ class MolConverter implements ExtendedCellFactory {
 		 * {@inheritDoc}
 		 */
 		@Override
-		public IAtomContainer conv(final DataCell cell) throws Exception, NumberFormatException {
+		public IAtomContainer conv(final DataCell cell) throws Exception {
 
 			String sdf = ((SdfValue) cell).getSdfValue();
 
-			IteratingSDFReader reader = new IteratingSDFReader(new StringReader(sdf),
-					SilentChemObjectBuilder.getInstance());
-			return reader.next();
+			MDLV2000Reader reader = new MDLV2000Reader(new StringReader(sdf));
+			IAtomContainer molecule = reader.read(SilentChemObjectBuilder.getInstance().newInstance(IAtomContainer.class));
+			
+			reader.close();
+			reader = null;
+			sdf = null;
+			
+			return molecule;
 		}
 	}
 
@@ -108,7 +112,13 @@ class MolConverter implements ExtendedCellFactory {
 			String mol = ((MolValue) cell).getMolValue();
 
 			MDLV2000Reader reader = new MDLV2000Reader(new StringReader(mol));
-			return reader.read(SilentChemObjectBuilder.getInstance().newInstance(IAtomContainer.class));
+			IAtomContainer molecule = reader.read(SilentChemObjectBuilder.getInstance().newInstance(IAtomContainer.class));
+			
+			reader.close();
+			reader = null;
+			mol = null;
+			
+			return molecule;
 		}
 	}
 
@@ -123,7 +133,13 @@ class MolConverter implements ExtendedCellFactory {
 			String mol2 = ((Mol2Value) cell).getMol2Value();
 
 			Mol2Reader reader = new Mol2Reader(new StringReader(mol2));
-			return reader.read(SilentChemObjectBuilder.getInstance().newInstance(IAtomContainer.class));
+			IAtomContainer molecule = reader.read(SilentChemObjectBuilder.getInstance().newInstance(IAtomContainer.class));
+			
+			reader.close();
+			reader = null;
+			mol2 = null;
+			
+			return molecule;
 		}
 	}
 
@@ -135,10 +151,22 @@ class MolConverter implements ExtendedCellFactory {
 		@Override
 		public IAtomContainer conv(final DataCell cell) throws Exception {
 
-			String cml = ((CMLValue) cell).getCMLValue();
+			String cml = "";;
+			if (cell instanceof CMLValue) {
+				cml = ((CMLValue) cell).getCMLValue();
+			} else if (cell instanceof XMLValue) {
+				cml = ((XMLValue) cell).toString();
+			}
 
 			CMLReader reader = new CMLReader(new ByteArrayInputStream(cml.getBytes()));
-			return reader.read(SilentChemObjectBuilder.getInstance().newInstance(IAtomContainer.class));
+			IChemFile chemFile = (ChemFile) reader.read(new ChemFile());
+			IAtomContainer molecule = ChemFileManipulator.getAllAtomContainers(chemFile).get(0);
+			
+			reader.close();
+			reader = null;
+			cml = null;
+			
+			return molecule;
 		}
 	}
 
@@ -150,12 +178,16 @@ class MolConverter implements ExtendedCellFactory {
 		@Override
 		public IAtomContainer conv(final DataCell cell) throws Exception {
 
-			final String smiles = ((SmilesValue) cell).getSmilesValue();
+			String smiles = ((SmilesValue) cell).getSmilesValue();
 
-			final SmilesParser reader = new SmilesParser(SilentChemObjectBuilder.getInstance());
+			SmilesParser reader = new SmilesParser(SilentChemObjectBuilder.getInstance());
 			IAtomContainer cdkMol = reader.parseSmiles(smiles);
 			// CMLWriter crashes if chiral centers are not eradicated
 			cdkMol = SMSDNormalizer.convertExplicitToImplicitHydrogens(cdkMol);
+			
+			reader = null;
+			smiles = null;
+			
 			return cdkMol;
 		}
 	}
@@ -183,7 +215,8 @@ class MolConverter implements ExtendedCellFactory {
 	private final int m_colIndex;
 	private final Conv m_converter;
 	private final FixBondOrdersTool bondDeducer;
-	private final ExecutorService executor;
+
+	private static final int TIMEOUT = 5;
 
 	/**
 	 * Creates a new converter.
@@ -192,7 +225,7 @@ class MolConverter implements ExtendedCellFactory {
 	 * @param settings the settings of the converter node
 	 * @param pool the thread pool that should be used for converting
 	 */
-	public MolConverter(final DataTableSpec inSpec, final Molecule2CDKSettings settings, final ExecutorService executor) {
+	public MolConverter(final DataTableSpec inSpec, final Molecule2CDKSettings settings) {
 
 		m_colIndex = inSpec.findColumnIndex(settings.columnName());
 		if (settings.replaceColumn()) {
@@ -212,7 +245,8 @@ class MolConverter implements ExtendedCellFactory {
 			m_converter = new MolConv();
 		} else if (cs.getType().isCompatible(Mol2Value.class)) {
 			m_converter = new Mol2Conv();
-		} else if (cs.getType().isCompatible(CMLValue.class)) {
+		} else if (cs.getType().isCompatible(CMLValue.class) ||
+				cs.getType().isCompatible(XMLValue.class)) {
 			m_converter = new CMLConv();
 		} else if (cs.getType().isCompatible(SmilesValue.class)) {
 			m_converter = new SmilesConv();
@@ -223,68 +257,62 @@ class MolConverter implements ExtendedCellFactory {
 		bondDeducer = new FixBondOrdersTool();
 
 		m_settings = settings;
-		this.executor = executor;
 	}
 
 	@Override
 	public DataCell[] getCells(final DataRow row) {
 
-		final DataCell cell = row.getCell(m_colIndex);
-
-		if (cell.isMissing()) {
-			return new DataCell[] { DataType.getMissingCell() };
-		}
-
-		Callable<IAtomContainer> r = new Callable<IAtomContainer>() {
+		ExecutorService executor = Executors.newSingleThreadExecutor();
+		Future<IAtomContainer> future = executor.submit(new Callable<IAtomContainer>() {
 
 			public IAtomContainer call() {
 
-				IAtomContainer mol;
-				try {
-					mol = getAtomContainer(cell);
-				} catch (RuntimeException e) {
-					mol = null;
-				} catch (Exception e) {
-					mol = null;
+				DataCell cell = row.getCell(m_colIndex);
+				IAtomContainer mol = null;
+				if (!cell.isMissing()) {
+					try {
+						mol = getAtomContainer(cell);
+					} catch (Exception exception) {
+						// any errors resulting from the CDK standardisation methods should be ignored
+						// and result in a data cell of type 'missing'
+					}
 				}
+				cell = null;
 				return mol;
 			}
-		};
+		});
 
-		Future<IAtomContainer> future = (Future<IAtomContainer>) executor.submit(r);
-		IAtomContainer molP = null;
+		DataCell cell = DataType.getMissingCell();
 		try {
-			molP = future.get(m_settings.timeout(), TimeUnit.MILLISECONDS);
-			if (molP == null)
-				throw new CDKException("Error retrieving molecule.");
-			CDKNodeUtils.calculateSmiles(molP);
+			IAtomContainer mol = future.get(TIMEOUT, TimeUnit.SECONDS);
+			if (mol != null)
+				cell = new CDKCell(mol);
+			mol = null;
 		} catch (Exception e) {
-			return new DataCell[] { DataType.getMissingCell() };
+			future.cancel(true);
+			future = null;
+		} finally {
+			executor.shutdown();
+			executor = null;
 		}
 
-		// remove JCP valency labels
-		for (IAtom atom : molP.atoms()) {
-			atom.setValency(null);
-		}
-		
-		return new DataCell[] { new CDKCell(molP) };
+		return new DataCell[] { cell };
 	}
 
-	private IAtomContainer getAtomContainer(final DataCell cell) throws RuntimeException, Exception {
+	private IAtomContainer getAtomContainer(final DataCell cell) throws Exception {
 
 		IAtomContainer cdkMol = m_converter.conv(cell);
 
 		if (m_settings.convertOrder()) {
 			AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(cdkMol);
 			cdkMol = bondDeducer.kekuliseAromaticRings(cdkMol);
-			hydra.addImplicitHydrogens(cdkMol);
-			CDKHueckelAromaticityDetector.detectAromaticity(cdkMol);
-		} else {
-			CDKNodeUtils.getStandardMolecule(cdkMol);
 		}
 
-		if (m_settings.generate2D())
-			cdkMol = CDKNodeUtils.calculateCoordinates(cdkMol, m_settings.force2D());
+		CDKNodeUtils.getStandardMolecule(cdkMol);
+
+		if (m_settings.generate2D()) {
+			cdkMol = CDKNodeUtils.calculateCoordinates(cdkMol, m_settings.force2D(), false);
+		}
 
 		return cdkMol;
 	}

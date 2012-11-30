@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
 <knimeNode icon="./moments3d.png" type="Other">
-    <name>Distance Moments 3D</name>
+    <name>3D D-Moments</name>
     
     <shortDescription>
         Node to evaluate the 3D similarity between two specified molecules as well as generate the 12 descriptors used to characterize the 3D structure. 

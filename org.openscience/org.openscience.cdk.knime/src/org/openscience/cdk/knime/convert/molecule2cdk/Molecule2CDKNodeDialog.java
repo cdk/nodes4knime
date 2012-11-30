@@ -26,9 +26,7 @@ import java.awt.event.ActionListener;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JSpinner;
 import javax.swing.JTextField;
-import javax.swing.SpinnerNumberModel;
 import javax.swing.border.Border;
 
 import org.knime.chem.types.CMLValue;
@@ -57,23 +55,13 @@ public class Molecule2CDKNodeDialog extends NodeDialogPane {
 			SmilesValue.class, MolValue.class, Mol2Value.class, CMLValue.class, StringValue.class);
 
 	private final JCheckBox m_replaceColumn = new JCheckBox();
-
 	private final JLabel m_newColNameLabel;
-
 	private final JTextField m_newColName = new JTextField(20);
-
 	private final JCheckBox m_generate2D = new JCheckBox();
-
 	private final JLabel m_force2DLabel;
-
 	private final JCheckBox m_force2D = new JCheckBox();
-	
 	private final JLabel convertBondFourLabel;
-	
-	private final JCheckBox convertBondFour = new JCheckBox("(experimental)");
-
-	private final JSpinner m_timeout = new JSpinner(new SpinnerNumberModel(10000, 0, Integer.MAX_VALUE, 10));
-
+	private final JCheckBox convertBondFour = new JCheckBox();
 	private final Molecule2CDKSettings m_settings = new Molecule2CDKSettings();
 
 	/**
@@ -140,12 +128,6 @@ public class Molecule2CDKNodeDialog extends NodeDialogPane {
 	
 		c.gridy++;
 		c.gridx = 0;
-		p.add(new JLabel("Processing timeout   "), c);
-		c.gridx = 1;
-		p.add(m_timeout, c);
-		
-		c.gridy++;
-		c.gridx = 0;
 		convertBondFourLabel = new JLabel("Kekulize structure");
 		p.add(convertBondFourLabel, c);
 		c.gridx = 1;
@@ -174,8 +156,6 @@ public class Molecule2CDKNodeDialog extends NodeDialogPane {
 		m_force2D.setEnabled(m_settings.generate2D());
 		m_force2D.setSelected(m_settings.force2D());
 		convertBondFour.setSelected(m_settings.convertOrder());
-
-		m_timeout.setValue(m_settings.timeout());
 	}
 
 	/**
@@ -190,7 +170,6 @@ public class Molecule2CDKNodeDialog extends NodeDialogPane {
 		m_settings.generate2D(m_generate2D.isSelected());
 		m_settings.force2D(m_force2D.isSelected());
 		m_settings.convertOrder(convertBondFour.isSelected());
-		m_settings.timeout((Integer) m_timeout.getValue());
 		m_settings.saveSettings(settings);
 	}
 }

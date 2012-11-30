@@ -35,14 +35,9 @@
             detected by an all zero z-coordinate). If this options is enabled the coordinates will be generated in any
             case.
         </option>
-        <option name="Parse timeout in ms">
-            Parsing Smiles and generating 2D coordinates can take very long for certain molecules. Here you can set a
-            timeout after which the conversion of the current molecules will be aborted. A missing value will be
-            inserted in the output table instead of the converted molecule.
-        </option>
         <option name="Kekulize">
             An experimental feature that tries to infer double bonds in an aromatic system if not given by the input file. E.g., when the bond
-            order in a SDFile is used to indicate aromaticity.
+            order in a SDFile is used to indicate aromaticity (bond order 4).
         </option>
     </fullDescription>
     <ports>

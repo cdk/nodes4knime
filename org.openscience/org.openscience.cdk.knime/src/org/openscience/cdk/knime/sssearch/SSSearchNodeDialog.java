@@ -20,6 +20,7 @@ package org.openscience.cdk.knime.sssearch;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 
+import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.Border;
@@ -40,12 +41,14 @@ import org.openscience.cdk.knime.util.JMolSketcherPanel;
  * the molecules.
  * 
  * @author Thorsten Meinl, University of Konstanz
+ * @author Stephan Beisken, European Bioinformatics Institute
  */
 public class SSSearchNodeDialog extends NodeDialogPane {
 
 	private static final NodeLogger LOGGER = NodeLogger.getLogger(SSSearchNodeDialog.class);
 
 	private final JMolSketcherPanel m_panel = new JMolSketcherPanel();
+	private final JCheckBox highlightBox = new JCheckBox();
 
 	@SuppressWarnings("unchecked")
 	private final ColumnSelectionComboxBox m_molColumnName = new ColumnSelectionComboxBox((Border) null, CDKValue.class);
@@ -63,7 +66,7 @@ public class SSSearchNodeDialog extends NodeDialogPane {
 
 		c.gridx = 0;
 		c.gridy = 0;
-		c.gridwidth = 2;
+		c.gridwidth = 4;
 		p.add(m_panel, c);
 
 		c.gridy++;
@@ -73,6 +76,12 @@ public class SSSearchNodeDialog extends NodeDialogPane {
 		p.add(new JLabel("Column with molecules   "), c);
 		c.gridx = 1;
 		p.add(m_molColumnName, c);
+		
+		c.gridx = 2;
+		c.anchor = GridBagConstraints.NORTHWEST;
+		p.add(new JLabel("         Highlight substructures   "), c);
+		c.gridx = 3;
+		p.add(highlightBox, c);
 
 		addTab("JChemPaint", p);
 	}
@@ -90,16 +99,18 @@ public class SSSearchNodeDialog extends NodeDialogPane {
 			// ignore it and use defaults
 		}
 
-		if (m_settings.smilesFragments() != null) {
+		if (m_settings.getSdf() != null) {
 			try {
-				m_panel.loadStructures(m_settings.smilesFragments());
+				m_panel.loadStructures(m_settings.getSdf());
 			} catch (Exception ex) {
 				LOGGER.error(ex.getMessage(), ex);
 				throw new NotConfigurableException(ex.getMessage());
 			}
 		}
-
+		
 		m_molColumnName.update(specs[0], m_settings.molColName());
+		
+		highlightBox.setSelected(m_settings.isHighlight());
 	}
 
 	/**
@@ -108,12 +119,13 @@ public class SSSearchNodeDialog extends NodeDialogPane {
 	@Override
 	protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
 
-		if (m_panel.getAllSmiles().length == 0) {
-			m_settings.smilesFragments(new String[] { "/" });
+		if (m_panel.getSDF().length() == 0) {
+			m_settings.setSdf("");
 		} else {
-			m_settings.smilesFragments(m_panel.getAllSmiles());
+			m_settings.setSdf(m_panel.getSDF());
 		}
 		m_settings.molColName(m_molColumnName.getSelectedColumn());
+		m_settings.setHighlight(highlightBox.isSelected());
 		m_settings.saveSettings(settings);
 	}
 }

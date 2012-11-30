@@ -17,33 +17,35 @@
  */
 package org.openscience.cdk.knime.util;
 
-import java.awt.geom.Rectangle2D;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.StringReader;
 import java.io.StringWriter;
-import java.util.ArrayList;
-
-import javax.vecmath.Point2d;
-import javax.vecmath.Vector2d;
 
 import org.openscience.cdk.AtomContainerSet;
+import org.openscience.cdk.ChemFile;
 import org.openscience.cdk.DefaultChemObjectBuilder;
-import org.openscience.cdk.geometry.GeometryTools;
+import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IAtomContainerSet;
+import org.openscience.cdk.interfaces.IChemFile;
 import org.openscience.cdk.interfaces.IChemModel;
-import org.openscience.cdk.io.SMILESWriter;
-import org.openscience.cdk.layout.StructureDiagramGenerator;
-import org.openscience.cdk.layout.TemplateHandler;
+import org.openscience.cdk.io.CMLReader;
+import org.openscience.cdk.io.SDFWriter;
+import org.openscience.cdk.io.iterator.IteratingSDFReader;
+import org.openscience.cdk.knime.CDKNodeUtils;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
-import org.openscience.cdk.smiles.SmilesParser;
-import org.openscience.cdk.tools.manipulator.ChemModelManipulator;
+import org.openscience.cdk.tools.manipulator.ChemFileManipulator;
 import org.openscience.jchempaint.JChemPaintPanel;
 
 /**
- * This is a panel that lets the user draw structures and returns them as Smiles strings. They can be loaded again into
- * an empty panel afterwards.
+ * This is a panel that lets the user draw structures and returns them as SDF string. They can be loaded again into an
+ * empty panel afterwards.
  * 
  * @author Thorsten Meinl, University of Konstanz
+ * @author Stephan Beisken, European Bioinformatics Institute
  */
 public class JMolSketcherPanel extends JChemPaintPanel {
 
@@ -54,7 +56,6 @@ public class JMolSketcherPanel extends JChemPaintPanel {
 
 		super(getModel());
 
-		setShowMenuBar(false);
 		setIsNewChemModel(true);
 	}
 
@@ -63,81 +64,95 @@ public class JMolSketcherPanel extends JChemPaintPanel {
 		IChemModel chemModel = DefaultChemObjectBuilder.getInstance().newInstance(IChemModel.class);
 		chemModel.setMoleculeSet(chemModel.getBuilder().newInstance(IAtomContainerSet.class));
 		chemModel.getMoleculeSet().addAtomContainer(chemModel.getBuilder().newInstance(IAtomContainer.class));
-		
+
 		return chemModel;
 	}
 
 	/**
 	 * Loads the given structures into the panel.
 	 * 
-	 * @param smiles a list of Smiles strings
+	 * @param stringNotation a molecule string
 	 * @throws Exception if an exception occurs
 	 */
-	public void loadStructures(String[] smiles) throws Exception {
+	public void loadStructures(String stringNotation) throws Exception {
 
 		IChemModel chemModel = getChemModel();
-		IAtomContainerSet moleculeSet = new AtomContainerSet();
-		Rectangle2D molRectangle = null;
-		Rectangle2D tmpRectangle = null;
-		if (smiles != null && smiles.length > 0) {
-			for (int i = 0; i < smiles.length; i++) {
-				SmilesParser parser = new SmilesParser(SilentChemObjectBuilder.getInstance());
-				IAtomContainer m = parser.parseSmiles(smiles[i]);
-				StructureDiagramGenerator sdg = new StructureDiagramGenerator();
-				sdg.setTemplateHandler(new TemplateHandler(moleculeSet.getBuilder()));
-				sdg.setMolecule(m);
-				sdg.generateCoordinates(new Vector2d(0, 1));
-				m = sdg.getMolecule();
-				// arrange molecules relative to each other
-				if (molRectangle == null) {
-					molRectangle = GeometryTools.getRectangle2D(m);
-				} else {
-					tmpRectangle = GeometryTools.getRectangle2D(m);
-					double xShift = molRectangle.getCenterX() + (molRectangle.getWidth() / 1.95)
-							+ (tmpRectangle.getWidth() / 1.95);
-					double yShift = tmpRectangle.getCenterY();
-					GeometryTools.translate2DCenterTo(m, new Point2d(new double[] { xShift, yShift }));
-					molRectangle = tmpRectangle;
-				}
-				// remove JCP valency labels
-				for (IAtom atom : m.atoms()) {
-					atom.setValency(null);
-				}
-				moleculeSet.addAtomContainer(m);
-				// if there are no atoms in the actual chemModel
-				// all 2D-coordinates would be set to NaN
-				if (ChemModelManipulator.getAtomCount(chemModel) != 0) {
-					IAtomContainer cont = chemModel.getBuilder().newInstance(IAtomContainer.class);
-					for (Object ac : ChemModelManipulator.getAllAtomContainers(chemModel)) {
-						cont.add((IAtomContainer) ac);
-					}
-				}
-				chemModel.setMoleculeSet(moleculeSet);
-			}
-		}
+
+		chemModel.setMoleculeSet(JMolSketcherPanel.readStringNotation(stringNotation));
 	}
 
 	/**
-	 * Returns an array of Smiles strings for the drawn molecules.
+	 * Returns a SDF string for the drawn molecules.
 	 * 
-	 * @return an array of Smiles strings
+	 * @return a SDF string
 	 */
-	public String[] getAllSmiles() {
+	public String getSDF() {
 
 		IAtomContainerSet s = getChemModel().getMoleculeSet();
-		ArrayList<String> smiles = new ArrayList<String>();
+		SDFWriter sdfWriter = null;
+		StringWriter stringWriter = null;
 
-		for (int i = 0; i < s.getAtomContainerCount(); i++) {
+		try {
+			stringWriter = new StringWriter();
+			sdfWriter = new SDFWriter(stringWriter);
 
-			StringWriter writer = new StringWriter();
-			SMILESWriter w = new SMILESWriter(writer);
-			w.writeAtomContainer(s.getAtomContainer(i));
-			String sm = writer.toString().trim();
+			sdfWriter.write(s);
 
-			if (sm.length() > 0) {
-				smiles.add(sm);
+		} catch (CDKException exception) {
+			// do nothing
+		} finally {
+			try {
+				sdfWriter.close();
+				stringWriter.close();
+			} catch (IOException exception) {
+				// do nothing
 			}
 		}
-		return smiles.toArray(new String[smiles.size()]);
+
+		return stringWriter.toString();
+	}
+
+	public static IAtomContainerSet readStringNotation(String stringNotation) throws CDKException {
+
+		AtomContainerSet atomContainerSet = new AtomContainerSet();
+
+		BufferedReader stringReader = new BufferedReader(new StringReader(stringNotation));
+		try {
+			if (stringReader.readLine().length() > 80 || stringReader.readLine().length() > 80
+					|| stringReader.readLine().length() > 80 || !stringReader.readLine().contains("V2000")) {
+
+				CMLReader reader = new CMLReader(new ByteArrayInputStream(stringNotation.getBytes()));
+				IChemFile chemFile = (ChemFile) reader.read(new ChemFile());
+				for (IAtomContainer container : ChemFileManipulator.getAllAtomContainers(chemFile)) {
+					atomContainerSet.addAtomContainer(container);
+				}
+				reader.close();
+
+			} else {
+
+				IteratingSDFReader reader = new IteratingSDFReader(new StringReader(stringNotation),
+						SilentChemObjectBuilder.getInstance());
+
+				while (reader.hasNext()) {
+					IAtomContainer cdkMol = reader.next();
+					cdkMol.removeProperty("cdk:Title");
+
+					if (cdkMol != null) {
+						CDKNodeUtils.getStandardMolecule(cdkMol);
+					}
+					for (IAtom atom : cdkMol.atoms()) {
+						atom.setValency(null);
+					}
+					atomContainerSet.addAtomContainer(cdkMol);
+					reader.close();
+				}
+			}
+
+			stringReader.close();
+		} catch (Exception exception) {
+			throw new CDKException(exception.getMessage());
+		}
+		
+		return atomContainerSet;
 	}
 }

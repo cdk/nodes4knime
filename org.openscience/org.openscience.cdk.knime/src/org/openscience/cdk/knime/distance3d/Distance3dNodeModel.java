@@ -18,21 +18,31 @@ package org.openscience.cdk.knime.distance3d;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 
+import org.knime.base.node.parallel.appender.AppendColumn;
+import org.knime.base.node.parallel.appender.ColumnDestination;
+import org.knime.base.node.parallel.appender.ExtendedCellFactory;
+import org.knime.base.node.parallel.appender.ThreadedColAppenderNodeModel;
+import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
+import org.knime.core.data.DataRow;
+import org.knime.core.data.DataTable;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.container.ColumnRearranger;
+import org.knime.core.data.DataType;
 import org.knime.core.data.def.DoubleCell;
-import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
-import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.openscience.cdk.exception.CDKException;
+import org.openscience.cdk.graph.ConnectivityChecker;
+import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.knime.type.CDKValue;
+import org.openscience.cdk.similarity.DistanceMoment;
+import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 
 /**
  * This is the model implementation of Distance3d. Node to evaluate the 3D similarity between two specified molecules as
@@ -40,7 +50,7 @@ import org.openscience.cdk.knime.type.CDKValue;
  * 
  * @author Stephan Beisken, European Bioinformatics Institute
  */
-public class Distance3dNodeModel extends NodeModel {
+public class Distance3dNodeModel extends ThreadedColAppenderNodeModel {
 
 	/** Config key for column name. */
 	static final String CFG_COLNAME = "colName";
@@ -62,28 +72,70 @@ public class Distance3dNodeModel extends NodeModel {
 	 * {@inheritDoc}
 	 */
 	@Override
-	protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
-			throws Exception {
+	protected ExtendedCellFactory[] prepareExecute(final DataTable[] data) throws Exception {
 
-		DataTableSpec inSpec = inData[0].getDataTableSpec();
-		ColumnRearranger rearranger = createColumnRearranger(inSpec);
-		BufferedDataTable outTable = exec.createColumnRearrangeTable(inData[0], rearranger, exec);
+		final int colIndex = data[0].getDataTableSpec().findColumnIndex(colName);
 
-		return new BufferedDataTable[] { outTable };
-	}
+		ExtendedCellFactory cf = new ExtendedCellFactory() {
 
-	/**
-	 * Generates the output table specification and appends the calculated molecular properties to the input table.
-	 */
-	private ColumnRearranger createColumnRearranger(DataTableSpec spec) throws InvalidSettingsException {
+			/**
+			 * {@inheritDoc}
+			 */
+			@Override
+			public DataCell[] getCells(DataRow row) {
 
-		final int colIndex = spec.findColumnIndex(colName);
+				DataCell cdkCell = row.getCell(colIndex);
+				DataCell[] momentCells = new DataCell[12];
 
-		Distance3dGenerator generator = new Distance3dGenerator(colIndex, createOutputTableSpecification());
-		ColumnRearranger arrange = new ColumnRearranger(spec);
-		arrange.append(generator);
+				if (cdkCell.isMissing()) {
+					Arrays.fill(momentCells, DataType.getMissingCell());
+					return momentCells;
+				}
 
-		return arrange;
+				checkIsCdkCell(cdkCell);
+
+				IAtomContainer molecule = ((CDKValue) row.getCell(colIndex)).getAtomContainer();
+				if (!ConnectivityChecker.isConnected(molecule))
+					molecule = ConnectivityChecker.partitionIntoMolecules(molecule).getAtomContainer(0);
+				IAtomContainer moleculeMinusH = AtomContainerManipulator.removeHydrogens(molecule);
+
+				try {
+					float[] moments = DistanceMoment.generateMoments(moleculeMinusH);
+
+					int i = 0;
+					for (float moment : moments) {
+						momentCells[i] = new DoubleCell(moment);
+						i++;
+					}
+				} catch (CDKException exception) {
+					Arrays.fill(momentCells, DataType.getMissingCell());
+				}
+
+				return momentCells;
+			}
+
+			private void checkIsCdkCell(DataCell dataCell) {
+
+				if (!(dataCell instanceof CDKValue)) {
+					throw new IllegalArgumentException("No CDK cell at " + dataCell + ": "
+							+ dataCell.getClass().getName());
+				}
+			}
+
+			@Override
+			public ColumnDestination[] getColumnDestinations() {
+
+				return new ColumnDestination[] { new AppendColumn() };
+			}
+
+			@Override
+			public DataColumnSpec[] getColumnSpecs() {
+
+				return createOutputTableSpecification();
+			}
+		};
+
+		return new ExtendedCellFactory[] { cf };
 	}
 
 	/**
@@ -149,8 +201,8 @@ public class Distance3dNodeModel extends NodeModel {
 			throw new InvalidSettingsException("Column '" + colName + "' does not contain CDK cells");
 		}
 
-		ColumnRearranger rearranger = createColumnRearranger(inSpecs[0]);
-		return new DataTableSpec[] { rearranger.createSpec() };
+		DataTableSpec outSpec = new DataTableSpec(createOutputTableSpecification());
+		return new DataTableSpec[] { new DataTableSpec(inSpecs[0], outSpec) };
 	}
 
 	/**

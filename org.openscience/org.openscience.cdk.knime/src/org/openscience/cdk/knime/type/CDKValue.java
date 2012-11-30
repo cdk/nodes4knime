@@ -66,9 +66,9 @@ public interface CDKValue extends DataValue {
 			@Override
 			protected int compareDataValues(final DataValue v1, final DataValue v2) {
 
-				int atomCount1 = ((CDKValue) v1).getAtomContainer().getAtomCount();
-				int atomCount2 = ((CDKValue) v2).getAtomContainer().getAtomCount();
-				return atomCount1 - atomCount2;
+				int hash1 = ((CDKValue) v1).hashCode();
+				int hash2 = ((CDKValue) v2).hashCode();
+				return hash1 - hash2;
 			}
 		};
 

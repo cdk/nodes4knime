@@ -20,6 +20,10 @@ package org.openscience.cdk.knime.convert.cdk2molecule;
 import java.io.StringWriter;
 import java.util.Properties;
 
+import org.knime.base.node.parallel.appender.AppendColumn;
+import org.knime.base.node.parallel.appender.ColumnDestination;
+import org.knime.base.node.parallel.appender.ExtendedCellFactory;
+import org.knime.base.node.parallel.appender.ReplaceColumn;
 import org.knime.chem.types.CMLCell;
 import org.knime.chem.types.CMLCellFactory;
 import org.knime.chem.types.Mol2Cell;
@@ -29,24 +33,28 @@ import org.knime.chem.types.SdfCellFactory;
 import org.knime.chem.types.SmilesCell;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
+import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
-import org.knime.core.data.container.SingleCellFactory;
 import org.knime.core.node.NodeLogger;
+import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.io.CMLWriter;
 import org.openscience.cdk.io.MDLV2000Writer;
 import org.openscience.cdk.io.Mol2Writer;
 import org.openscience.cdk.io.SMILESWriter;
 import org.openscience.cdk.io.listener.PropertiesListener;
+import org.openscience.cdk.knime.convert.cdk2molecule.CDK2MoleculeSettings.Format;
 import org.openscience.cdk.knime.type.CDKValue;
 
 /**
  * Helper class for converting CDK molecules into strings representations.
  * 
  * @author Thorsten Meinl, University of Konstanz
+ * @author Stephan Beisken, European Bioinformatics Institute
  */
-class MolConverter extends SingleCellFactory {
+class MolConverter implements ExtendedCellFactory {
 
 	private static final NodeLogger LOGGER = NodeLogger.getLogger(CDK2MoleculeNodeModel.class);
 
@@ -71,17 +79,9 @@ class MolConverter extends SingleCellFactory {
 		public DataCell conv(final IAtomContainer mol) throws Exception {
 
 			// removes configuration and valence annotation
-			IAtomContainer molClone = (IAtomContainer) mol.clone();
-			// AtomContainerManipulator.clearAtomConfigurations(molClone);
-
 			StringWriter out = new StringWriter(1024);
 			MDLV2000Writer writer = new MDLV2000Writer(out);
-			Properties prop = new Properties();
-	        prop.setProperty("WriteAromaticBondTypes","true");
-	        PropertiesListener listener = new PropertiesListener(prop);
-	        writer.addChemObjectIOListener(listener);
-	        writer.customizeJob();
-			writer.writeMolecule(molClone);
+			writer.writeMolecule(mol);
 			writer.close();
 			out.append("$$$$");
 			return SdfCellFactory.create(out.toString());
@@ -121,6 +121,12 @@ class MolConverter extends SingleCellFactory {
 	        writer.customizeJob();
 			writer.writeAtomContainer(mol);
 			writer.close();
+			
+			String smiles = out.toString().trim();
+			if (smiles == null || smiles.isEmpty()) {
+				throw new CDKException("Smiles generation failed.");
+			}
+			
 			return new SmilesCell(out.toString().trim());
 		}
 	}
@@ -142,22 +148,43 @@ class MolConverter extends SingleCellFactory {
 	}
 
 	private final Conv m_converter;
-
+	private final ColumnDestination[] m_colDest;
+	private final DataColumnSpec[] m_colSpec;
 	private final int m_colIndex;
 
-	MolConverter(final DataColumnSpec cs, final int colIndex) {
+	/**
+	 * Creates a new converter.
+	 * 
+	 * @param inSpec the spec of the input table
+	 * @param settings the settings of the converter node
+	 * @param pool the thread pool that should be used for converting
+	 */
+	public MolConverter(final DataTableSpec inSpec, final CDK2MoleculeSettings settings) {
 
-		super(cs);
-		m_colIndex = colIndex;
-
-		if (cs.getType().equals(SdfCell.TYPE)) {
+		DataType type = null;
+		if (settings.destFormat() == Format.SDF) {
+			type = SdfCell.TYPE;
 			m_converter = new SdfConv();
-		} else if (cs.getType().equals(Mol2Cell.TYPE)) {
-			m_converter = new Mol2Conv();
-		} else if (cs.getType().equals(CMLCell.TYPE)) {
-			m_converter = new CMLConv();
-		} else {
+		} else if (settings.destFormat() == Format.Smiles) {
+			type = SmilesCell.TYPE;
 			m_converter = new SmilesConv();
+		} else if (settings.destFormat() == Format.Mol2) {
+			type = Mol2Cell.TYPE;
+			m_converter = new Mol2Conv();
+		} else {
+			type = CMLCell.TYPE;
+			m_converter = new CMLConv();
+		}
+		
+		m_colIndex = inSpec.findColumnIndex(settings.columnName());
+		if (settings.replaceColumn()) {
+			m_colSpec = new DataColumnSpec[] { new DataColumnSpecCreator(settings.columnName(), type)
+					.createSpec() };
+			m_colDest = new ColumnDestination[] { new ReplaceColumn(m_colIndex) };
+		} else {
+			m_colSpec = new DataColumnSpec[] { new DataColumnSpecCreator(DataTableSpec.getUniqueColumnName(inSpec,
+					settings.newColumnName()), type).createSpec() };
+			m_colDest = new ColumnDestination[] { new AppendColumn() };
 		}
 	}
 
@@ -165,18 +192,33 @@ class MolConverter extends SingleCellFactory {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public DataCell getCell(final DataRow row) {
+	public DataCell[] getCells(final DataRow row) {
 
+		final DataCell cell = row.getCell(m_colIndex);
+
+		if (cell.isMissing()) {
+			return new DataCell[] { DataType.getMissingCell() };
+		}
+		
+		DataCell retCell;
 		try {
-			DataCell cell = row.getCell(m_colIndex);
-			if (cell.isMissing()) {
-				return cell;
-			} else {
-				return m_converter.conv(((CDKValue) row.getCell(m_colIndex)).getAtomContainer());
-			}
+			retCell = m_converter.conv(((CDKValue) cell).getAtomContainer());
 		} catch (Exception ex) {
 			LOGGER.error("Could not convert molecules: " + ex.getMessage(), ex);
-			return DataType.getMissingCell();
+			retCell = DataType.getMissingCell();
 		}
+		return new DataCell[] { retCell };
+	}
+	
+	@Override
+	public ColumnDestination[] getColumnDestinations() {
+
+		return m_colDest;
+	}
+
+	@Override
+	public DataColumnSpec[] getColumnSpecs() {
+
+		return m_colSpec;
 	}
 }

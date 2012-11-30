@@ -50,10 +50,10 @@ public class SketcherNodeDialogPane extends NodeDialogPane {
 	protected void loadSettingsFrom(final NodeSettingsRO settings, final DataTableSpec[] specs)
 			throws NotConfigurableException {
 
-		String[] smiles = settings.getStringArray(SketcherNodeModel.CFG_STRUCTURE, (String[]) null);
-		if (smiles != null) {
+		String sdf = settings.getString(SketcherNodeModel.CFG_STRUCTURE, (String) null);
+		if (sdf != null) {
 			try {
-				m_panel.loadStructures(smiles);
+				m_panel.loadStructures(sdf);
 			} catch (Exception ex) {
 				LOGGER.error(ex.getMessage(), ex);
 				throw new NotConfigurableException(ex.getMessage());
@@ -67,6 +67,6 @@ public class SketcherNodeDialogPane extends NodeDialogPane {
 	@Override
 	protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
 
-		settings.addStringArray(SketcherNodeModel.CFG_STRUCTURE, m_panel.getAllSmiles());
+		settings.addString(SketcherNodeModel.CFG_STRUCTURE, m_panel.getSDF());
 	}
 }

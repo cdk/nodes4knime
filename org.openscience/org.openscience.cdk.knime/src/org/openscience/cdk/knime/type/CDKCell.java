@@ -17,15 +17,15 @@
  */
 package org.openscience.cdk.knime.type;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.List;
-
-import nu.xom.Element;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 import org.knime.chem.types.SdfValue;
 import org.knime.chem.types.SmilesValue;
@@ -37,66 +37,29 @@ import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.StringValue;
 import org.knime.core.data.container.BlobDataCell;
-import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
-import org.knime.core.node.NodeSettings;
+import org.openscience.cdk.CDKConstants;
 import org.openscience.cdk.ChemFile;
 import org.openscience.cdk.exception.CDKException;
-import org.openscience.cdk.geometry.GeometryTools;
-import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
-import org.openscience.cdk.interfaces.IBond;
 import org.openscience.cdk.interfaces.IChemFile;
 import org.openscience.cdk.io.CMLReader;
 import org.openscience.cdk.io.CMLWriter;
 import org.openscience.cdk.io.SDFWriter;
-import org.openscience.cdk.io.cml.CMLCoreModule;
-import org.openscience.cdk.io.cml.CMLStack;
+import org.openscience.cdk.io.iterator.IteratingSDFReader;
 import org.openscience.cdk.knime.CDKNodeUtils;
-import org.openscience.cdk.layout.StructureDiagramGenerator;
-import org.openscience.cdk.libio.cml.ICMLCustomizer;
+import org.openscience.cdk.knime.cml.CmlKnimeCore;
+import org.openscience.cdk.knime.cml.CmlKnimeCustomizer;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
-import org.openscience.cdk.smiles.SmilesParser;
 import org.openscience.cdk.tools.manipulator.ChemFileManipulator;
-import org.xmlcml.cml.element.CMLAtomType;
 
 /**
  * Smiles {@link DataCell} holding a string as internal representation.
  * 
  * @author Bernd Wiswedel, University of Konstanz
+ * @author Stephan Beisken, European Bioinformatics Institute
  */
 public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue, SdfValue, StringValue {
-
-	static {
-		CMLWriter writer = new CMLWriter();
-		writer.registerCustomizer(new ICMLCustomizer() {
-
-			@Override
-			public void customize(final IAtom atom, final Object nodeToAdd) throws Exception {
-
-				if (atom.getAtomTypeName() != null) {
-					if (nodeToAdd instanceof Element) {
-						Element element = (Element) nodeToAdd;
-						CMLAtomType atomType = new CMLAtomType();
-						atomType.setConvention("bioclipse:atomType");
-						atomType.appendChild(atom.getAtomTypeName());
-						element.appendChild(atomType);
-					}
-				}
-			}
-
-			// don't customize the rest
-			@Override
-			public void customize(final IBond bond, final Object nodeToAdd) throws Exception {
-
-			}
-
-			@Override
-			public void customize(final IAtomContainer molecule, final Object nodeToAdd) throws Exception {
-
-			}
-		});
-	}
 
 	/**
 	 * Convenience access member for <code>DataType.getType(CDKCell)</code>.
@@ -146,40 +109,46 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 	}
 
 	/**
-	 * Used to store this cell into the config.
+	 * The visual representation for this CDK cell.
 	 */
-	private static final String KEY = "smiles";
+	private final String compressedCml;
+	/**
+	 * The hash code.
+	 */
+	private final int hash;
 
 	/**
-	 * The visual representation for this Smiles cell.
-	 */
-	private final IAtomContainer m_cdkMol;
-
-	/**
-	 * Factory method to be used for creation. It will parse the smiles string and if that is successful it will create
-	 * a new instance of smiles cell, otherwise it will return a SmilesType.SMILES_TYP.getMissing() instance.
+	 * Factory method to be used for creation. It will parse the SDF string and if that is successful it will create a
+	 * new instance of the CDKCell, otherwise it will return a missing cell instance.
 	 * 
-	 * @param smiles the smiles string to parse
+	 * @param sdf the sdf string to parse
 	 * @return a new CDKCell if possible, otherwise a missing cell
 	 */
-	public static final DataCell newInstance(final String smiles) {
+	public static final DataCell newInstance(final String sdf) {
 
-		IAtomContainer cdkMol = createMol(smiles);
+		DataCell resultCell = DataType.getMissingCell();
 
-		if (cdkMol == null) {
-			return DataType.getMissingCell();
+		if (sdf != null && !sdf.isEmpty()) {
+
+			IAtomContainer cdkMol = SilentChemObjectBuilder.getInstance().newInstance(IAtomContainer.class);
+			IteratingSDFReader reader = new IteratingSDFReader(new StringReader(sdf),
+					SilentChemObjectBuilder.getInstance());
+
+			try {
+				while (reader.hasNext()) {
+					cdkMol.add(reader.next());
+				}
+				if (cdkMol != null) {
+					CDKNodeUtils.getStandardMolecule(cdkMol);
+					cdkMol = CDKNodeUtils.calculateCoordinates(cdkMol, false, false);
+				}
+				resultCell = new CDKCell(cdkMol);
+			} catch (Exception e) {
+				// do nothing
+			}
 		}
 
-		cdkMol.setProperty(KEY, smiles);
-
-		try {
-			CDKNodeUtils.getStandardMolecule(cdkMol);
-			cdkMol = CDKNodeUtils.calculateCoordinates(cdkMol, true);
-		} catch (CDKException exception) {
-			return DataType.getMissingCell();
-		}
-
-		return new CDKCell(cdkMol);
+		return resultCell;
 	}
 
 	/**
@@ -187,10 +156,26 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 	 * 
 	 * @param atomContainer the CDK atom container
 	 */
-	public CDKCell(final IAtomContainer atomContainer) {
+	public CDKCell(IAtomContainer atomContainer) {
 
-		m_cdkMol = atomContainer;
-		CDKNodeUtils.calculateSmiles(atomContainer);
+		compressedCml = getCompressedCml(atomContainer);
+
+		CDKNodeUtils.calculateHash(atomContainer);
+		hash = (Integer) atomContainer.getProperty(CDKConstants.MAPPED);
+
+		atomContainer = null;
+	}
+
+	/**
+	 * Creates new CDK cell.
+	 * 
+	 * @param compressedCml the CML string
+	 * @param hash the CDK hash
+	 */
+	public CDKCell(final String compressedCml, final int hash) {
+
+		this.compressedCml = compressedCml;
+		this.hash = hash;
 	}
 
 	/**
@@ -201,15 +186,34 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 	@Override
 	public String getStringValue() {
 
-		StringWriter stringWriter = new StringWriter(8192);
-		CMLWriter writer = new CMLWriter(stringWriter);
+		BufferedReader br;
+		GZIPInputStream gis;
+		String decompressedCml = "";
 
 		try {
-			writer.write(m_cdkMol);
-			return stringWriter.toString();
-		} catch (CDKException ex) {
-			return "Error while creating CML string";
+			gis = new GZIPInputStream(new ByteArrayInputStream(compressedCml.getBytes("ISO-8859-1")));
+			br = new BufferedReader(new InputStreamReader(gis));
+
+			StringBuilder sb = new StringBuilder();
+
+			String line;
+			while ((line = br.readLine()) != null) {
+				// clean output from CDK artifacts
+				if (line.contains(CmlKnimeCore.CONVENTION) || line.contains("cdk:aromaticAtom")
+						|| line.contains("cdk:aromaticBond"))
+					continue;
+				sb.append(line);
+				sb.append("\n");
+			}
+
+			gis.close();
+			br.close();
+			decompressedCml = sb.toString();
+		} catch (IOException ex) {
+			// do nothing;
 		}
+
+		return decompressedCml;
 	}
 
 	/**
@@ -218,7 +222,7 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 	@Override
 	public String getSmilesValue() {
 
-		return (String) m_cdkMol.getProperty(KEY);
+		return CDKNodeUtils.calculateSmiles(getMol(), false);
 	}
 
 	/**
@@ -227,25 +231,21 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 	@Override
 	public String getSdfValue() {
 
-		IAtomContainer cdkMol = m_cdkMol;
+		IAtomContainer cdkMolSdf = getMol();
+
+		if (cdkMolSdf.getAtomCount() == 0)
+			return "";
+
 		SDFWriter sdfWriter = null;
 		StringWriter stringWriter = null;
 
 		try {
-			if (!GeometryTools.has2DCoordinates(m_cdkMol)) {
-				if (!GeometryTools.has3DCoordinates(m_cdkMol)) {
-
-					StructureDiagramGenerator sdg = new StructureDiagramGenerator();
-					sdg.setMolecule(m_cdkMol);
-					sdg.generateCoordinates();
-					cdkMol = sdg.getMolecule();
-				}
-			}
+			cdkMolSdf = CDKNodeUtils.calculateCoordinates(cdkMolSdf, false, false);
 
 			stringWriter = new StringWriter();
 			sdfWriter = new SDFWriter(stringWriter);
 
-			sdfWriter.write(cdkMol);
+			sdfWriter.write(cdkMolSdf);
 
 		} catch (CDKException exception) {
 			LOGGER.error("Error while cwriting sdf", exception);
@@ -254,9 +254,20 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 				sdfWriter.close();
 				stringWriter.close();
 			} catch (IOException exception) {
+				// do nothing
 			}
 		}
 		return stringWriter.toString();
+	}
+
+	/**
+	 * Returns the compressed CML string of the molecule.
+	 * 
+	 * @return the compressed CML string
+	 */
+	public String getCmlValue() {
+
+		return compressedCml;
 	}
 
 	/**
@@ -265,72 +276,72 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 	@Override
 	public IAtomContainer getAtomContainer() {
 
-		return m_cdkMol;
+		return getMol();
 	}
 
-	/**
-	 * Stores only the smiles' String into the node settings.
-	 * 
-	 * @param config to write the String value into
-	 * 
-	 * @see #load
-	 */
-	public void save(final NodeSettings config) {
+	private IAtomContainer getMol() {
 
-		config.addString(KEY, getStringValue());
-	}
+		IAtomContainer mol = SilentChemObjectBuilder.getInstance().newInstance(IAtomContainer.class);
 
-	/**
-	 * Returns a new CDKCell with the String value retrieved from the node settings.
-	 * 
-	 * @param config to read the smiles's String value from
-	 * @return a new CDKCell or <code>null</code>
-	 * @throws InvalidSettingsException if the key is not available in the node settings
-	 * @throws NullPointerException if the smiles string is <code>null</code>
-	 * @see #save
-	 */
-	public static DataCell load(final NodeSettings config) throws InvalidSettingsException {
-
-		String smiles = config.getString(KEY);
-		if (smiles != null) {
-			return CDKCell.newInstance(smiles);
-		}
-		return DataType.getMissingCell();
-	}
-
-	private void writeObject(final ObjectOutputStream out) throws IOException {
-
-		out.defaultWriteObject();
-	}
-
-	private void readObject(final ObjectInputStream in) throws IOException, ClassNotFoundException {
-
-		in.defaultReadObject();
-	}
-
-	/**
-	 * Factory method to create an AtomContainer from a Smiles string.
-	 * 
-	 * @param smiles Smiles representation to convert
-	 * @return a CDK Molecule for the Smiles string or <code>null</code> if the Smiles can't be parsed or is
-	 *         <code>null</code>
-	 * 
-	 */
-	private static IAtomContainer createMol(final String smiles) {
-
-		if (smiles == null) {
-			return null;
+		if (compressedCml == null || compressedCml.length() == 0) {
+			return mol;
 		}
 
-		SmilesParser parser = new SmilesParser(SilentChemObjectBuilder.getInstance());
-		IAtomContainer cdkMol = null;
 		try {
-			cdkMol = parser.parseSmiles(smiles);
+			GZIPInputStream gis = new GZIPInputStream(new ByteArrayInputStream(compressedCml.getBytes("ISO-8859-1")));
+			CMLReader reader = new CMLReader(gis);
+			reader.registerConvention(CmlKnimeCore.CONVENTION, new CmlKnimeCore());
+
+			IChemFile chemFile = (ChemFile) reader.read(new ChemFile());
+			mol = ChemFileManipulator.getAllAtomContainers(chemFile).get(0);
+			mol.setProperty(CDKConstants.MAPPED, hash);
+
+			gis = null;
+			reader = null;
+			chemFile = null;
 		} catch (Exception exception) {
-			LOGGER.error("Error while parsing smiles", exception);
+			// do nothing
+		} finally {
+
 		}
 
-		return cdkMol;
+		return mol;
+	}
+
+	private String getCompressedCml(IAtomContainer cdkMol) {
+
+		String outStr = "";
+		StringWriter stringWriter = new StringWriter(8192);
+		CMLWriter writer = new CMLWriter(stringWriter);
+		writer.registerCustomizer(new CmlKnimeCustomizer());
+
+		try {
+			writer.write(cdkMol);
+			String value = stringWriter.toString();
+
+			stringWriter.close();
+			writer.close();
+
+			stringWriter = null;
+			writer = null;
+
+			ByteArrayOutputStream out = new ByteArrayOutputStream();
+			GZIPOutputStream gzip = new GZIPOutputStream(out);
+			gzip.write(value.getBytes());
+
+			out.close();
+			gzip.close();
+
+			outStr = out.toString("ISO-8859-1");
+
+			value = null;
+			gzip = null;
+			out = null;
+		} catch (Exception ex) {
+			// do nothing;
+		}
+
+		return outStr;
 	}
 
 	/**
@@ -339,7 +350,8 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 	@Override
 	protected boolean equalsDataCell(final DataCell dc) {
 
-		return this.getSmilesValue().equals(((CDKCell) dc).getSmilesValue());
+		int hashRef = ((CDKCell) dc).hashCode();
+		return this.hashCode() == hashRef;
 	}
 
 	/**
@@ -348,7 +360,7 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 	@Override
 	public int hashCode() {
 
-		return m_cdkMol.getProperty(KEY).hashCode();
+		return hash;
 	}
 
 	/**
@@ -357,10 +369,12 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 	@Override
 	public String toString() {
 
-		return getSdfValue();
+		return getStringValue();
 	}
 
-	/** Factory for (de-)serializing a DoubleCell. */
+	/**
+	 * Factory for (de-)serializing a DoubleCell.
+	 */
 	private static class CDKSerializer implements DataCellSerializer<CDKCell> {
 
 		/**
@@ -369,9 +383,8 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 		@Override
 		public void serialize(final CDKCell cell, final DataCellDataOutput out) throws IOException {
 
-			byte[] data = cell.getStringValue().getBytes();
-			out.writeInt(data.length);
-			out.write(data);
+			out.writeUTF(cell.getCmlValue());
+			out.writeInt(cell.hashCode());
 		}
 
 		/**
@@ -380,62 +393,7 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 		@Override
 		public CDKCell deserialize(final DataCellDataInput input) throws IOException {
 
-			int size = input.readInt();
-			byte[] cml = new byte[size];
-			input.readFully(cml);
-
-			try {
-				CMLReader reader = new CMLReader(new ByteArrayInputStream(cml));
-
-				reader.registerConvention("bioclipse:atomType", new CMLCoreModule((IChemFile) null) {
-
-					List<String> atomTypes = new ArrayList<String>();
-
-					@Override
-					protected void newAtomData() {
-
-						super.newAtomData();
-						atomTypes = new ArrayList<String>();
-					}
-
-					@Override
-					protected void storeAtomData() {
-
-						super.storeAtomData();
-
-						boolean hasAtomType = false;
-						if (atomTypes.size() == atomCounter) {
-							hasAtomType = true;
-						} else {
-							logger.debug("No atom types: " + elid.size(), " != " + atomCounter);
-						}
-						if (hasAtomType) {
-							for (int i = 0; i < atomCounter; i++) {
-								currentAtom = currentMolecule.getAtom(i);
-								currentAtom.setAtomTypeName(atomTypes.get(i));
-							}
-						}
-					}
-
-					@Override
-					public void endElement(final CMLStack xpath, final String uri, final String name, final String raw) {
-
-						if (xpath.endsWith("atom", "atomType")) {
-							while ((atomTypes.size() + 1) < atomCounter) {
-								atomTypes.add(null);
-							}
-							atomTypes.add(currentChars);
-						} else {
-							super.endElement(xpath, uri, name, raw);
-						}
-					}
-				});
-				IChemFile chemFile = (ChemFile) reader.read(new ChemFile());
-				return new CDKCell(ChemFileManipulator.getAllAtomContainers(chemFile).get(0));
-			} catch (CDKException ex) {
-				LOGGER.error("Error while deserializing CDK cell via CML", ex);
-				throw new IOException(ex.getMessage());
-			}
+			return new CDKCell(input.readUTF(), input.readInt());
 		}
 	}
 }

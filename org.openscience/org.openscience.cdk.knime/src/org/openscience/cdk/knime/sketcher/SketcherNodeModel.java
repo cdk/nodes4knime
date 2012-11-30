@@ -44,7 +44,7 @@ public class SketcherNodeModel extends NodeModel {
 
 	static final String CFG_STRUCTURE = "structure";
 
-	private String[] m_smiles;
+	private String sdf;
 
 	public SketcherNodeModel() {
 
@@ -74,10 +74,10 @@ public class SketcherNodeModel extends NodeModel {
 			throws Exception {
 
 		BufferedDataContainer c = exec.createDataContainer(generateSpec());
-		for (int i = 0; i < m_smiles.length; i++) {
-			DataCell cell = CDKCell.newInstance(m_smiles[i]);
-			c.addRowToTable(new DefaultRow(new RowKey("Structure_" + i), cell));
-		}
+
+		DataCell cell = CDKCell.newInstance(sdf);
+		c.addRowToTable(new DefaultRow(new RowKey("Structure"), cell));
+
 		c.close();
 		return new BufferedDataTable[] { c.getTable() };
 	}
@@ -97,7 +97,7 @@ public class SketcherNodeModel extends NodeModel {
 	@Override
 	protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
 
-		m_smiles = settings.getStringArray(CFG_STRUCTURE);
+		sdf = settings.getString(CFG_STRUCTURE);
 	}
 
 	/**
@@ -123,8 +123,8 @@ public class SketcherNodeModel extends NodeModel {
 	@Override
 	protected void saveSettingsTo(final NodeSettingsWO settings) {
 
-		if (m_smiles != null) {
-			settings.addStringArray(CFG_STRUCTURE, m_smiles);
+		if (sdf != null) {
+			settings.addString(CFG_STRUCTURE, sdf);
 		}
 	}
 
@@ -134,16 +134,13 @@ public class SketcherNodeModel extends NodeModel {
 	@Override
 	protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
 
-		String[] smiles = settings.getStringArray(CFG_STRUCTURE);
-		if (smiles == null || smiles.length == 0) {
+		String sdf = settings.getString(CFG_STRUCTURE);
+		if (sdf == null || sdf.length() == 0) {
 			throw new InvalidSettingsException("No structures given.");
 		}
-		for (String s : smiles) {
-			DataCell c = CDKCell.newInstance(s);
-			if (c.isMissing()) {
-				throw new InvalidSettingsException("Can't parse smiles representation: " + s);
-			}
+		DataCell c = CDKCell.newInstance(sdf);
+		if (c.isMissing()) {
+			throw new InvalidSettingsException("Can't parse SDF string: " + sdf);
 		}
 	}
-
 }

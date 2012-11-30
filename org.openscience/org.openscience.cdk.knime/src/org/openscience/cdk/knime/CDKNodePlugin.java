@@ -36,6 +36,7 @@ import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.knime.ext.chem.moss.CDKMolConverter;
 import org.knime.ext.chem.moss.MolConverter;
+import org.openscience.cdk.knime.CDKPreferencePage.AROMATICITY;
 import org.openscience.cdk.knime.CDKPreferencePage.LABELS;
 import org.openscience.cdk.knime.CDKPreferencePage.NUMBERING;
 import org.osgi.framework.BundleContext;
@@ -54,6 +55,7 @@ public class CDKNodePlugin extends AbstractUIPlugin {
 	// The shared instance.
 	private static CDKNodePlugin plugin;
 
+	private static AROMATICITY showRings = AROMATICITY.SHOW_RINGS;
 	private static LABELS showNumbers = LABELS.NONE;
 	private static NUMBERING numbering = NUMBERING.CANONICAL;
 
@@ -96,12 +98,15 @@ public class CDKNodePlugin extends AbstractUIPlugin {
 					showNumbers = LABELS.valueOf(pStore.getString(CDKPreferenceInitializer.SHOW_NUMBERS));
 				} else if (event.getProperty().equals(CDKPreferenceInitializer.NUMBERING_TYPE)) {
 					numbering = NUMBERING.valueOf(pStore.getString(CDKPreferenceInitializer.NUMBERING_TYPE));
+				} else if (event.getProperty().equals(CDKPreferenceInitializer.SHOW_AROMATICITY)) {
+					showRings = AROMATICITY.valueOf(pStore.getString(CDKPreferenceInitializer.SHOW_AROMATICITY));
 				}
 			}
 		});
 
 		showNumbers = LABELS.valueOf(pStore.getString(CDKPreferenceInitializer.SHOW_NUMBERS));
 		numbering = NUMBERING.valueOf(pStore.getString(CDKPreferenceInitializer.NUMBERING_TYPE));
+		showRings = AROMATICITY.valueOf(pStore.getString(CDKPreferenceInitializer.SHOW_AROMATICITY));
 
 		try {
 			// may fail if MoSS is not installed
@@ -152,5 +157,15 @@ public class CDKNodePlugin extends AbstractUIPlugin {
 	public static NUMBERING numbering() {
 
 		return numbering;
+	}
+
+	/**
+	 * Returns if aromaticity should be shown Kekule style.
+	 * 
+	 * @return if the aromaticity should be shown Kekule style
+	 */
+	public static AROMATICITY showAomaticity() {
+
+		return showRings;
 	}
 }

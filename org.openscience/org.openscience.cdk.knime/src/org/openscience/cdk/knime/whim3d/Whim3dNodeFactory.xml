@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
 <knimeNode icon="./whim3d.png" type="Other">
-	<name>WHIM 3D</name>
+	<name>3D WHIM</name>
 
 	<shortDescription>
 		Holistic descriptors described by Todeschini et al. The descriptors are based

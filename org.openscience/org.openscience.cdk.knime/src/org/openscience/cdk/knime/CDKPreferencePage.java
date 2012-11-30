@@ -40,6 +40,10 @@ public class CDKPreferencePage extends FieldEditorPreferencePage implements IWor
 	public enum NUMBERING {
 		CANONICAL, SEQUENTIAL
 	};
+	
+	public enum AROMATICITY {
+		SHOW_RINGS, SHOW_KEKULE
+	};
 
 	/**
 	 * Creates a new preference page.
@@ -73,9 +77,16 @@ public class CDKPreferencePage extends FieldEditorPreferencePage implements IWor
 
 		RadioGroupFieldEditor numbering = new RadioGroupFieldEditor(CDKPreferenceInitializer.NUMBERING_TYPE,
 				"Atom number type: ", 1, numberingLabelsAndValues, parent);
+		
+		String[][] aromaticityLabelsAndValues = new String[][] { { "Aromatic Form", AROMATICITY.SHOW_RINGS.name() },
+				{ "Kekule Form", AROMATICITY.SHOW_KEKULE.name() } };
+
+		RadioGroupFieldEditor showAromaticity = new RadioGroupFieldEditor(CDKPreferenceInitializer.SHOW_AROMATICITY,
+				"Aromaticity: ", 1, aromaticityLabelsAndValues, parent);
 
 		addField(showNumbers);
 		addField(numbering);
+		addField(showAromaticity);
 	}
 
 	/**

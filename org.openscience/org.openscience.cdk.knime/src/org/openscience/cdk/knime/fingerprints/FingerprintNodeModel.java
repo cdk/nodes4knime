@@ -21,24 +21,25 @@ import java.io.File;
 import java.io.IOException;
 import java.util.BitSet;
 
+import org.knime.base.data.append.column.AppendedColumnTable;
+import org.knime.base.node.parallel.appender.AppendColumn;
+import org.knime.base.node.parallel.appender.ColumnDestination;
+import org.knime.base.node.parallel.appender.ExtendedCellFactory;
+import org.knime.base.node.parallel.appender.ThreadedColAppenderNodeModel;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
+import org.knime.core.data.DataTable;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
-import org.knime.core.data.container.ColumnRearranger;
-import org.knime.core.data.container.SingleCellFactory;
 import org.knime.core.data.vector.bitvector.DenseBitVector;
 import org.knime.core.data.vector.bitvector.DenseBitVectorCell;
 import org.knime.core.data.vector.bitvector.DenseBitVectorCellFactory;
-import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
-import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
-import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.openscience.cdk.fingerprint.EStateFingerprinter;
@@ -57,8 +58,9 @@ import org.openscience.cdk.knime.type.CDKValue;
  * for the molecules in the input table.
  * 
  * @author Thorsten Meinl, University of Konstanz
+ * 
  */
-public class FingerprintNodeModel extends NodeModel {
+public class FingerprintNodeModel extends ThreadedColAppenderNodeModel {
 
 	private static final NodeLogger LOGGER = NodeLogger.getLogger(FingerprintNodeModel.class);
 
@@ -70,6 +72,79 @@ public class FingerprintNodeModel extends NodeModel {
 	public FingerprintNodeModel() {
 
 		super(1, 1);
+
+		this.setMaxThreads(CDKNodeUtils.getMaxNumOfThreads());
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected ExtendedCellFactory[] prepareExecute(final DataTable[] data) throws Exception {
+
+		final IFingerprinter fp;
+		if (m_settings.fingerprintType().equals(FingerprintTypes.Extended)) {
+			fp = new ExtendedFingerprinter();
+		} else if (m_settings.fingerprintType().equals(FingerprintTypes.EState)) {
+			fp = new EStateFingerprinter();
+		} else if (m_settings.fingerprintType().equals(FingerprintTypes.Pubchem)) {
+			fp = new PubchemFingerprinter();
+		} else if (m_settings.fingerprintType().equals(FingerprintTypes.MACCS)) {
+			fp = new MACCSFingerprinter();
+		} else {
+			fp = new Fingerprinter();
+		}
+
+		final int colIndex = data[0].getDataTableSpec().findColumnIndex(m_settings.molColumn());
+
+		ExtendedCellFactory cf = new ExtendedCellFactory() {
+
+			@Override
+			public DataCell[] getCells(final DataRow row) {
+
+				DataCell[] cells = new DataCell[1];
+
+				if (row.getCell(colIndex).isMissing()) {
+					cells[0] = DataType.getMissingCell();
+					return cells;
+				}
+
+				DataCell oldCell = row.getCell(colIndex);
+				final IAtomContainer mol = ((CDKValue) oldCell).getAtomContainer();
+
+				try {
+					BitSet fingerprint;
+					IAtomContainer con = CDKNodeUtils.getExplicitClone(mol);
+					fingerprint = fp.getBitFingerprint(con).asBitSet();
+					// transfer the bitset into a dense bit vector
+					DenseBitVector bitVector = new DenseBitVector(fingerprint.size());
+					for (int i = fingerprint.nextSetBit(0); i >= 0; i = fingerprint.nextSetBit(i + 1)) {
+						bitVector.set(i);
+					}
+					DenseBitVectorCellFactory fact = new DenseBitVectorCellFactory(bitVector);
+					return new DataCell[] { fact.createDataCell() };
+				} catch (Exception ex) {
+					LOGGER.error("Error while creating fingerprints", ex);
+					return new DataCell[] { DataType.getMissingCell() };
+				}
+			}
+
+			@Override
+			public ColumnDestination[] getColumnDestinations() {
+
+				return new ColumnDestination[] { new AppendColumn() };
+			}
+
+			@Override
+			public DataColumnSpec[] getColumnSpecs() {
+
+				DataColumnSpecCreator crea = new DataColumnSpecCreator(DataTableSpec.getUniqueColumnName(
+						data[0].getDataTableSpec(), m_settings.molColumn()), DenseBitVectorCell.TYPE);
+				return new DataColumnSpec[] { crea.createSpec() };
+			}
+		};
+
+		return new ExtendedCellFactory[] { cf };
 	}
 
 	/**
@@ -92,70 +167,19 @@ public class FingerprintNodeModel extends NodeModel {
 				throw new InvalidSettingsException("No CDK compatible column in input table");
 			}
 		}
-		ColumnRearranger arranger = createColumnRearranger(inSpecs[0]);
-		return new DataTableSpec[] { arranger.createSpec() };
-	}
 
-	private ColumnRearranger createColumnRearranger(final DataTableSpec spec) throws InvalidSettingsException {
-
-		String s = m_settings.molColumn();
-		if (s == null || !spec.containsName(s)) {
-			throw new InvalidSettingsException("No such column: " + s);
-		}
-		DataColumnSpec colspec = spec.getColumnSpec(s);
+		DataColumnSpec colspec = inSpecs[0].getColumnSpec(m_settings.molColumn());
 		if (!colspec.getType().isCompatible(CDKValue.class)) {
-			throw new InvalidSettingsException("No CDK column: " + s);
+			throw new InvalidSettingsException("No CDK column: " + m_settings.molColumn());
 		}
+		String newColName = m_settings.fingerprintType() + " fingerprints for " + m_settings.molColumn();
+		newColName = DataTableSpec.getUniqueColumnName(inSpecs[0], newColName);
 
-		String newColName = m_settings.fingerprintType() + " fingerprints for " + s;
-		newColName = DataTableSpec.getUniqueColumnName(spec, newColName);
+		DataColumnSpecCreator crea = new DataColumnSpecCreator(DataTableSpec.getUniqueColumnName(inSpecs[0],
+				m_settings.molColumn()), DenseBitVectorCell.TYPE);
+		DataTableSpec outSpec = AppendedColumnTable.getTableSpec(inSpecs[0], crea.createSpec());
 
-		final IFingerprinter fp;
-		if (m_settings.fingerprintType().equals(FingerprintTypes.Extended)) {
-			fp = new ExtendedFingerprinter();
-		} else if (m_settings.fingerprintType().equals(FingerprintTypes.EState)) {
-			fp = new EStateFingerprinter();
-		} else if (m_settings.fingerprintType().equals(FingerprintTypes.Pubchem)) {
-			fp = new PubchemFingerprinter();
-		} else if (m_settings.fingerprintType().equals(FingerprintTypes.MACCS)) {
-			fp = new MACCSFingerprinter();
-		} else {
-			fp = new Fingerprinter();
-		}
-
-		DataColumnSpecCreator c = new DataColumnSpecCreator(newColName, DenseBitVectorCell.TYPE);
-		DataColumnSpec appendSpec = c.createSpec();
-		final int molColIndex = spec.findColumnIndex(s);
-		SingleCellFactory cf = new SingleCellFactory(appendSpec) {
-
-			@Override
-			public DataCell getCell(final DataRow row) {
-
-				if (row.getCell(molColIndex).isMissing()) {
-					return DataType.getMissingCell();
-				}
-				CDKValue mol = (CDKValue) row.getCell(molColIndex);
-				try {
-					BitSet fingerprint;
-					IAtomContainer con = CDKNodeUtils.getExplicitClone(mol.getAtomContainer());
-					fingerprint = fp.getBitFingerprint(con).asBitSet();
-					// transfer the bitset into a dense bit vector
-					DenseBitVector bitVector = new DenseBitVector(fingerprint.size());
-					for (int i = fingerprint.nextSetBit(0); i >= 0; i = fingerprint.nextSetBit(i + 1)) {
-						bitVector.set(i);
-					}
-					DenseBitVectorCellFactory fact = new DenseBitVectorCellFactory(bitVector);
-					return fact.createDataCell();
-				} catch (Exception ex) {
-					LOGGER.error("Error while creating fingerprints", ex);
-					return DataType.getMissingCell();
-				}
-			}
-		};
-
-		ColumnRearranger arranger = new ColumnRearranger(spec);
-		arranger.append(cf);
-		return arranger;
+		return new DataTableSpec[] { outSpec };
 	}
 
 	/**
@@ -214,64 +238,4 @@ public class FingerprintNodeModel extends NodeModel {
 		FingerprintSettings s = new FingerprintSettings();
 		s.loadSettings(settings);
 	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
-			throws Exception {
-
-		ColumnRearranger cr = createColumnRearranger(inData[0].getDataTableSpec());
-
-		return new BufferedDataTable[] { exec.createColumnRearrangeTable(inData[0], cr, exec) };
-	}
-
-	// /**
-	// * @see org.knime.base.node.parallel.appender.ThreadedColAppenderNodeModel
-	// * #prepareExecute(org.knime.core.data.DataTable[])
-	// */
-	// @Override
-	// protected ExtendedCellFactory[] prepareExecute(final DataTable[] data)
-	// throws Exception {
-	// final int molColIndex = data[0].getDataTableSpec().findColumnIndex(
-	// m_settings.molColumn());
-	//
-	// final DataColumnSpecCreator csc =
-	// new DataColumnSpecCreator("fingerprint", BitVectorCell.TYPE);
-	//
-	// ExtendedCellFactory ecf = new ExtendedCellFactory() {
-	// public DataCell[] getCells(final DataRow row) {
-	// if (row.getCell(molColIndex).isMissing()) {
-	// return new DataCell[]{DataType.getMissingCell()};
-	// }
-	// CDKCell mol = (CDKCell)row.getCell(molColIndex);
-	// final Fingerprinter fp;
-	// if (m_settings.extendedFingerprints()) {
-	// fp = new ExtendedFingerprinter();
-	// } else {
-	// fp = new Fingerprinter();
-	// }
-	//
-	// try {
-	// BitSet fingerprint = fp.getFingerprint(mol.getMolecule());
-	// return new DataCell[]{new BitVectorCell(fingerprint,
-	// fingerprint.size())};
-	// } catch (Exception ex) {
-	// LOGGER.error("Error while creating fingerprints", ex);
-	// return new DataCell[]{DataType.getMissingCell()};
-	// }
-	// }
-	//
-	// public ColumnDestination[] getColumnDestinations() {
-	// return new ColumnDestination[] {new AppendColumn()};
-	// }
-	//
-	// public DataColumnSpec[] getColumnSpecs() {
-	// return new DataColumnSpec[] {csc.createSpec()};
-	// }
-	// };
-	//
-	// return new ExtendedCellFactory[] {ecf};
-	// }
 }

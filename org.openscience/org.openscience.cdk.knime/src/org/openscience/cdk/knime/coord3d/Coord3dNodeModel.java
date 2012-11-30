@@ -43,9 +43,9 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.util.Pointer;
 import org.openscience.cdk.AtomContainer;
 import org.openscience.cdk.graph.ConnectivityChecker;
-import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IAtomContainerSet;
+import org.openscience.cdk.knime.CDKNodeUtils;
 import org.openscience.cdk.knime.coord2d.Coord2DNodeModel;
 import org.openscience.cdk.knime.type.CDKCell;
 import org.openscience.cdk.knime.type.CDKValue;
@@ -70,11 +70,13 @@ public class Coord3dNodeModel extends ThreadedColAppenderNodeModel {
 	private int timeout = 10000;
 
 	/**
-	 * Creates a new model for 2D coordinate generation.
+	 * Creates a new model for 3D coordinate generation.
 	 */
 	public Coord3dNodeModel() {
 
 		super(1, 1);
+		
+		this.setMaxThreads(CDKNodeUtils.getMaxNumOfThreads());
 	}
 
 	/**
@@ -209,14 +211,14 @@ public class Coord3dNodeModel extends ThreadedColAppenderNodeModel {
 									Iterator<IAtomContainer> it = mSet.atomContainers().iterator();
 									IAtomContainer col = new AtomContainer();
 									while (it.hasNext()) {
-										IAtomContainer fm = (IAtomContainer) it.next().clone();
+										IAtomContainer fm = (IAtomContainer) it.next();
 										AtomContainerManipulator.convertImplicitToExplicitHydrogens(fm);
 										fm = ModelBuilder3D.getInstance().generate3DCoordinates(fm, false);
 										col.add(fm);
 										pClone.set(col);
 									}
 								} else {
-									IAtomContainer mc = (IAtomContainer) m.clone();
+									IAtomContainer mc = m;
 									AtomContainerManipulator.convertImplicitToExplicitHydrogens(mc);
 									mc = ModelBuilder3D.getInstance().generate3DCoordinates(mc, false);
 									pClone.set(mc);
@@ -232,10 +234,6 @@ public class Coord3dNodeModel extends ThreadedColAppenderNodeModel {
 					Future<?> future = executor.submit(r);
 					future.get(timeout, TimeUnit.MILLISECONDS);
 					if (pClone.get() != null) {
-						// remove JCP valency labels
-						for (IAtom atom : pClone.get().atoms()) {
-							atom.setValency(null);
-						}
 						cells[0] = new CDKCell(pClone.get());
 					} else {
 						cells[0] = DataType.getMissingCell();

@@ -19,21 +19,20 @@ package org.openscience.cdk.knime.distance3d.similarity;
 import java.io.File;
 import java.io.IOException;
 
-import org.knime.core.data.DataCell;
+import org.knime.base.data.append.column.AppendedColumnRow;
+import org.knime.base.node.parallel.builder.ThreadedTableBuilderNodeModel;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
+import org.knime.core.data.DataTable;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
-import org.knime.core.data.container.ColumnRearranger;
-import org.knime.core.data.container.SingleCellFactory;
+import org.knime.core.data.container.RowAppender;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
-import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.openscience.cdk.exception.CDKException;
@@ -48,14 +47,16 @@ import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
  * 
  * @author Stephan Beisken, European Bioinformatics Institute
  */
-public class DistanceSimilarityNodeModel extends NodeModel {
+public class DistanceSimilarityNodeModel extends ThreadedTableBuilderNodeModel {
 
 	/** Config key for column name. */
 	static final String QUE_COLNAME = "queName";
 	static final String TAR_COLNAME = "tarName";
 
 	private String queName;
+	private int molColIndex;
 	private String tarName;
+	private int tarColIndex;
 
 	private IAtomContainer targetMinusH;
 
@@ -71,20 +72,54 @@ public class DistanceSimilarityNodeModel extends NodeModel {
 	 * {@inheritDoc}
 	 */
 	@Override
-	protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
-			throws Exception {
+	protected DataTableSpec[] prepareExecute(final DataTable[] data) throws Exception {
 
-		ColumnRearranger cr = createColumnRearranger(inData[0].getDataTableSpec());
-
-		final int tarColIndex = inData[1].getSpec().findColumnIndex(tarName);
+		tarColIndex = data[1].getDataTableSpec().findColumnIndex(tarName);
 		IAtomContainer target = null;
-		for (DataRow row : inData[1]) {
+		for (DataRow row : data[1]) {
 			target = ((CDKValue) row.getCell(tarColIndex)).getAtomContainer();
 			break;
 		}
 		targetMinusH = AtomContainerManipulator.removeHydrogens(target);
+		molColIndex = data[0].getDataTableSpec().findColumnIndex(queName);
 
-		return new BufferedDataTable[] { exec.createColumnRearrangeTable(inData[0], cr, exec) };
+		return getDataTableSpec(data[0].getDataTableSpec());
+	}
+
+	private DataTableSpec[] getDataTableSpec(DataTableSpec spec) {
+
+		String newColName = "Distance Similarity";
+		newColName = DataTableSpec.getUniqueColumnName(spec, newColName);
+
+		DataColumnSpecCreator c = new DataColumnSpecCreator(newColName, DoubleCell.TYPE);
+		DataTableSpec appendSpec = new DataTableSpec(c.createSpec());
+
+		return new DataTableSpec[] { new DataTableSpec(spec, appendSpec) };
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected void processRow(final DataRow inRow, final BufferedDataTable[] additionalData,
+			final RowAppender[] outputTables) throws Exception {
+
+		if (inRow.getCell(molColIndex).isMissing()) {
+			outputTables[0].addRowToTable(new AppendedColumnRow(inRow, DataType.getMissingCell()));
+			return;
+		}
+
+		double sim = -1;
+		try {
+			IAtomContainer queryMinusH = AtomContainerManipulator.removeHydrogens(((CDKValue) inRow
+					.getCell(molColIndex)).getAtomContainer());
+			sim = DistanceMoment.calculate(queryMinusH, targetMinusH);
+		} catch (CDKException exception) {
+			outputTables[0].addRowToTable(new AppendedColumnRow(inRow, DataType.getMissingCell()));
+			return;
+		}
+
+		outputTables[0].addRowToTable(new AppendedColumnRow(inRow, new DoubleCell(sim)));
 	}
 
 	/**
@@ -104,9 +139,8 @@ public class DistanceSimilarityNodeModel extends NodeModel {
 
 		configureBySpec(QUE_COLNAME, inSpecs[0]);
 		configureBySpec(TAR_COLNAME, inSpecs[1]);
-		
-		ColumnRearranger rearranger = createColumnRearranger(inSpecs[0]);
-		return new DataTableSpec[] { rearranger.createSpec() };
+
+		return getDataTableSpec(inSpecs[0]);
 	}
 
 	private void configureBySpec(String colName, DataTableSpec inSpec) throws InvalidSettingsException {
@@ -133,42 +167,6 @@ public class DistanceSimilarityNodeModel extends NodeModel {
 		if (!inSpec.getColumnSpec(molColIndex).getType().isCompatible(CDKValue.class)) {
 			throw new InvalidSettingsException("Column '" + colName + "' does not contain CDK cells");
 		}
-	}
-
-	private ColumnRearranger createColumnRearranger(final DataTableSpec spec) throws InvalidSettingsException {
-
-		String newColName = "Distance Similarity";
-		newColName = DataTableSpec.getUniqueColumnName(spec, newColName);
-
-		DataColumnSpecCreator c = new DataColumnSpecCreator(newColName, DoubleCell.TYPE);
-		DataColumnSpec appendSpec = c.createSpec();
-		final int molColIndex = spec.findColumnIndex(queName);
-
-		SingleCellFactory cf = new SingleCellFactory(appendSpec) {
-
-			@Override
-			public DataCell getCell(final DataRow row) {
-
-				if (row.getCell(molColIndex).isMissing()) {
-					return DataType.getMissingCell();
-				}
-
-				double sim = -1;
-				try {
-					CDKValue mol = (CDKValue) row.getCell(molColIndex);
-					IAtomContainer queryMinusH = AtomContainerManipulator.removeHydrogens(mol.getAtomContainer());
-					sim = DistanceMoment.calculate(queryMinusH, targetMinusH);
-				} catch (CDKException exception) {
-					return DataType.getMissingCell();
-				}
-
-				return new DoubleCell(sim);
-			}
-		};
-
-		ColumnRearranger arranger = new ColumnRearranger(spec);
-		arranger.append(cf);
-		return arranger;
 	}
 
 	/**

@@ -19,28 +19,40 @@ package org.openscience.cdk.knime.fingerprints.similarity;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
+import org.knime.base.node.parallel.appender.AppendColumn;
+import org.knime.base.node.parallel.appender.ColumnDestination;
+import org.knime.base.node.parallel.appender.ExtendedCellFactory;
+import org.knime.base.node.parallel.appender.ThreadedColAppenderNodeModel;
+import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
+import org.knime.core.data.DataTable;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataType;
+import org.knime.core.data.collection.CollectionCellFactory;
 import org.knime.core.data.collection.ListCell;
-import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.data.vector.bitvector.BitVectorValue;
-import org.knime.core.node.BufferedDataTable;
+import org.knime.core.data.vector.bitvector.DenseBitVectorCell;
 import org.knime.core.node.CanceledExecutionException;
-import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.openscience.cdk.exception.CDKException;
+import org.openscience.cdk.knime.CDKNodeUtils;
+import org.openscience.cdk.knime.fingerprints.similarity.SimilaritySettings.AggregationMethod;
 import org.openscience.cdk.knime.fingerprints.similarity.SimilaritySettings.ReturnType;
+import org.openscience.cdk.similarity.Tanimoto;
 
 /**
  * This is the model implementation of the similarity node. CDK is used to calculate the Tanimoto coefficient for two
@@ -48,10 +60,9 @@ import org.openscience.cdk.knime.fingerprints.similarity.SimilaritySettings.Retu
  * 
  * @author Stephan Beisken, European Bioinformatics Institute
  */
-public class SimilarityNodeModel extends NodeModel {
+public class SimilarityNodeModel extends ThreadedColAppenderNodeModel {
 
 	private int rowCount;
-	private Map<BitSet, ArrayList<String>> fingerprintRefs;
 	private final SimilaritySettings m_settings = new SimilaritySettings();
 
 	/**
@@ -60,28 +71,144 @@ public class SimilarityNodeModel extends NodeModel {
 	protected SimilarityNodeModel() {
 
 		super(2, 1);
+		
+		setMaxThreads(CDKNodeUtils.getMaxNumOfThreads());
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
-			throws Exception {
-
-		DataTableSpec spec = inData[0].getDataTableSpec();
-		DataTableSpec specRef = inData[1].getDataTableSpec();
+	protected ExtendedCellFactory[] prepareExecute(final DataTable[] data) throws Exception {
 
 		String sr = m_settings.fingerprintRefColumn();
-		final int fingerprintRefColIndex = specRef.findColumnIndex(sr);
+		final int fingerprintRefColIndex = data[1].getDataTableSpec().findColumnIndex(sr);
+		final Map<BitSet, ArrayList<String>> fingerprintRefs = getFingerprintRefs(data[1], fingerprintRefColIndex);
+		rowCount = fingerprintRefs.size();
 
-		fingerprintRefs = getFingerprintRefs(inData[1], fingerprintRefColIndex);
-		rowCount = inData[1].getRowCount();
+		final int fingerprintColIndex = data[0].getDataTableSpec().findColumnIndex(m_settings.fingerprintColumn());
 
-		ColumnRearranger rearranger = createColumnRearranger(spec);
-		BufferedDataTable outTable = exec.createColumnRearrangeTable(inData[0], rearranger, exec);
+		ExtendedCellFactory cf = new ExtendedCellFactory() {
 
-		return new BufferedDataTable[] { outTable };
+			@Override
+			public DataCell[] getCells(final DataRow row) {
+
+				DataCell dataCell = row.getCell(fingerprintColIndex);
+				DataCell[] cells = new DataCell[getColumnSpecs().length];
+				if (dataCell.isMissing()) {
+					Arrays.fill(cells, DataType.getMissingCell());
+					return cells;
+				}
+				if (!(dataCell instanceof DenseBitVectorCell)) {
+					throw new IllegalArgumentException("No String cell at " + fingerprintColIndex + ": "
+							+ dataCell.getClass().getName());
+				}
+				DenseBitVectorCell bitVectorCell = (DenseBitVectorCell) dataCell;
+
+				String bitString = bitVectorCell.toBinaryString();
+				BitSet bs = new BitSet((int) bitVectorCell.length());
+				for (int j = 0; j < bitString.length(); j++) {
+					if (bitString.charAt(j) == '1')
+						bs.set(j);
+				}
+
+				try {
+					float coeff = 0.0f;
+					float pcoeff = 0.0f;
+					ArrayList<String> pkey = null;
+					Iterator<Map.Entry<BitSet, ArrayList<String>>> it = fingerprintRefs.entrySet().iterator();
+					if (m_settings.aggregationMethod().equals(AggregationMethod.Minimum)) {
+						pcoeff = 1;
+						while (it.hasNext()) {
+							Map.Entry<BitSet, ArrayList<String>> pairs = it.next();
+							coeff = Tanimoto.calculate(bs, pairs.getKey());
+							if (coeff <= pcoeff) {
+								pcoeff = coeff;
+								pkey = pairs.getValue();
+							}
+						}
+					} else if (m_settings.aggregationMethod().equals(AggregationMethod.Maximum)) {
+						while (it.hasNext()) {
+							Map.Entry<BitSet, ArrayList<String>> pairs = it.next();
+							coeff = Tanimoto.calculate(bs, pairs.getKey());
+							if (coeff >= pcoeff) {
+								pcoeff = coeff;
+								pkey = (ArrayList<String>) pairs.getValue();
+							}
+						}
+					} else if (m_settings.aggregationMethod().equals(AggregationMethod.Average)) {
+						while (it.hasNext()) {
+							Map.Entry<BitSet, ArrayList<String>> pairs = it.next();
+							coeff += Tanimoto.calculate(bs, pairs.getKey());
+						}
+						pcoeff = coeff / rowCount;
+						pkey = new ArrayList<String>();
+					}
+
+					cells[0] = new DoubleCell(pcoeff);
+					List<StringCell> res = new ArrayList<StringCell>();
+					for (String st : pkey) {
+						res.add(new StringCell(st));
+					}
+
+					if (res.size() > 0) {
+						if (m_settings.returnType().equals(ReturnType.String)) {
+							if (res.size() == 1)
+								cells[1] = res.get(0);
+							else {
+								String resString = "";
+								for (StringCell cell : res) {
+									resString += (cell.getStringValue() + "|");
+								}
+								resString = resString.substring(0, resString.lastIndexOf("|"));
+								cells[1] = new StringCell(resString);
+							}
+						} else if (m_settings.returnType().equals(ReturnType.Collection)) {
+							cells[1] = CollectionCellFactory.createListCell(res);
+						}
+					}
+				} catch (CDKException exception) {
+					Arrays.fill(cells, DataType.getMissingCell());
+					return cells;
+				}
+				return cells;
+			}
+
+			@Override
+			public ColumnDestination[] getColumnDestinations() {
+
+				return new ColumnDestination[] { new AppendColumn() };
+			}
+
+			@Override
+			public DataColumnSpec[] getColumnSpecs() {
+
+				return createSpec(data[0].getDataTableSpec());
+			}
+		};
+
+		return new ExtendedCellFactory[] { cf };
+	}
+
+	private DataColumnSpec[] createSpec(final DataTableSpec oldSpec) {
+
+		DataColumnSpec[] outSpec = null;
+		if (m_settings.aggregationMethod().name().equals("Average")) {
+			DataColumnSpec colSpec = new DataColumnSpecCreator("Tanimoto", DoubleCell.TYPE).createSpec();
+			outSpec = new DataColumnSpec[] { colSpec };
+		} else {
+			DataColumnSpec colSpec1 = new DataColumnSpecCreator("Tanimoto", DoubleCell.TYPE).createSpec();
+			DataColumnSpec colSpec2 = null;
+			if (m_settings.returnType().equals(ReturnType.String)) {
+				colSpec2 = new DataColumnSpecCreator("Reference", StringCell.TYPE).createSpec();
+			} else if (m_settings.returnType().equals(ReturnType.Collection)) {
+				colSpec2 = new DataColumnSpecCreator("Reference", ListCell.getCollectionType(StringCell.TYPE))
+						.createSpec();
+			}
+			outSpec = new DataColumnSpec[] { colSpec1, colSpec2 };
+		}
+
+		return outSpec;
 	}
 
 	/**
@@ -91,11 +218,11 @@ public class SimilarityNodeModel extends NodeModel {
 	 * @param fingerprintRefColIndex a fingerprint column index in bdt
 	 * @return the map
 	 */
-	private Map<BitSet, ArrayList<String>> getFingerprintRefs(BufferedDataTable bdt, int fingerprintRefColIndex) {
+	private Map<BitSet, ArrayList<String>> getFingerprintRefs(DataTable dt, int fingerprintRefColIndex) {
 
 		Map<BitSet, ArrayList<String>> fingerprintRefs = new HashMap<BitSet, ArrayList<String>>();
 
-		for (DataRow row : bdt) {
+		for (DataRow row : dt) {
 			if (row.getCell(fingerprintRefColIndex).isMissing()) {
 				continue;
 			}
@@ -116,39 +243,6 @@ public class SimilarityNodeModel extends NodeModel {
 			}
 		}
 		return fingerprintRefs;
-	}
-
-	/**
-	 * Creates a column rearranger to append one/two output columns.
-	 * 
-	 * @param spec a input table specification
-	 * @return the rearranger
-	 * @throws InvalidSettingsException unexpected behaviour
-	 */
-	private ColumnRearranger createColumnRearranger(DataTableSpec spec) throws InvalidSettingsException {
-
-		int fingerprintColIndex = spec.findColumnIndex(m_settings.fingerprintColumn());
-		DataColumnSpec[] outSpec = null;
-		if (m_settings.aggregationMethod().name().equals("Average")) {
-			DataColumnSpec colSpec = new DataColumnSpecCreator("Tanimoto", DoubleCell.TYPE).createSpec();
-			outSpec = new DataColumnSpec[] { colSpec };
-		} else {
-			DataColumnSpec colSpec1 = new DataColumnSpecCreator("Tanimoto", DoubleCell.TYPE).createSpec();
-			DataColumnSpec colSpec2 = null;
-			if (m_settings.returnType().equals(ReturnType.String)) {
-				colSpec2 = new DataColumnSpecCreator("Reference", StringCell.TYPE).createSpec();
-			} else if (m_settings.returnType().equals(ReturnType.Collection)) {
-				colSpec2 = new DataColumnSpecCreator("Reference", ListCell.getCollectionType(StringCell.TYPE))
-						.createSpec();
-			}
-			outSpec = new DataColumnSpec[] { colSpec1, colSpec2 };
-		}
-		SimilarityGenerator generator = new SimilarityGenerator(outSpec, fingerprintColIndex, fingerprintRefs,
-				m_settings.returnType(), m_settings.aggregationMethod(), rowCount);
-		ColumnRearranger arrange = new ColumnRearranger(spec);
-		arrange.append(generator);
-
-		return arrange;
 	}
 
 	/**
@@ -195,8 +289,8 @@ public class SimilarityNodeModel extends NodeModel {
 			}
 		}
 
-		DataTableSpec outSpec = createColumnRearranger(inSpecs[0]).createSpec();
-		return new DataTableSpec[] { outSpec };
+		DataTableSpec outSpec = new DataTableSpec(createSpec(inSpecs[0]));
+		return new DataTableSpec[] { new DataTableSpec(inSpecs[0], outSpec) };
 	}
 
 	/**

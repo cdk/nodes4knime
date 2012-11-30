@@ -16,10 +16,16 @@
  */
 package org.openscience.cdk.knime;
 
+import java.awt.Color;
+
+import org.knime.core.node.NodeLogger;
+import org.openscience.cdk.CDKConstants;
 import org.openscience.cdk.aromaticity.CDKHueckelAromaticityDetector;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.geometry.GeometryTools;
 import org.openscience.cdk.graph.ConnectivityChecker;
+import org.openscience.cdk.inchi.InChIGenerator;
+import org.openscience.cdk.inchi.InChIGeneratorFactory;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IAtomContainerSet;
 import org.openscience.cdk.layout.StructureDiagramGenerator;
@@ -28,6 +34,9 @@ import org.openscience.cdk.smiles.SmilesGenerator;
 import org.openscience.cdk.tools.CDKHydrogenAdder;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 
+import uk.ac.ebi.mdk.prototype.hash.HashGenerator;
+import uk.ac.ebi.mdk.prototype.hash.HashGeneratorMaker;
+
 /**
  * Utility functions for CDK object standardisation.
  * 
@@ -35,11 +44,20 @@ import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
  */
 public class CDKNodeUtils {
 
-	private static final String SMILES = "smiles";
+	private static final NodeLogger LOGGER = NodeLogger.getLogger(CDKNodeUtils.class);
+	private static final HashGenerator<Integer> GENERATOR = new HashGeneratorMaker().withDepth(8).charged().chiral()
+			.isotopic().radicals().withBondOrderSum().nullable().build();
+	private static final SmilesGenerator SG = new SmilesGenerator(true);
 
-	private static final CDKHydrogenAdder hydra = CDKHydrogenAdder.getInstance(SilentChemObjectBuilder.getInstance());
-	private static final StructureDiagramGenerator sdg = new StructureDiagramGenerator();
-	private static final SmilesGenerator sg = new SmilesGenerator(true);
+	private static InChIGeneratorFactory ig;
+	static {
+		try {
+			ig = InChIGeneratorFactory.getInstance();
+			ig.setIgnoreAromaticBonds(true);
+		} catch (CDKException e) {
+			LOGGER.error("Failed to load the InChIGeneratorFactory.");
+		}
+	}
 
 	/**
 	 * Gets the standardised CDK KNIME molecule with implicit hydrogens and detected aromaticity.
@@ -48,11 +66,29 @@ public class CDKNodeUtils {
 	 * @param calcCoordinates whether to calculate 2D coordinates
 	 * @throws CDKException description of the exception
 	 */
-	public synchronized static void getStandardMolecule(IAtomContainer molecule) throws CDKException {
+	public static void getStandardMolecule(IAtomContainer molecule) throws CDKException {
 
-		AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(molecule);
-		hydra.addImplicitHydrogens(molecule);
-		CDKHueckelAromaticityDetector.detectAromaticity(molecule);
+		try {
+			AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(molecule);
+			CDKHydrogenAdder hydra = CDKHydrogenAdder.getInstance(molecule.getBuilder());
+			hydra.addImplicitHydrogens(molecule);
+			hydra = null;
+			if (ConnectivityChecker.isConnected(molecule)) {
+				CDKHueckelAromaticityDetector.detectAromaticity(molecule);
+			} else {
+				IAtomContainerSet moleculeSet = ConnectivityChecker.partitionIntoMolecules(molecule);
+				molecule.removeAllElements();
+				for (IAtomContainer mol : moleculeSet.atomContainers()) {
+					CDKHueckelAromaticityDetector.detectAromaticity(mol);
+					molecule.add(mol);
+				}
+				moleculeSet = null;
+			}
+		} catch (IllegalAccessError error) {
+			throw new CDKException("Illegal Access Error - QueryChemObject: " + error.getMessage());
+		} catch (Exception exception) {
+			throw new CDKException("Exception while standardizing: " + exception.getMessage());
+		}
 	}
 
 	/**
@@ -69,7 +105,7 @@ public class CDKNodeUtils {
 		try {
 			clone = (IAtomContainer) molecule.clone();
 			AtomContainerManipulator.convertImplicitToExplicitHydrogens(clone);
-			AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(clone);
+			AtomContainerManipulator.percieveAtomTypesAndConfigureUnsetProperties(clone);
 		} catch (CloneNotSupportedException exception) {
 			throw new CDKException(exception.getMessage());
 		}
@@ -83,12 +119,14 @@ public class CDKNodeUtils {
 	 * 
 	 * @param molecule the CDK molecule
 	 * @param force whether to force the calculation of 2D coordinates
+	 * @param clone whether to clone the CDK molecule
 	 * @throws CDKException description of the exception
 	 */
-	public synchronized static IAtomContainer calculateCoordinates(IAtomContainer molecule, boolean force)
+	public static IAtomContainer calculateCoordinates(IAtomContainer molecule, boolean force, boolean clone)
 			throws CDKException {
 
-		if (force || !(GeometryTools.has2DCoordinates(molecule))) {
+		if (force || (!(GeometryTools.has2DCoordinates(molecule)) && !GeometryTools.has3DCoordinates(molecule))) {
+			StructureDiagramGenerator sdg = new StructureDiagramGenerator();
 			if (!ConnectivityChecker.isConnected(molecule)) {
 				IAtomContainerSet set = ConnectivityChecker.partitionIntoMolecules(molecule);
 				molecule = SilentChemObjectBuilder.getInstance().newInstance(IAtomContainer.class);
@@ -97,27 +135,93 @@ public class CDKNodeUtils {
 					sdg.generateCoordinates();
 					molecule.add(sdg.getMolecule());
 				}
+				set = null;
 			} else {
-				sdg.setMolecule(molecule, true);
+				sdg.setMolecule(molecule, clone);
 				sdg.generateCoordinates();
 				molecule = sdg.getMolecule();
 			}
+			sdg = null;
 		}
 
 		return molecule;
 	}
 
 	/**
+	 * Calculates the InChI string and sets it as property of the CDK molecule.
+	 * 
+	 * @param molecule the CDK molecule
+	 * @param override override existing InChI
+	 */
+	public synchronized static void calculateInChI(IAtomContainer molecule, boolean override) {
+
+		if (molecule.getProperty(CDKConstants.INCHI) == null || override) {
+
+			try {
+				InChIGenerator igg = ig.getInChIGenerator(molecule);
+				molecule.setProperty(CDKConstants.INCHI, igg.getInchi());
+			} catch (CDKException e) {
+				molecule.setProperty(CDKConstants.INCHI, SG.createSMILES(molecule));
+			}
+		}
+	}
+
+	/**
 	 * Calculates the SMILES string and sets it as property of the CDK molecule.
 	 * 
 	 * @param molecule the CDK molecule
-	 * @throws CDKException description of the exception
+	 * @param override override existing SMILES
+	 * @return the SMILES string
 	 */
-	public synchronized static void calculateSmiles(IAtomContainer molecule) {
+	public synchronized static String calculateSmiles(IAtomContainer molecule, boolean override) {
 
-		if (molecule.getProperty(SMILES) == null) {
-			String smiles = sg.createSMILES(molecule);
-			molecule.setProperty(SMILES, smiles);
+		String smiles = "";
+		if (molecule.getProperty(CDKConstants.SMILES) == null || override) {
+
+			SmilesGenerator sg = new SmilesGenerator();
+			sg.setUseAromaticityFlag(true);
+			smiles = sg.createSMILES(molecule);
+			if (smiles == null) {
+				smiles = "";
+			}
 		}
+
+		return smiles;
+	}
+
+	public static void calculateHash(IAtomContainer molecule) {
+
+		int hash;
+		try {
+			hash = GENERATOR.generate(molecule);
+		} catch (Exception exception) {
+			hash = 0;
+		}
+		molecule.setProperty(CDKConstants.MAPPED, hash);
+	}
+
+	/**
+	 * Returns the max. number of threads available.
+	 * 
+	 * @return the max. number of threads
+	 */
+	public static int getMaxNumOfThreads() {
+
+		return ((int) Math.ceil(1.5 * Runtime.getRuntime().availableProcessors()));
+	}
+
+	/**
+	 * Generates a color palette based on the number of colors required.
+	 * 
+	 * @param n the number of colors
+	 * @return the array of colors
+	 */
+	public static Color[] generateColors(int n) {
+
+		Color[] cols = new Color[n];
+		for (int i = 0; i < n; i++) {
+			cols[i] = Color.getHSBColor((float) i / (float) n, 0.85f, 1.0f);
+		}
+		return cols;
 	}
 }

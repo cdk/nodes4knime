@@ -52,6 +52,7 @@ import org.openscience.cdk.geometry.GeometryTools;
 import org.openscience.cdk.graph.ConnectivityChecker;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IAtomContainerSet;
+import org.openscience.cdk.knime.CDKNodeUtils;
 import org.openscience.cdk.knime.type.CDKCell;
 import org.openscience.cdk.knime.type.CDKValue;
 import org.openscience.cdk.layout.StructureDiagramGenerator;
@@ -92,6 +93,8 @@ public class Coord2DNodeModel extends ThreadedColAppenderNodeModel {
 	public Coord2DNodeModel() {
 
 		super(1, 1);
+		
+		this.setMaxThreads(CDKNodeUtils.getMaxNumOfThreads());
 	}
 
 	/**
@@ -137,7 +140,7 @@ public class Coord2DNodeModel extends ThreadedColAppenderNodeModel {
 		return new DataTableSpec[] { new DataTableSpec(columns) };
 	}
 
-	private static DataColumnSpec createSpec(final DataColumnSpec oldSpec) {
+	private DataColumnSpec createSpec(final DataColumnSpec oldSpec) {
 
 		DataColumnSpecCreator c = new DataColumnSpecCreator(oldSpec);
 		DataColumnProperties props = oldSpec.getProperties().cloneAndOverwrite(PROP_2D);
@@ -271,9 +274,8 @@ public class Coord2DNodeModel extends ThreadedColAppenderNodeModel {
 											pClone.set(col);
 										}
 									} else {
-										IAtomContainer cp = (IAtomContainer) m.clone();
-										new StructureDiagramGenerator(cp).generateCoordinates();
-										pClone.set(cp);
+										new StructureDiagramGenerator(m).generateCoordinates();
+										pClone.set(m);
 									}
 								} catch (ThreadDeath d) {
 									LOGGER.debug("2D coord generation" + " timed out for row \"" + row.getKey() + "\"");

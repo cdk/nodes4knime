@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./SymmetryCalculator.png" type="Other">
+	<name>Symmetry</name>
+
+	<shortDescription>
+		This node does the partition of atoms into equivalent classes 
+    </shortDescription>
+
+	<fullDescription>
+		<intro>This node calculates the partition of heavy atoms in a CDK molecule into equivalent classes. The definition of
+			equivalent classes is purely topological and the algorithm is derived from the algorithm by Hu, C.Y. and Xu, L.,
+			Algorithm for computer perception of topological symmetry, Analytical Chimica Acta, 1994, 295:127. 
+			<br/><br/>
+			The node processes connected molecules only.
+        </intro>
+
+		<option name="Column with molecules">Select the column containing the molecular structure</option>
+		<option name="Visualization only">Display the visual representation of the partitioning</option>
+	</fullDescription>
+
+	<ports>
+		<inPort index="0" name="In-Port name">Table containing molecular structures</inPort>
+		<outPort index="0" name="Out-Port name">As input but with new rows for each atom in the CDK molecule for which the signatures
+			were calculated
+			or just the visual representation of the partitioning if option selected</outPort>
+	</ports>
+</knimeNode>

@@ -17,9 +17,12 @@
  */
 package org.openscience.cdk.knime.sssearch;
 
+import java.awt.Color;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
+import org.knime.base.data.replace.ReplacedColumnsDataRow;
 import org.knime.base.node.parallel.builder.ThreadedTableBuilderNodeModel;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataRow;
@@ -33,14 +36,13 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.openscience.cdk.CDKConstants;
-import org.openscience.cdk.aromaticity.CDKHueckelAromaticityDetector;
-import org.openscience.cdk.exception.CDKException;
-import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.isomorphism.UniversalIsomorphismTester;
+import org.openscience.cdk.isomorphism.mcss.RMap;
+import org.openscience.cdk.knime.CDKNodeUtils;
+import org.openscience.cdk.knime.type.CDKCell;
 import org.openscience.cdk.knime.type.CDKValue;
-import org.openscience.cdk.silent.SilentChemObjectBuilder;
-import org.openscience.cdk.smiles.SmilesParser;
+import org.openscience.cdk.knime.util.JMolSketcherPanel;
 
 /**
  * This is the model for the substructure search node. It divides the input table into two output tables. One with all
@@ -53,7 +55,7 @@ public class SSSearchNodeModel extends ThreadedTableBuilderNodeModel {
 	private IAtomContainer m_fragment;
 	private int m_columnIndex;
 	private final SSSearchSettings m_settings = new SSSearchSettings();
-	
+
 	private final UniversalIsomorphismTester isomorphismTester = new UniversalIsomorphismTester();
 
 	/**
@@ -86,20 +88,33 @@ public class SSSearchNodeModel extends ThreadedTableBuilderNodeModel {
 			outputTables[1].addRowToTable(inRow);
 		} else {
 			IAtomContainer mol = ((CDKValue) inRow.getCell(m_columnIndex)).getAtomContainer();
-			boolean hasAromaticFlag = false;
-			for (IAtom atom : mol.atoms()) {
-				if (atom.getFlag(CDKConstants.ISAROMATIC)) {
-					hasAromaticFlag = true;
-				}
-				atom.setValency(null);
-			}
-
-			if (!hasAromaticFlag) {
-				CDKHueckelAromaticityDetector.detectAromaticity(mol);
-			}
 
 			if (isomorphismTester.isSubgraph(mol, m_fragment)) {
-				outputTables[0].addRowToTable(inRow);
+
+				if (m_settings.isHighlight()) {
+					List<List<RMap>> atomMaps = isomorphismTester.getSubgraphAtomsMaps(mol, m_fragment);
+					Color[] color = CDKNodeUtils.generateColors(atomMaps.size());
+					int i = 0;
+					for (List<RMap> atomMap : atomMaps) {
+						for (RMap map : atomMap) {
+							mol.getAtom(map.getId1()).setProperty(CDKConstants.ANNOTATIONS, color[i].getRGB());
+						}
+						i++;
+					}
+
+					List<List<RMap>> bondMaps = isomorphismTester.getSubgraphMaps(mol, m_fragment);
+					i = 0;
+					for (List<RMap> bondMap : bondMaps) {
+						for (RMap map : bondMap) {
+							mol.getBond(map.getId1()).setProperty(CDKConstants.ANNOTATIONS, color[i].getRGB());
+						}
+						i++;
+					}
+
+					outputTables[0].addRowToTable(new ReplacedColumnsDataRow(inRow, new CDKCell(mol), m_columnIndex));
+				} else {
+					outputTables[0].addRowToTable(inRow);
+				}
 			} else {
 				outputTables[1].addRowToTable(inRow);
 			}
@@ -136,8 +151,11 @@ public class SSSearchNodeModel extends ThreadedTableBuilderNodeModel {
 		}
 
 		try {
-			m_fragment = createMolecule(m_settings.smilesFragments());
-		} catch (CDKException ex) {
+			m_fragment = JMolSketcherPanel.readStringNotation(m_settings.getSdf()).getAtomContainer(0);
+			if (m_fragment.getAtomCount() != 0) {
+				CDKNodeUtils.getStandardMolecule(m_fragment);
+			}
+		} catch (Exception ex) {
 			throw new InvalidSettingsException("Unable to read fragment", ex);
 		}
 		return new DataTableSpec[] { inSpecs[0], inSpecs[0] };
@@ -199,28 +217,9 @@ public class SSSearchNodeModel extends ThreadedTableBuilderNodeModel {
 		SSSearchSettings s = new SSSearchSettings();
 		s.loadSettings(settings);
 		try {
-			createMolecule(s.smilesFragments());
-		} catch (CDKException ex) {
+			JMolSketcherPanel.readStringNotation(s.getSdf());
+		} catch (Exception ex) {
 			throw new InvalidSettingsException("Unable to read fragment", ex);
-		}
-	}
-
-	/**
-	 * Creates a molecule from the given Smiles string.
-	 * 
-	 * @param smiles molecules as Smiles strings
-	 * @return a molecule
-	 * @throws CDKException if parsing the Smiles string fails
-	 */
-	private static IAtomContainer createMolecule(final String... smiles) throws CDKException {
-
-		if ((smiles != null) && (smiles.length > 0)) {
-			SmilesParser parser = new SmilesParser(SilentChemObjectBuilder.getInstance());
-			IAtomContainer mol = parser.parseSmiles(smiles[0]);
-			CDKHueckelAromaticityDetector.detectAromaticity(mol);
-			return mol;
-		} else {
-			return SilentChemObjectBuilder.getInstance().newInstance(IAtomContainer.class);
 		}
 	}
 }

@@ -24,21 +24,22 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.knime.base.data.append.column.AppendedColumnRow;
+import org.knime.base.node.parallel.builder.ThreadedTableBuilderNodeModel;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
+import org.knime.core.data.DataTable;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
-import org.knime.core.data.def.DefaultRow;
+import org.knime.core.data.RowKey;
+import org.knime.core.data.container.RowAppender;
 import org.knime.core.data.def.StringCell;
-import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
-import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.openscience.cdk.exception.CDKException;
@@ -58,10 +59,13 @@ import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
  * This is the model implementation of AtomSignature.
  * 
  * @author Luis Filipe de Figueiredo, European Bioinformatics Institute
+ * @author Stephan Beisken, European Bioinformatics Institute
  */
-public class AtomSignatureNodeModel extends NodeModel {
+public class AtomSignatureNodeModel extends ThreadedTableBuilderNodeModel {
 
 	private final AtomSignatureSettings m_settings = new AtomSignatureSettings();
+	private int molColIndex;
+	private int addNbColumns;
 
 	/**
 	 * Constructor for the node model.
@@ -75,152 +79,114 @@ public class AtomSignatureNodeModel extends NodeModel {
 	 * {@inheritDoc}
 	 */
 	@Override
-	protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
-			throws Exception {
+	protected DataTableSpec[] prepareExecute(final DataTable[] data) throws Exception {
 
-		// get the index of the molcolumn
-		final int molColIndex = inData[0].getDataTableSpec().findColumnIndex(m_settings.molColumnName());
+		molColIndex = data[0].getDataTableSpec().findColumnIndex(m_settings.molColumnName());
+		addNbColumns = m_settings.isHeightSet() ? m_settings.getMaxHeight() - m_settings.getMinHeight() + 2 : 2;
 
-		// declare the column to be rearranged
-		int addNbColumns = m_settings.isHeightSet() ? m_settings.getMaxHeight() - m_settings.getMinHeight() + 2 : 2;
+		DataColumnSpec[] clmspecs = configSpecs(data[0].getDataTableSpec());
 
-		DataColumnSpec[] clmspecs = configCSpecs(inData[0].getDataTableSpec());
+		return new DataTableSpec[] { new DataTableSpec(clmspecs) };
+	}
 
-		DataTableSpec tbspecs = new DataTableSpec(clmspecs);
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected void processRow(final DataRow inRow, final BufferedDataTable[] additionalData,
+			final RowAppender[] outputTables) throws Exception {
 
-		BufferedDataContainer container = exec.createDataContainer(tbspecs);
+		// check if cell is missing and return a missing value in that case
+		if (inRow.getCell(molColIndex).isMissing()) {
+			DataCell[] missings = new DataCell[addNbColumns];
+			Arrays.fill(missings, DataType.getMissingCell());
+			outputTables[0].addRowToTable(new AppendedColumnRow(inRow, missings));
+		} else {
+			IAtomContainer mol = ((CDKValue) inRow.getCell(molColIndex)).getAtomContainer();
 
-		for (DataRow inRow : inData[0]) {
-			DataCell[] inCells = new DataCell[inRow.getNumCells()];
-
-			for (int i = 0; i < inCells.length; i++) {
-				inCells[i] = inRow.getCell(i);
-			}
-			// check if cell is missing and return a missing value in that case
-			if (inRow.getCell(molColIndex).isMissing()) {
-				DataCell[] newRow = new DataCell[inCells.length + addNbColumns];
-				DataCell[] missings = new DataCell[addNbColumns];
-				Arrays.fill(missings, DataType.getMissingCell());
-				System.arraycopy(inCells, 0, newRow, 0, inCells.length);
-				System.arraycopy(missings, 0, newRow, inCells.length, missings.length);
-				container.addRowToTable(new DefaultRow(inRow.getKey(), newRow));
+			if (m_settings.atomType().equals(AtomTypes.H)) {
+				AtomContainerManipulator.convertImplicitToExplicitHydrogens(mol);
 			} else {
-				// declare the iatomcontainer using the information in the molcell
-				IAtomContainer mol = ((CDKValue) inRow.getCell(molColIndex)).getAtomContainer();
+				mol = SMSDNormalizer.convertExplicitToImplicitHydrogens(mol);
+			}
 
-				IAtomContainer molTmp = (IAtomContainer) mol.clone();
-				if (m_settings.atomType().equals(AtomTypes.H)) {
-					AtomContainerManipulator.convertImplicitToExplicitHydrogens(molTmp);
-				} else {
-					molTmp = SMSDNormalizer.convertExplicitToImplicitHydrogens(molTmp);
+			int atomId = 1;
+			Map<String, Integer> parentIdMap = new HashMap<String, Integer>();
+			if (CDKNodePlugin.numbering() == NUMBERING.SEQUENTIAL) {
+
+				for (IAtom atom : mol.atoms()) {
+					parentIdMap.put(atom.getID(), atomId);
+					atomId++;
 				}
+			}
 
-				int atomId = 1;
-				Map<String, Integer> parentIdMap = new HashMap<String, Integer>();
-				if (CDKNodePlugin.numbering() == NUMBERING.SEQUENTIAL) {
+			int count = 0;
+			String parentId = "";
+			Set<String> parentSet = new HashSet<String>();
+			String atomType = m_settings.atomType().toString();
 
-					for (IAtom atom : molTmp.atoms()) {
-						parentIdMap.put(atom.getID(), atomId);
-						atomId++;
-					}
-				}
+			HOSECodeGenerator hoseGen = new HOSECodeGenerator();
+			
+			// loop through the atoms and calculate the signatures
+			if (atomType.equals("H")) {
 
-				int contSize = container.size();
-				int count = 0;
-				String parentId = "";
-				Set<String> parentSet = new HashSet<String>();
-				String atomType = m_settings.atomType().toString();
+				for (IAtom atom : mol.atoms()) {
 
-				// loop through the atoms and calculate the signatures
-				if (atomType.equals("H")) {
+					if (atom.getSymbol().equals(AtomTypes.H.name())) {
+						String columnAtomId = "" + atom.getID();
+						if (mol.getConnectedAtomsList(atom).size() != 0)
+							parentId = mol.getConnectedAtomsList(atom).get(0).getID();
+						else
+							continue;
+						columnAtomId = parentId;
 
-					for (IAtom atom : molTmp.atoms()) {
-
-						if (atom.getSymbol().equals(AtomTypes.H.name())) {
-							String columnAtomId = "" + atom.getID();
-							if (molTmp.getConnectedAtomsList(atom).size() != 0)
-								parentId = molTmp.getConnectedAtomsList(atom).get(0).getID();
-							else 
-								continue;
-							columnAtomId = parentId;
-
-							if (parentSet.contains(parentId)) {
-								continue;
-							}
-
-							// create a new row
-							DataCell[] newRow = new DataCell[inCells.length + addNbColumns];
-							// copy cells from the input row to the new row
-							System.arraycopy(inCells, 0, newRow, 0, inCells.length);
-							DataCell[] atomCanonicalNb = null;
-							if (CDKNodePlugin.numbering() == NUMBERING.CANONICAL) {
-								atomCanonicalNb = new DataCell[] { new StringCell(columnAtomId) };
-							} else {
-								atomCanonicalNb = new DataCell[] { new StringCell("" + parentIdMap.get(parentId)) };
-							}
-							System.arraycopy(atomCanonicalNb, 0, newRow, inCells.length, 1);
-							DataCell[] signatures = computeSignatures(atom, molTmp, addNbColumns - 1);
-							System.arraycopy(signatures, 0, newRow, inCells.length + 1, signatures.length);
-							container.addRowToTable(new DefaultRow(inRow.getKey() + "_" + Integer.toString(count),
-									newRow));
-							parentSet.add(columnAtomId);
-							count++;
+						if (parentSet.contains(parentId)) {
+							continue;
 						}
-					}
-				} else {
 
-					for (IAtom atom : molTmp.atoms()) {
-
-						if (atom.getSymbol().equals(m_settings.atomType().name())) {
-							// create a new row
-							DataCell[] newRow = new DataCell[inCells.length + addNbColumns];
-							// copy cells from the input row to the new row
-							System.arraycopy(inCells, 0, newRow, 0, inCells.length);
-							DataCell[] atomCanonicalNb = null;
-							if (CDKNodePlugin.numbering() == NUMBERING.CANONICAL) {
-								atomCanonicalNb = new DataCell[] { new StringCell(atom.getID()) };
-							} else {
-								atomCanonicalNb = new DataCell[] { new StringCell("" + parentIdMap.get(atom.getID())) };
-							}
-							System.arraycopy(atomCanonicalNb, 0, newRow, inCells.length, 1);
-							DataCell[] signatures = computeSignatures(atom, molTmp, addNbColumns - 1);
-							System.arraycopy(signatures, 0, newRow, inCells.length + 1, signatures.length);
-							container.addRowToTable(new DefaultRow(inRow.getKey() + "_" + Integer.toString(count),
-									newRow));
-							count++;
+						DataCell[] outCells = new DataCell[addNbColumns];
+						if (CDKNodePlugin.numbering() == NUMBERING.CANONICAL) {
+							outCells[0] = new StringCell(columnAtomId);
+						} else {
+							outCells[0] = new StringCell("" + parentIdMap.get(parentId));
 						}
+						outCells = computeSignatures(atom, mol, outCells, hoseGen);
+						outputTables[0].addRowToTable(new AppendedColumnRow(new RowKey(inRow.getKey().getString() + "_"
+								+ count), inRow, outCells));
+						parentSet.add(columnAtomId);
+						count++;
 					}
 				}
-				if (contSize == container.size()) {
-					DataCell[] newRow = new DataCell[inCells.length + addNbColumns];
-					DataCell[] missings = new DataCell[addNbColumns];
-					Arrays.fill(missings, DataType.getMissingCell());
-					System.arraycopy(inCells, 0, newRow, 0, inCells.length);
-					System.arraycopy(missings, 0, newRow, inCells.length, missings.length);
-					container.addRowToTable(new DefaultRow(inRow.getKey(), newRow));
+			} else {
+
+				for (IAtom atom : mol.atoms()) {
+
+					if (atom.getSymbol().equals(m_settings.atomType().name())) {
+						DataCell[] outCells = new DataCell[addNbColumns];
+						if (CDKNodePlugin.numbering() == NUMBERING.CANONICAL) {
+							outCells[0] = new StringCell(atom.getID());
+						} else {
+							outCells[0] = new StringCell("" + parentIdMap.get(atom.getID()));
+						}
+						outCells = computeSignatures(atom, mol, outCells, hoseGen);
+						outputTables[0].addRowToTable(new AppendedColumnRow(new RowKey(inRow.getKey().getString() + "_"
+								+ count), inRow, outCells));
+						count++;
+					}
 				}
 			}
 		}
-
-		container.close();
-
-		return new BufferedDataTable[] { container.getTable() };
-
 	}
 
-	private DataCell[] computeSignatures(final IAtom atom, IAtomContainer mol, int addColms)
+	private DataCell[] computeSignatures(final IAtom atom, IAtomContainer mol, DataCell[] outCells, HOSECodeGenerator hoseGen)
 			throws CanceledExecutionException {
 
-		DataCell[] signatures = new DataCell[addColms];
-
-		for (int i = 0; i < signatures.length; i++) {
+		for (int i = 1; i < outCells.length; i++) {
 			String sign = null;
 			if (m_settings.signatureType().equals(SignatureTypes.AtomSignatures)) {
 				AtomSignature atomSignature = new AtomSignature(atom, (i + m_settings.getMinHeight()), mol);
 				sign = atomSignature.toCanonicalString();
 			} else if (m_settings.signatureType().equals(SignatureTypes.Hose)) {
-				HOSECodeGenerator hoseGen = new HOSECodeGenerator();
-
 				try {
 					sign = hoseGen.getHOSECode(mol, atom, (i + m_settings.getMinHeight()));
 				} catch (CDKException e) {
@@ -229,11 +195,11 @@ public class AtomSignatureNodeModel extends NodeModel {
 			}
 
 			if (sign != null)
-				signatures[i] = new StringCell(sign);
+				outCells[i] = new StringCell(sign);
 			else
-				signatures[i] = DataType.getMissingCell();
+				outCells[i] = DataType.getMissingCell();
 		}
-		return signatures;
+		return outCells;
 	}
 
 	/**
@@ -282,12 +248,12 @@ public class AtomSignatureNodeModel extends NodeModel {
 			throw new InvalidSettingsException("Molecule column '" + m_settings.molColumnName() + "' does not exist");
 		}
 
-		DataColumnSpec[] newCs = configCSpecs(inSpecs[0]);
+		DataColumnSpec[] newCs = configSpecs(inSpecs[0]);
 
 		return new DataTableSpec[] { new DataTableSpec(newCs) };
 	}
 
-	private DataColumnSpec[] configCSpecs(final DataTableSpec inSpecs) {
+	private DataColumnSpec[] configSpecs(final DataTableSpec inSpecs) {
 
 		// add a new column to the specs...
 		int inNbColumns = inSpecs.getNumColumns();

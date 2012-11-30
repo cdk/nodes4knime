@@ -158,9 +158,11 @@ public class CDKMolConverter extends MolConverter<IAtomContainer, CDKValue> {
 
 		return new CDKCell(convert(graph));
 	}
-	
-	@Override
+
+//  Change of API in KNIME 2.7?
+//	@Override
 	public DataType getDataType() {
-	    return CDKCell.TYPE;
+
+		return CDKCell.TYPE;
 	}
 }

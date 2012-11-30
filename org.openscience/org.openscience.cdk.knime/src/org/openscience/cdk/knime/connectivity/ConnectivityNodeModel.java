@@ -23,28 +23,27 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.knime.base.data.append.column.AppendedColumnRow;
 import org.knime.base.data.append.column.AppendedColumnTable;
+import org.knime.base.data.replace.ReplacedColumnsDataRow;
+import org.knime.base.node.parallel.builder.ThreadedTableBuilderNodeModel;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
+import org.knime.core.data.DataTable;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.collection.CollectionCellFactory;
 import org.knime.core.data.collection.SetCell;
-import org.knime.core.data.container.ColumnRearranger;
-import org.knime.core.data.container.SingleCellFactory;
-import org.knime.core.node.BufferedDataContainer;
+import org.knime.core.data.container.RowAppender;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
-import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.openscience.cdk.graph.ConnectivityChecker;
-import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IAtomContainerSet;
 import org.openscience.cdk.knime.type.CDKCell;
@@ -55,9 +54,10 @@ import org.openscience.cdk.knime.type.CDKValue;
  * 
  * @author Thorsten Meinl, University of Konstanz
  */
-public class ConnectivityNodeModel extends NodeModel {
+public class ConnectivityNodeModel extends ThreadedTableBuilderNodeModel {
 
 	private final ConnectivitySettings m_settings = new ConnectivitySettings();
+	private int molColIndex;
 
 	/**
 	 * Creates a new model with one input and one output port.
@@ -65,6 +65,23 @@ public class ConnectivityNodeModel extends NodeModel {
 	public ConnectivityNodeModel() {
 
 		super(1, 1);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected DataTableSpec[] prepareExecute(final DataTable[] data) throws Exception {
+
+		molColIndex = data[0].getDataTableSpec().findColumnIndex(m_settings.molColumnName());
+
+		if (m_settings.addFragmentColumn()) {
+			String name = DataTableSpec.getUniqueColumnName(data[0].getDataTableSpec(), "Fragments");
+			DataColumnSpec cs = new DataColumnSpecCreator(name, SetCell.getCollectionType(CDKCell.TYPE)).createSpec();
+			return new DataTableSpec[] { new DataTableSpec(data[0].getDataTableSpec(), new DataTableSpec(cs)) };
+		} else {
+			return new DataTableSpec[] { data[0].getDataTableSpec() };
+		}
 	}
 
 	/**
@@ -110,146 +127,72 @@ public class ConnectivityNodeModel extends NodeModel {
 	 * {@inheritDoc}
 	 */
 	@Override
-	protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
-			throws Exception {
+	protected void processRow(final DataRow inRow, final BufferedDataTable[] additionalData,
+			final RowAppender[] outputTables) throws Exception {
 
-		final int molColIndex = inData[0].getDataTableSpec().findColumnIndex(m_settings.molColumnName());
-
-		BufferedDataTable res;
-		if (m_settings.removeCompleteRow()) {
-			res = removeRows(inData[0], exec, molColIndex);
-		} else if (m_settings.addFragmentColumn()) {
-			res = addFragments(inData[0], exec, molColIndex);
-		} else {
-			res = retainBiggest(inData[0], exec, molColIndex);
-		}
-
-		return new BufferedDataTable[] { res };
-	}
-
-	private BufferedDataTable removeRows(final BufferedDataTable in, final ExecutionContext exec, final int molColIndex) {
-
-		final double max = in.getRowCount();
-
-		BufferedDataContainer cont = exec.createDataContainer(in.getDataTableSpec());
-		int count = 0;
-		int removed = 0;
-		exec.setMessage("");
-		for (DataRow row : in) {
-			exec.setProgress(count++ / max);
-			if (row.getCell(molColIndex).isMissing()) {
-				cont.addRowToTable(row);
-				continue;
-			}
-
-			IAtomContainer mol = null;
-			try {
-				mol = (IAtomContainer) ((CDKValue) row.getCell(molColIndex)).getAtomContainer().clone();
-			} catch (CloneNotSupportedException exception) {
-				setWarningMessage("Clone not supported.");
-			}
-
-			if (ConnectivityChecker.isConnected(mol)) {
-				cont.addRowToTable(row);
+		if (inRow.getCell(molColIndex).isMissing()) {
+			if (m_settings.addFragmentColumn()) {
+				outputTables[0].addRowToTable(new AppendedColumnRow(inRow, CollectionCellFactory
+						.createSetCell(Collections.singleton(DataType.getMissingCell()))));
 			} else {
-				exec.setMessage("Removed " + ++removed + " molecules");
+				outputTables[0].addRowToTable(inRow);
 			}
+			return;
 		}
-		cont.close();
-
-		return cont.getTable();
+		if (m_settings.removeCompleteRow()) {
+			removeRows(inRow, outputTables);
+		} else if (m_settings.addFragmentColumn()) {
+			addFragments(inRow, outputTables);
+		} else {
+			retainBiggest(inRow, outputTables);
+		}
 	}
 
-	private BufferedDataTable retainBiggest(final BufferedDataTable in, final ExecutionContext exec,
-			final int molColIndex) throws CanceledExecutionException {
+	private void removeRows(final DataRow inRow, final RowAppender[] outputTables) {
 
-		ColumnRearranger crea = new ColumnRearranger(in.getDataTableSpec());
-		SingleCellFactory cf = new SingleCellFactory(in.getDataTableSpec().getColumnSpec(molColIndex)) {
-
-			@Override
-			public DataCell getCell(final DataRow row) {
-
-				if (row.getCell(molColIndex).isMissing()) {
-					return DataType.getMissingCell();
-				}
-
-				IAtomContainer mol = null;
-				try {
-					mol = (IAtomContainer) ((CDKValue) row.getCell(molColIndex)).getAtomContainer().clone();
-				} catch (CloneNotSupportedException exception) {
-					setWarningMessage("Clone not supported.");
-				}
-
-				if (!ConnectivityChecker.isConnected(mol)) {
-					IAtomContainerSet molSet = ConnectivityChecker.partitionIntoMolecules(mol);
-					IAtomContainer biggest = molSet.getAtomContainer(0);
-					for (int i = 1; i < molSet.getAtomContainerCount(); i++) {
-						if (molSet.getAtomContainer(i).getBondCount() > biggest.getBondCount()) {
-							biggest = molSet.getAtomContainer(i);
-						}
-					}
-
-					// remove JCP valency labels
-					for (IAtom atom : biggest.atoms()) {
-						atom.setValency(null);
-					}
-					return new CDKCell(biggest);
-				} else {
-					return row.getCell(molColIndex);
-				}
-			}
-		};
-		crea.replace(cf, molColIndex);
-
-		return exec.createColumnRearrangeTable(in, crea, exec);
+		IAtomContainer mol = ((CDKValue) inRow.getCell(molColIndex)).getAtomContainer();
+		if (ConnectivityChecker.isConnected(mol)) {
+			outputTables[0].addRowToTable(inRow);
+		}
 	}
 
-	private BufferedDataTable addFragments(final BufferedDataTable in, final ExecutionContext exec,
-			final int molColIndex) throws CanceledExecutionException {
+	private void retainBiggest(final DataRow inRow, final RowAppender[] outputTables) throws CanceledExecutionException {
 
-		ColumnRearranger crea = new ColumnRearranger(in.getDataTableSpec());
+		IAtomContainer mol = ((CDKValue) inRow.getCell(molColIndex)).getAtomContainer();
 
-		String name = DataTableSpec.getUniqueColumnName(in.getDataTableSpec(), "Fragments");
-		DataColumnSpec cs = new DataColumnSpecCreator(name, SetCell.getCollectionType(CDKCell.TYPE)).createSpec();
-
-		SingleCellFactory cf = new SingleCellFactory(cs) {
-
-			@Override
-			public DataCell getCell(final DataRow row) {
-
-				if (row.getCell(molColIndex).isMissing()) {
-					return DataType.getMissingCell();
-				}
-
-				IAtomContainer mol = ((CDKValue) row.getCell(molColIndex)).getAtomContainer();
-
-				if (!ConnectivityChecker.isConnected(mol)) {
-					IAtomContainerSet molSet = ConnectivityChecker.partitionIntoMolecules(mol);
-					List<DataCell> cells = new ArrayList<DataCell>(molSet.getAtomContainerCount());
-
-					IAtomContainer singleMol;
-					for (int i = 0; i < molSet.getAtomContainerCount(); i++) {
-						singleMol = molSet.getAtomContainer(i);
-						// remove JCP valency labels
-						for (IAtom atom : singleMol.atoms()) {
-							atom.setValency(null);
-						}
-						cells.add(new CDKCell(singleMol));
-					}
-					// remove JCP valency labels
-					for (IAtom atom : mol.atoms()) {
-						atom.setValency(null);
-					}
-
-					return CollectionCellFactory.createSetCell(cells);
-				} else {
-					return CollectionCellFactory.createSetCell(Collections.singleton(new CDKCell(mol)));
+		if (!ConnectivityChecker.isConnected(mol)) {
+			IAtomContainerSet molSet = ConnectivityChecker.partitionIntoMolecules(mol);
+			IAtomContainer biggest = molSet.getAtomContainer(0);
+			for (int i = 1; i < molSet.getAtomContainerCount(); i++) {
+				if (molSet.getAtomContainer(i).getBondCount() > biggest.getBondCount()) {
+					biggest = molSet.getAtomContainer(i);
 				}
 			}
-		};
-		crea.append(cf);
+			outputTables[0].addRowToTable(new ReplacedColumnsDataRow(inRow, new CDKCell(biggest), molColIndex));
+		} else {
+			outputTables[0].addRowToTable(inRow);
+		}
+	}
 
-		return exec.createColumnRearrangeTable(in, crea, exec);
+	private void addFragments(final DataRow inRow, final RowAppender[] outputTables) throws CanceledExecutionException {
+
+		IAtomContainer mol = ((CDKValue) inRow.getCell(molColIndex)).getAtomContainer();
+
+		if (!ConnectivityChecker.isConnected(mol)) {
+			IAtomContainerSet molSet = ConnectivityChecker.partitionIntoMolecules(mol);
+			List<DataCell> cells = new ArrayList<DataCell>(molSet.getAtomContainerCount());
+
+			IAtomContainer singleMol;
+			for (int i = 0; i < molSet.getAtomContainerCount(); i++) {
+				singleMol = molSet.getAtomContainer(i);
+				cells.add(new CDKCell(singleMol));
+			}
+
+			outputTables[0].addRowToTable(new AppendedColumnRow(inRow, CollectionCellFactory.createSetCell(cells)));
+		} else {
+			outputTables[0].addRowToTable(new AppendedColumnRow(inRow, CollectionCellFactory.createSetCell(Collections
+					.singleton(new CDKCell(mol)))));
+		}
 	}
 
 	/**

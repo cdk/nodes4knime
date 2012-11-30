@@ -66,7 +66,7 @@ public class AtomSignatureNodeDialog extends NodeDialogPane {
 	 * dialog components.
 	 */
 	public AtomSignatureNodeDialog() {
-
+		
 		JPanel p = new JPanel(new GridBagLayout());
 
 		GridBagConstraints c = new GridBagConstraints();

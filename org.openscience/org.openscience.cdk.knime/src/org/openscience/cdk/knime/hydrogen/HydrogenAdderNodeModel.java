@@ -70,6 +70,8 @@ public class HydrogenAdderNodeModel extends ThreadedColAppenderNodeModel {
 	public HydrogenAdderNodeModel() {
 
 		super(1, 1);
+
+		setMaxThreads(CDKNodeUtils.getMaxNumOfThreads());
 	}
 
 	/**
@@ -226,7 +228,7 @@ public class HydrogenAdderNodeModel extends ThreadedColAppenderNodeModel {
 				}
 
 				try {
-					IAtomContainer newMol = (IAtomContainer) ((CDKValue) molCell).getAtomContainer().clone();
+					IAtomContainer newMol = (IAtomContainer) ((CDKValue) molCell).getAtomContainer();
 					newMol = SMSDNormalizer.convertExplicitToImplicitHydrogens(newMol);
 					CDKNodeUtils.getStandardMolecule(newMol);
 					CDKCell newCell = new CDKCell(newMol);

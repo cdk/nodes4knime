@@ -20,23 +20,25 @@ package org.openscience.cdk.knime.convert.cdk2molecule;
 import java.io.File;
 import java.io.IOException;
 
+import org.knime.base.data.append.column.AppendedColumnTable;
+import org.knime.base.data.replace.ReplacedColumnsTable;
+import org.knime.base.node.parallel.appender.ExtendedCellFactory;
+import org.knime.base.node.parallel.appender.ThreadedColAppenderNodeModel;
 import org.knime.chem.types.CMLCell;
 import org.knime.chem.types.Mol2Cell;
 import org.knime.chem.types.SdfCell;
 import org.knime.chem.types.SmilesCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
+import org.knime.core.data.DataTable;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
-import org.knime.core.data.container.ColumnRearranger;
-import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
-import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.openscience.cdk.knime.CDKNodeUtils;
 import org.openscience.cdk.knime.convert.cdk2molecule.CDK2MoleculeSettings.Format;
 import org.openscience.cdk.knime.type.CDKValue;
 
@@ -45,7 +47,7 @@ import org.openscience.cdk.knime.type.CDKValue;
  * 
  * @author Thorsten Meinl, University of Konstanz
  */
-public class CDK2MoleculeNodeModel extends NodeModel {
+public class CDK2MoleculeNodeModel extends ThreadedColAppenderNodeModel {
 
 	private final CDK2MoleculeSettings m_settings = new CDK2MoleculeSettings();
 
@@ -55,6 +57,8 @@ public class CDK2MoleculeNodeModel extends NodeModel {
 	public CDK2MoleculeNodeModel() {
 
 		super(1, 1);
+
+		setMaxThreads(CDKNodeUtils.getMaxNumOfThreads());
 	}
 
 	/**
@@ -63,36 +67,26 @@ public class CDK2MoleculeNodeModel extends NodeModel {
 	@Override
 	protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
 
-		if (m_settings.columnName() == null) {
-			for (DataColumnSpec cs : inSpecs[0]) {
-				if (cs.getType().isCompatible(CDKValue.class)) {
-					if (m_settings.columnName() != null) {
-						setWarningMessage("Selected column '" + m_settings.columnName() + "' as CDK column");
-					} else {
-						m_settings.columnName(cs.getName());
-					}
+		int molColIndex = inSpecs[0].findColumnIndex(m_settings.columnName());
+		if (molColIndex == -1) {
+			int i = 0;
+			for (DataColumnSpec spec : inSpecs[0]) {
+				if (spec.getType().isCompatible(CDKValue.class)) {
+					setWarningMessage("Column '" + spec.getName() + "' automatically chosen as molecule column");
+					molColIndex = i;
+					break;
 				}
+				i++;
 			}
-			if (m_settings.columnName() == null) {
-				throw new InvalidSettingsException("No CDK column in input table");
-			}
-		} else {
-			if (!inSpecs[0].containsName(m_settings.columnName())) {
-				throw new InvalidSettingsException("Column '" + m_settings.columnName()
-						+ "' does not exist in input table");
-			}
-			if (!inSpecs[0].getColumnSpec(m_settings.columnName()).getType().isCompatible(CDKValue.class)) {
-				throw new InvalidSettingsException("Column '" + m_settings.columnName()
-						+ "' does not contain CDK molecules");
+
+			if (molColIndex == -1) {
+				throw new InvalidSettingsException("Column '" + m_settings.columnName() + "' does not exist");
 			}
 		}
 
-		return new DataTableSpec[] { createRearranger(inSpecs[0]).createSpec() };
-	}
-
-	private ColumnRearranger createRearranger(final DataTableSpec inSpec) {
-
-		ColumnRearranger crea = new ColumnRearranger(inSpec);
+		if (!inSpecs[0].getColumnSpec(molColIndex).getType().isCompatible(CDKValue.class)) {
+			throw new InvalidSettingsException("Column '" + m_settings.columnName() + "' does not contain CDK cells");
+		}
 
 		DataType type = null;
 		if (m_settings.destFormat() == Format.SDF) {
@@ -105,35 +99,26 @@ public class CDK2MoleculeNodeModel extends NodeModel {
 			type = CMLCell.TYPE;
 		}
 
-		DataColumnSpec cs;
+		DataTableSpec outSpec;
 		if (m_settings.replaceColumn()) {
-			cs = new DataColumnSpecCreator(m_settings.columnName(), type).createSpec();
+			DataColumnSpecCreator crea = new DataColumnSpecCreator(m_settings.columnName(), type);
+			outSpec = ReplacedColumnsTable.createTableSpec(inSpecs[0], crea.createSpec(), molColIndex);
 		} else {
-			String name = DataTableSpec.getUniqueColumnName(inSpec, m_settings.newColumnName());
-			cs = new DataColumnSpecCreator(name, type).createSpec();
+			DataColumnSpecCreator crea = new DataColumnSpecCreator(DataTableSpec.getUniqueColumnName(inSpecs[0],
+					m_settings.newColumnName()), type);
+			outSpec = AppendedColumnTable.getTableSpec(inSpecs[0], crea.createSpec());
 		}
 
-		MolConverter conv = new MolConverter(cs, inSpec.findColumnIndex(m_settings.columnName()));
-
-		if (m_settings.replaceColumn()) {
-			crea.replace(conv, m_settings.columnName());
-		} else {
-			crea.append(conv);
-		}
-
-		return crea;
+		return new DataTableSpec[] { outSpec };
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
-			throws Exception {
+	protected ExtendedCellFactory[] prepareExecute(final DataTable[] data) throws Exception {
 
-		ColumnRearranger crea = createRearranger(inData[0].getDataTableSpec());
-
-		return new BufferedDataTable[] { exec.createColumnRearrangeTable(inData[0], crea, exec) };
+		return new ExtendedCellFactory[] { new MolConverter(data[0].getDataTableSpec(), m_settings) };
 	}
 
 	/**

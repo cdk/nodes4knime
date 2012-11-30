@@ -22,17 +22,17 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.knime.base.node.parallel.builder.ThreadedTableBuilderNodeModel;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataRow;
+import org.knime.core.data.DataTable;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.node.BufferedDataContainer;
+import org.knime.core.data.container.RowAppender;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
-import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.openscience.cdk.DefaultChemObjectBuilder;
@@ -48,9 +48,11 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
  * 
  * @author Stephan Beisken, European Bioinformatics Institute
  */
-public class ElementFilterNodeModel extends NodeModel {
+public class ElementFilterNodeModel extends ThreadedTableBuilderNodeModel {
 
 	private ElementFilterSettings settings = new ElementFilterSettings();
+	private int colIndex;
+	private Set<String> elementSet;
 
 	/**
 	 * Constructor for the node model.
@@ -64,46 +66,45 @@ public class ElementFilterNodeModel extends NodeModel {
 	 * {@inheritDoc}
 	 */
 	@Override
-	protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
-			throws Exception {
+	protected DataTableSpec[] prepareExecute(final DataTable[] data) throws Exception {
 
 		String[] elements = settings.getElements().split(",");
-		Set<String> elementSet = new HashSet<String>();
+		elementSet = new HashSet<String>();
 		for (String element : elements) {
 			elementSet.add(element);
 		}
 
-		DataTableSpec inSpec = inData[0].getDataTableSpec();
-		final int colIndex = inSpec.findColumnIndex(settings.getMolColumnName());
+		colIndex = data[0].getDataTableSpec().findColumnIndex(settings.getMolColumnName());
 
-		BufferedDataContainer filteredTable = exec.createDataContainer(inSpec);
-		BufferedDataContainer filteredOutTable = exec.createDataContainer(inSpec);
+		return new DataTableSpec[] { data[0].getDataTableSpec(), data[0].getDataTableSpec() };
+	}
 
-		for (DataRow row : inData[0]) {
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected void processRow(final DataRow inRow, final BufferedDataTable[] additionalData,
+			final RowAppender[] outputTables) throws Exception {
 
-			DataCell cell = row.getCell(colIndex);
-			if (cell.isMissing()) {
-				continue;
-			}
-			boolean isValid = true;
-			IAtomContainer compound = ((CDKValue) cell).getAtomContainer();
-			IMolecularFormula formula = MolecularFormulaManipulator.getMolecularFormula(compound);
-			List<IElement> sumElements = MolecularFormulaManipulator.getHeavyElements(formula);
-			for (IElement element : sumElements) {
-				String symbol = element.getSymbol();
-				if (!elementSet.contains(symbol)) {
-					filteredOutTable.addRowToTable(row);
-					isValid = false;
-					break;
-				}
-			}
-			if (isValid) {
-				filteredTable.addRowToTable(row);
+		DataCell cell = inRow.getCell(colIndex);
+		if (cell.isMissing()) {
+			return;
+		}
+		boolean isValid = true;
+		IAtomContainer compound = ((CDKValue) cell).getAtomContainer();
+		IMolecularFormula formula = MolecularFormulaManipulator.getMolecularFormula(compound);
+		List<IElement> sumElements = MolecularFormulaManipulator.getHeavyElements(formula);
+		for (IElement element : sumElements) {
+			String symbol = element.getSymbol();
+			if (!elementSet.contains(symbol)) {
+				outputTables[1].addRowToTable(inRow);
+				isValid = false;
+				break;
 			}
 		}
-		filteredTable.close();
-		filteredOutTable.close();
-		return new BufferedDataTable[] { filteredTable.getTable(), filteredOutTable.getTable() };
+		if (isValid) {
+			outputTables[0].addRowToTable(inRow);
+		}
 	}
 
 	/**
@@ -143,7 +144,7 @@ public class ElementFilterNodeModel extends NodeModel {
 		if (molCol == -1) {
 			throw new InvalidSettingsException("Molecule column '" + settings.getMolColumnName() + "' does not exist");
 		}
-		
+
 		return new DataTableSpec[] { inSpecs[0], inSpecs[0] };
 	}
 

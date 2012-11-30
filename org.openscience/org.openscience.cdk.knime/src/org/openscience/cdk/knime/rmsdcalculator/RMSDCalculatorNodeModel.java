@@ -23,22 +23,22 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.knime.base.node.parallel.appender.AppendColumn;
+import org.knime.base.node.parallel.appender.ColumnDestination;
+import org.knime.base.node.parallel.appender.ExtendedCellFactory;
+import org.knime.base.node.parallel.appender.ThreadedColAppenderNodeModel;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
+import org.knime.core.data.DataTable;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
-import org.knime.core.data.container.ColumnRearranger;
-import org.knime.core.data.container.SingleCellFactory;
 import org.knime.core.data.def.DoubleCell;
-import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
-import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
-import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.distmatrix.type.DistanceVectorDataCell;
@@ -49,14 +49,14 @@ import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.isomorphism.AtomMappingTools;
 import org.openscience.cdk.knime.rmsdcalculator.RMSDCalculatorSettings.AlignmentTypes;
 import org.openscience.cdk.knime.type.CDKValue;
-import org.openscience.cdk.normalize.SMSDNormalizer;
 
 /**
  * This is the model implementation of RMSDCalculator.
  * 
  * @author Luis Filipe de Figueiredo, European Bioinformatics Institute
+ * @author Stephan Beisken, European Bioinformatics Institute
  */
-public class RMSDCalculatorNodeModel extends NodeModel {
+public class RMSDCalculatorNodeModel extends ThreadedColAppenderNodeModel {
 
 	private final RMSDCalculatorSettings m_settings = new RMSDCalculatorSettings();
 	// the logger instance
@@ -68,18 +68,82 @@ public class RMSDCalculatorNodeModel extends NodeModel {
 	protected RMSDCalculatorNodeModel() {
 
 		super(1, 1);
+		// builds a pairwise similarity matrix -> max. 1 thread to ensure sync
+		setMaxThreads(1);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
-			throws Exception {
+	protected ExtendedCellFactory[] prepareExecute(final DataTable[] data) throws Exception {
 
-		ColumnRearranger cr = createColumnRearranger(inData[0].getDataTableSpec());
-		return new BufferedDataTable[] { exec.createColumnRearrangeTable(inData[0], cr, exec) };
+		final int molColIndex = data[0].getDataTableSpec().findColumnIndex(m_settings.molColumnName());
+		final List<IAtomContainer> molList = new ArrayList<IAtomContainer>();
 
+		ExtendedCellFactory cf = new ExtendedCellFactory() {
+
+			@Override
+			public DataCell[] getCells(final DataRow row) {
+				
+				if (row.getCell(molColIndex).isMissing()) {
+					return new DataCell[] { DataType.getMissingCell() };
+				}
+				CDKValue mol = (CDKValue) row.getCell(molColIndex);
+				try {
+					List<DoubleCell> rmsds = new ArrayList<DoubleCell>();
+					IAtomContainer con = (IAtomContainer) mol.getAtomContainer();
+
+					if (!GeometryTools.has3DCoordinates(con)) {
+						return new DataCell[] { DataType.getMissingCell() };
+					}
+
+					for (int i = 0; i < molList.size(); i++) {
+						if (m_settings.alignmentType().equals(AlignmentTypes.Isomorphic)) {
+							Map<Integer, Integer> map = new HashMap<Integer, Integer>();
+							if (molList.get(i).getAtomCount() > con.getAtomCount()) {
+								map = AtomMappingTools.mapAtomsOfAlignedStructures(molList.get(i), con, map);
+								rmsds.add(new DoubleCell(GeometryTools.getAllAtomRMSD(molList.get(i), con, map, true)));
+							} else {
+								map = AtomMappingTools.mapAtomsOfAlignedStructures(con, molList.get(i), map);
+								rmsds.add(new DoubleCell(GeometryTools.getAllAtomRMSD(con, molList.get(i), map, true)));
+							}
+						} else {
+							KabschAlignment sa = new KabschAlignment(con, molList.get(i));
+							sa.align();
+							rmsds.add(new DoubleCell(sa.getRMSD()));
+						}
+					}
+					molList.add(con);
+					double[] rmsdsD = new double[rmsds.size()];
+					for (int i = 0; i < rmsds.size(); i++) {
+						rmsdsD[i] = rmsds.get(i).getDoubleValue();
+					}
+
+					return new DataCell[] { DistanceVectorDataCellFactory.createCell(rmsdsD, rmsdsD.length) };
+				} catch (Exception ex) {
+					ex.printStackTrace();
+					System.out.println("ERR:" + ex.getMessage());
+					LOGGER.error("Error while calculating RMSD", ex);
+					return new DataCell[] { DataType.getMissingCell() };
+				}
+			}
+
+			@Override
+			public ColumnDestination[] getColumnDestinations() {
+
+				return new ColumnDestination[] { new AppendColumn() };
+			}
+
+			@Override
+			public DataColumnSpec[] getColumnSpecs() {
+
+				return new DataColumnSpec[] { new DataColumnSpecCreator("RMSD", DistanceVectorDataCell.TYPE)
+						.createSpec() };
+			}
+		};
+
+		return new ExtendedCellFactory[] { cf };
 	}
 
 	/**
@@ -111,85 +175,12 @@ public class RMSDCalculatorNodeModel extends NodeModel {
 				throw new InvalidSettingsException("No CDK compatible column in input table");
 			}
 		}
-		// creates a new column with the correct specifications
-		ColumnRearranger arranger = createColumnRearranger(inSpecs[0]);
 
-		return new DataTableSpec[] { arranger.createSpec() };
-	}
-
-	private ColumnRearranger createColumnRearranger(final DataTableSpec inSpecs) throws InvalidSettingsException {
-
-		// get column name and check if it is defined
-		String molcolname = m_settings.molColumnName();
-		if (molcolname == null || !inSpecs.containsName(molcolname)) {
-			throw new InvalidSettingsException("No such column: " + molcolname);
-		}
-
-		DataColumnSpec cs = inSpecs.getColumnSpec(molcolname);
-		// check the datatype of the column
-		if (!cs.getType().isCompatible(CDKValue.class)) {
-			throw new InvalidSettingsException("No CDK column: " + molcolname);
-		}
-		String newColName = DataTableSpec.getUniqueColumnName(inSpecs, "RMSD");
+		String newColName = DataTableSpec.getUniqueColumnName(inSpecs[0], "RMSD");
 		DataColumnSpecCreator c = new DataColumnSpecCreator(newColName, DistanceVectorDataCell.TYPE);
-		DataColumnSpec appendSpec = c.createSpec();
 
-		final int molColIndex = inSpecs.findColumnIndex(molcolname);
-
-		final List<IAtomContainer> molList = new ArrayList<IAtomContainer>();
-
-		SingleCellFactory cf = new SingleCellFactory(appendSpec) {
-
-			@Override
-			public DataCell getCell(final DataRow row) {
-
-				if (row.getCell(molColIndex).isMissing()) {
-					return DataType.getMissingCell();
-				}
-				CDKValue mol = (CDKValue) row.getCell(molColIndex);
-				try {
-					List<DoubleCell> rmsds = new ArrayList<DoubleCell>();
-					IAtomContainer con = (IAtomContainer) mol.getAtomContainer().clone();
-					SMSDNormalizer.aromatizeMolecule(con);
-
-					if (!GeometryTools.has3DCoordinates(con)) {
-						return DataType.getMissingCell();
-					}
-
-					for (int i = 0; i < molList.size(); i++) {
-						if (m_settings.alignmentType().equals(AlignmentTypes.Isomorphic)) {
-							Map<Integer, Integer> map = new HashMap<Integer, Integer>();
-							if (molList.get(i).getAtomCount() > con.getAtomCount()) {
-								map = AtomMappingTools.mapAtomsOfAlignedStructures(molList.get(i), con, map);
-								rmsds.add(new DoubleCell(GeometryTools.getAllAtomRMSD(molList.get(i), con, map, true)));
-							} else {
-								map = AtomMappingTools.mapAtomsOfAlignedStructures(con, molList.get(i), map);
-								rmsds.add(new DoubleCell(GeometryTools.getAllAtomRMSD(con, molList.get(i), map, true)));
-							}
-
-						} else {
-							KabschAlignment sa = new KabschAlignment(con, molList.get(i));
-							sa.align();
-							rmsds.add(new DoubleCell(sa.getRMSD()));
-						}
-					}
-					molList.add(con);
-					double[] rmsdsD = new double[rmsds.size()];
-					for (int i = 0; i < rmsds.size(); i++) {
-						rmsdsD[i] = rmsds.get(i).getDoubleValue();
-					}
-
-					return DistanceVectorDataCellFactory.createCell(rmsdsD, rmsdsD.length);
-				} catch (Exception ex) {
-					LOGGER.error("Error while calculating RMSD", ex);
-					return DataType.getMissingCell();
-				}
-			}
-		};
-
-		ColumnRearranger arranger = new ColumnRearranger(inSpecs);
-		arranger.append(cf);
-		return arranger;
+		DataTableSpec dts = new DataTableSpec(inSpecs[0], new DataTableSpec(c.createSpec()));
+		return new DataTableSpec[] { dts };
 	}
 
 	/**

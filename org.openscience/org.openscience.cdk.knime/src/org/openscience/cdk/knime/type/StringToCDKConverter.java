@@ -27,6 +27,7 @@ import org.knime.core.node.NodeLogger;
 /**
  * @author Bernd Wiswedel, University of Konstanz
  */
+@Deprecated
 public final class StringToCDKConverter extends ReplacedCellFactory {
 
 	private static final NodeLogger LOGGER = NodeLogger.getLogger(StringToCDKConverter.class);
@@ -52,7 +53,6 @@ public final class StringToCDKConverter extends ReplacedCellFactory {
 		return stringToDataCell(smiles);
 	}
 
-	@SuppressWarnings("deprecation")
 	public DataCell stringToDataCell(final String smiles) {
 
 		/*

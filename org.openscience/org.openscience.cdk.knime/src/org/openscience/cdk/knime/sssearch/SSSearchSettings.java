@@ -25,30 +25,34 @@ import org.knime.core.node.NodeSettingsWO;
  * This class holds all necessary settings for the substructure search node.
  * 
  * @author Thorsten Meinl, University of Konstanz
+ * @author Stephan Beisken, European Bioinformatics Institute
  */
 public class SSSearchSettings {
 
-	private String[] m_smilesFragments;
+	private String sdf;
 	private String m_molColumnName;
+	private boolean highlight = false;
 
+	
 	/**
-	 * Returns Smiles strings containing the fragment.
+	 * Gets the SDF string of the molecules.
 	 * 
-	 * @return the fragments in Smiles
+	 * @return the sdf the SDF string
 	 */
-	public String[] smilesFragments() {
-
-		return m_smilesFragments;
+	public final String getSdf() {
+	
+		return sdf;
 	}
 
+	
 	/**
-	 * Sets the Smiles strings containing the fragments.
+	 * Sets the SDF string of the molecules.
 	 * 
-	 * @param cml the fragments in Smiles
+	 * @param sdf the sdf to set
 	 */
-	public void smilesFragments(final String... cml) {
-
-		m_smilesFragments = cml;
+	public final void setSdf(String sdf) {
+	
+		this.sdf = sdf;
 	}
 
 	/**
@@ -70,6 +74,26 @@ public class SSSearchSettings {
 
 		m_molColumnName = colName;
 	}
+	
+	/**
+	 * Returns if the substructure should be highlighted.
+	 * 
+	 * @return if highlighted
+	 */
+	public final boolean isHighlight() {
+	
+		return highlight;
+	}
+	
+	/**
+	 * Sets if the substructure should be highlighted.
+	 * 
+	 * @param highlight if highlighted
+	 */
+	public final void setHighlight(boolean highlight) {
+	
+		this.highlight = highlight;
+	}
 
 	/**
 	 * Saves the settings into the given node settings object.
@@ -79,7 +103,8 @@ public class SSSearchSettings {
 	public void saveSettings(final NodeSettingsWO settings) {
 
 		settings.addString("molColumn", m_molColumnName);
-		settings.addStringArray("fragments", m_smilesFragments);
+		settings.addString("fragments", sdf);
+		settings.addBoolean("highlight", highlight);
 	}
 
 	/**
@@ -91,6 +116,7 @@ public class SSSearchSettings {
 	public void loadSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
 
 		m_molColumnName = settings.getString("molColumn");
-		m_smilesFragments = settings.getStringArray("fragments");
+		sdf = settings.getString("fragments");
+		highlight = settings.getBoolean("highlight");
 	}
 }

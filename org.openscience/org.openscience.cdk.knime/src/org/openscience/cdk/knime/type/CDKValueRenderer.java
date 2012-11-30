@@ -23,7 +23,8 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.vecmath.Point2d;
 import javax.vecmath.Point3d;
@@ -37,16 +38,18 @@ import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IAtomContainerSet;
 import org.openscience.cdk.knime.CDKNodePlugin;
-import org.openscience.cdk.knime.type.renderer.ElementNumberGenerator;
-import org.openscience.cdk.knime.type.renderer.ElementNumberGenerator.NUMBERING;
-import org.openscience.cdk.knime.type.renderer.ElementNumberGenerator.TYPE;
-import org.openscience.jchempaint.renderer.AtomContainerRenderer;
-import org.openscience.jchempaint.renderer.RendererModel;
-import org.openscience.jchempaint.renderer.font.AWTFontManager;
-import org.openscience.jchempaint.renderer.generators.BasicAtomGenerator;
-import org.openscience.jchempaint.renderer.generators.ExtendedAtomGenerator;
-import org.openscience.jchempaint.renderer.generators.RingGenerator;
-import org.openscience.jchempaint.renderer.visitor.AWTDrawVisitor;
+import org.openscience.cdk.knime.CDKPreferencePage.AROMATICITY;
+import org.openscience.cdk.knime.CDKPreferencePage.NUMBERING;
+import org.openscience.cdk.renderer.AtomContainerRenderer;
+import org.openscience.cdk.renderer.RendererModel;
+import org.openscience.cdk.renderer.font.AWTFontManager;
+import org.openscience.cdk.renderer.generators.AtomNumberGenerator;
+import org.openscience.cdk.renderer.generators.BasicAtomGenerator;
+import org.openscience.cdk.renderer.generators.BasicSceneGenerator;
+import org.openscience.cdk.renderer.generators.ExtendedAtomGenerator;
+import org.openscience.cdk.renderer.generators.IGenerator;
+import org.openscience.cdk.renderer.generators.RingGenerator;
+import org.openscience.cdk.renderer.visitor.AWTDrawVisitor;
 
 /**
  * Renderer for {@link CDKValue}s. It will use CDK classes to render a 2D structure of a molecule.
@@ -59,43 +62,61 @@ import org.openscience.jchempaint.renderer.visitor.AWTDrawVisitor;
  */
 public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 
+	public enum TYPE {
+		ALL_ATOMS(""), C_ATOMS("C"), H_ATOMS("H");
+
+		private final String symbol;
+
+		private TYPE(String symbol) {
+
+			this.symbol = symbol;
+		}
+
+		public String getSymbol() {
+
+			return symbol;
+		}
+	};
+
 	private static final NodeLogger LOGGER = NodeLogger.getLogger(CDKValueRenderer.class);
 
 	private static AtomContainerRenderer renderer;
-	private static AtomContainerRenderer rendererNumber;
-	
+
 	private static AtomContainerRenderer RENDERER;
 	private static final double SCALE = 0.9;
 
 	static {
 		try {
-			renderer = new AtomContainerRenderer(Arrays.asList(new RingGenerator(), new ExtendedAtomGenerator(),
-					new ElementNumberGenerator()), new AWTFontManager(), true);
+			List<IGenerator<IAtomContainer>> generators = new ArrayList<IGenerator<IAtomContainer>>();
+			generators.add(new BasicSceneGenerator());
+			generators.add(new RingGenerator());
+			generators.add(new ExtendedAtomGenerator());
+			generators.add(new AtomNumberGenerator());
+			renderer = new AtomContainerRenderer(generators, new AWTFontManager());
 
-			RendererModel renderer2dModel = renderer.getRenderer2DModel();
-			setRendererProps(renderer2dModel);
-			
-			rendererNumber = new AtomContainerRenderer(Arrays.asList(new RingGenerator(), new BasicAtomGenerator(),
-					new ElementNumberGenerator()), new AWTFontManager(), true);
-			
-			RendererModel renderer2dModelNumber = rendererNumber.getRenderer2DModel();
-			setRendererProps(renderer2dModelNumber);
-			renderer2dModelNumber.setDrawNumbers(true);
-			
+			setDefaultRendererProps(renderer.getRenderer2DModel(), CDKNodePlugin.showAomaticity());
+
 		} catch (Exception e) {
 			LOGGER.error("Error during renderer initialization!", e);
 		}
 
 		RENDERER = renderer;
 	}
-	
-	private static void setRendererProps(RendererModel renderer2dModel) {
+
+	private static void setDefaultRendererProps(RendererModel renderer2dModel, AROMATICITY aromaticity) {
+
+		if (aromaticity.equals(AROMATICITY.SHOW_KEKULE)) {
+			renderer.getRenderer2DModel().set(RingGenerator.ShowAromaticity.class, false);
+		} else {
+			renderer.getRenderer2DModel().set(RingGenerator.ShowAromaticity.class, true);
+		}
 		
-		renderer2dModel.setUseAntiAliasing(true);
-		renderer2dModel.setShowAtomAtomMapping(false);
-		renderer2dModel.setShowAtomTypeNames(false);
-		renderer2dModel.setShowExplicitHydrogens(true);
-		renderer2dModel.setShowAromaticity(true);
+		renderer2dModel.set(RingGenerator.MaxDrawableAromaticRing.class, 9);
+		renderer2dModel.set(BasicSceneGenerator.UseAntiAliasing.class, true);
+		renderer2dModel.set(BasicAtomGenerator.ShowExplicitHydrogens.class, true);
+		renderer2dModel.set(BasicAtomGenerator.ShowEndCarbons.class, true);
+		renderer2dModel.set(ExtendedAtomGenerator.ShowImplicitHydrogens.class, true);
+		renderer2dModel.set(AtomNumberGenerator.WillDrawAtomNumbers.class, false);
 	}
 
 	private IAtomContainer m_mol;
@@ -106,6 +127,18 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 
 		super();
 
+		AROMATICITY aromaticity;
+		
+		switch (CDKNodePlugin.showAomaticity()) {
+		
+		case SHOW_KEKULE:
+			aromaticity = AROMATICITY.SHOW_KEKULE;
+			break;
+		default:
+			aromaticity = AROMATICITY.SHOW_RINGS;
+			break;
+		}
+		
 		NUMBERING numbering;
 
 		switch (CDKNodePlugin.numbering()) {
@@ -121,24 +154,44 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 		switch (CDKNodePlugin.showNumbers()) {
 
 		case ALL:
-			setNumberRenderer(TYPE.ALL_ATOMS, numbering);
+			setRendererProps(TYPE.ALL_ATOMS, numbering, aromaticity);
 			break;
 		case CARBON:
-			setNumberRenderer(TYPE.C_ATOMS, numbering);
+			setRendererProps(TYPE.C_ATOMS, numbering, aromaticity);
 			break;
 		case HYDROGEN:
-			setNumberRenderer(TYPE.H_ATOMS, numbering);
+			setRendererProps(TYPE.H_ATOMS, numbering, aromaticity);
 			break;
 		default:
-			RENDERER = renderer;
+			setDefaultRendererProps(renderer.getRenderer2DModel(), aromaticity);
 			break;
 		}
 	}
 
-	private void setNumberRenderer(TYPE type, NUMBERING numbering) {
+	/**
+	 * Sets the numbering parameters for the renderer model.
+	 * 
+	 * @param type the element symbol to be replaced by a number
+	 * @param numbering the numbering scheme (sequential, canonical)
+	 */
+	private void setRendererProps(TYPE type, NUMBERING numbering, AROMATICITY aromaticity) {
 
-		RENDERER = rendererNumber;
-		((ElementNumberGenerator) RENDERER.getGenerators().get(2)).setType(type, numbering);
+		renderer.getRenderer2DModel().set(ExtendedAtomGenerator.ShowImplicitHydrogens.class, false);
+		renderer.getRenderer2DModel().set(BasicAtomGenerator.ShowEndCarbons.class, false);
+		renderer.getRenderer2DModel().set(AtomNumberGenerator.WillDrawAtomNumbers.class, true);
+		renderer.getRenderer2DModel().set(AtomNumberGenerator.DrawSpecificElement.class, type.getSymbol());
+		
+		if (aromaticity.equals(AROMATICITY.SHOW_KEKULE)) {
+			renderer.getRenderer2DModel().set(RingGenerator.ShowAromaticity.class, false);
+		} else {
+			renderer.getRenderer2DModel().set(RingGenerator.ShowAromaticity.class, true);
+		}
+		
+		if (numbering.equals(NUMBERING.SEQUENTIAL)) {
+			renderer.getRenderer2DModel().set(AtomNumberGenerator.DrawSequential.class, true);
+		} else {
+			renderer.getRenderer2DModel().set(AtomNumberGenerator.DrawSequential.class, false);
+		}
 	}
 
 	/**
@@ -187,6 +240,7 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 	protected void paintComponent(final Graphics g) {
 
 		super.paintComponent(g);
+		
 		g.setFont(NO_2D_FONT);
 
 		if (m_mol == null) {
@@ -265,8 +319,8 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 		GeometryTools.translateAllPositive(cont);
 		GeometryTools.scaleMolecule(cont, aPrefferedSize, 0.8f);
 		GeometryTools.center(cont, aPrefferedSize);
-		
-		RENDERER.paintMolecule(cont, new AWTDrawVisitor(g2), new Rectangle(x, y, width, height), true);
+
+		RENDERER.paint(cont, new AWTDrawVisitor(g2), new Rectangle(x, y, width, height), true);
 	}
 
 	/**

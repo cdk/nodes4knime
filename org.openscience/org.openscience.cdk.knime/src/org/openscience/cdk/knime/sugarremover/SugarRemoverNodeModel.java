@@ -22,20 +22,23 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.knime.base.data.append.column.AppendedColumnRow;
+import org.knime.base.node.parallel.builder.ThreadedTableBuilderNodeModel;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
+import org.knime.core.data.DataTable;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
+import org.knime.core.data.RowKey;
+import org.knime.core.data.container.RowAppender;
 import org.knime.core.data.def.DefaultRow;
-import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
-import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeModel;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.openscience.cdk.Atom;
@@ -51,6 +54,7 @@ import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.interfaces.IRing;
 import org.openscience.cdk.interfaces.IRingSet;
 import org.openscience.cdk.isomorphism.UniversalIsomorphismTester;
+import org.openscience.cdk.knime.CDKNodeUtils;
 import org.openscience.cdk.knime.type.CDKCell;
 import org.openscience.cdk.knime.type.CDKValue;
 import org.openscience.cdk.normalize.SMSDNormalizer;
@@ -64,12 +68,16 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
  * This is the model implementation of SugarRemover.
  * 
  * @author Luis Filipe de Figueiredo, European Bioinformatics Institute
+ * @author Stephan Beisken, European Bioinformatics Institute
  */
-public class SugarRemoverNodeModel extends NodeModel {
+public class SugarRemoverNodeModel extends ThreadedTableBuilderNodeModel {
+
+	private static final NodeLogger LOGGER = NodeLogger.getLogger(SugarRemoverNodeModel.class);
 
 	private final SugarRemoverSettings m_settings = new SugarRemoverSettings();
 
-	private static List<IAtomContainer> sugarChains;
+	private int molColIndex;
+	private List<IAtomContainer> sugarChains;
 	private final UniversalIsomorphismTester isomorphismTester = new UniversalIsomorphismTester();
 
 	private boolean explicitH_flag = false;
@@ -86,8 +94,7 @@ public class SugarRemoverNodeModel extends NodeModel {
 	 * {@inheritDoc}
 	 */
 	@Override
-	protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
-			throws Exception {
+	protected DataTableSpec[] prepareExecute(final DataTable[] data) throws Exception {
 
 		String[] smilesList = { "C(C(C(C(C(C=O)O)O)O)O)O", "C(C(CC(C(CO)O)O)O)(O)=O", "C(C(C(CC(=O)O)O)O)O",
 				"C(C(C(C(C(CO)O)O)O)=O)O", "C(C(C(C(C(CO)O)O)O)O)O", "C(C(C(C(CC=O)O)O)O)O", "occ(o)co",
@@ -100,96 +107,85 @@ public class SugarRemoverNodeModel extends NodeModel {
 
 		try {
 			for (String smiles : smilesList) {
-				// generate the iatomcontainers for predefined sugar structures
 				sugarChains.add(sp.parseSmiles(smiles));
 			}
 		} catch (InvalidSmilesException ex) {
-			// TODO say something
+			LOGGER.error(ex.getMessage());
 		}
 
-		final int molColIndex = inData[0].getDataTableSpec().findColumnIndex(m_settings.molColumnName());
+		molColIndex = data[0].getDataTableSpec().findColumnIndex(m_settings.molColumnName());
 
-		DataTableSpec tbspecs = new DataTableSpec(createColSpec(inData[0].getSpec()));
+		DataColumnSpec[] colSpecs = createColSpec(data[0].getDataTableSpec());
+		return new DataTableSpec[] { new DataTableSpec(colSpecs) };
+	}
 
-		BufferedDataContainer container = exec.createDataContainer(tbspecs);
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected void processRow(final DataRow inRow, final BufferedDataTable[] additionalData,
+			final RowAppender[] outputTables) throws Exception {
 
-		for (DataRow inRow : inData[0]) {
-
-			// copy the row cells
-			DataCell[] inCells = new DataCell[inRow.getNumCells()];
-			for (int i = 0; i < inCells.length; i++) {
-				inCells[i] = inRow.getCell(i);
-			}
-			if (inRow.getCell(molColIndex).isMissing()) {
-				DataCell[] newRow = new DataCell[tbspecs.getNumColumns()];
-				System.arraycopy(inCells, 0, newRow, 0, inCells.length);
-				// just do something if it is not to replace the column
-				// because one has to add a missing cell
-				if (!m_settings.replaceColumn())
-					newRow[tbspecs.findColumnIndex(m_settings.appendColumnName())] = DataType.getMissingCell();
-				container.addRowToTable(new DefaultRow(inRow.getKey(), newRow));
+		if (inRow.getCell(molColIndex).isMissing()) {
+			if (!m_settings.replaceColumn()) {
+				outputTables[0].addRowToTable(new AppendedColumnRow(inRow, DataType.getMissingCell()));
 			} else {
-				IAtomContainer oldMol = ((CDKValue) inRow.getCell(molColIndex)).getAtomContainer();
-				IAtomContainer clonedMol = (IAtomContainer) oldMol.clone();
+				outputTables[0].addRowToTable(inRow);
+			}
+			return;
+		} else {
+			IAtomContainer oldMol = ((CDKValue) inRow.getCell(molColIndex)).getAtomContainer();
+			IAtomContainer clonedMol = (IAtomContainer) oldMol.clone();
 
-				// keep track of the state of the Hydrogens
-				SMSDNormalizer.convertExplicitToImplicitHydrogens(clonedMol);
-				explicitH_flag = (oldMol.getAtomCount() != clonedMol.getAtomCount());
+			// keep track of the state of the Hydrogens
+			SMSDNormalizer.convertExplicitToImplicitHydrogens(clonedMol);
+			explicitH_flag = (oldMol.getAtomCount() != clonedMol.getAtomCount());
 
-				List<CDKCell> newMols = removeSugars(clonedMol);
-				if (newMols.isEmpty()) {
-					container.addRowToTable(new DefaultRow(inRow.getKey(),
-							buildRow(molColIndex, tbspecs, inCells, null)));
+			List<DataCell> newMols = removeSugars(clonedMol);
+			if (newMols.isEmpty()) {
+				if (!m_settings.replaceColumn()) {
+					outputTables[0].addRowToTable(new AppendedColumnRow(inRow, DataType.getMissingCell()));
 				} else {
-					int count = 0;
-					for (int i = 0; i < newMols.size(); i++) {
+					outputTables[0].addRowToTable(inRow);
+				}
+				return;
+			} else {
+				for (int i = 0; i < newMols.size(); i++) {
 
-						AtomContainerManipulator.convertImplicitToExplicitHydrogens(newMols.get(i).getAtomContainer());
-						if (!explicitH_flag)
-							newMols.set(
-									i,
-									new CDKCell(SMSDNormalizer.convertExplicitToImplicitHydrogens(newMols.get(i)
-											.getAtomContainer())));
-						DataCell[] newRow = buildRow(molColIndex, tbspecs, inCells, newMols.get(i));
-						container.addRowToTable(new DefaultRow(inRow.getKey() + "_" + count, newRow));
-						count++;
+					AtomContainerManipulator.convertImplicitToExplicitHydrogens(((CDKCell) newMols.get(i))
+							.getAtomContainer());
+					if (!explicitH_flag)
+						newMols.set(
+								i,
+								new CDKCell(
+										SMSDNormalizer.convertExplicitToImplicitHydrogens(((CDKCell) newMols.get(i))
+												.getAtomContainer())));
+					if (!m_settings.replaceColumn()) {
+						outputTables[0].addRowToTable(new AppendedColumnRow(new RowKey(inRow.getKey().getString() + "_"
+								+ i), inRow, newMols.get(i)));
+					} else {
+						DataCell[] replacedCells = new DataCell[inRow.getNumCells()];
+						int k = 0;
+						for (DataCell cell : inRow) {
+							if (k == molColIndex) {
+								replacedCells[k] = newMols.get(i);
+							} else {
+								replacedCells[k] = cell;
+							}
+							k++;
+						}
+						outputTables[0].addRowToTable(new DefaultRow(new RowKey(inRow.getKey().getString() + "_" + i),
+								replacedCells));
 					}
 				}
 			}
 		}
-		container.close();
-
-		return new BufferedDataTable[] { container.getTable() };
-
-	}
-
-	/**
-	 * Build a new row by copying the previous entries and append of replace column with new value
-	 * 
-	 * @param molColIndex
-	 * @param tbspecs
-	 * @param inCells
-	 * @param newMol
-	 * @return
-	 */
-	private DataCell[] buildRow(final int molColIndex, DataTableSpec tbspecs, DataCell[] inCells, CDKCell newMol) {
-
-		DataCell[] newRow = new DataCell[tbspecs.getNumColumns()];
-		// Copying the cell that is going to be replace could be avoided...
-		System.arraycopy(inCells, 0, newRow, 0, inCells.length);
-		if (m_settings.replaceColumn()) {
-			newRow[molColIndex] = newMol == null ? DataType.getMissingCell() : newMol;
-		} else {
-			newRow[tbspecs.findColumnIndex(m_settings.appendColumnName())] = newMol == null ? DataType.getMissingCell()
-					: newMol;
-		}
-		return newRow;
 	}
 
 	/**
 	 * remove the sugar rings from a molecule
 	 */
-	private List<CDKCell> removeSugars(IAtomContainer atomContainer) {
+	private List<DataCell> removeSugars(IAtomContainer atomContainer) {
 
 		// find all the rings in the molecule
 		SSSRFinder molecule_ring = new SSSRFinder(atomContainer);
@@ -227,7 +223,7 @@ public class SugarRemoverNodeModel extends NodeModel {
 		// get the set of atom containers remaining after removing the glycoside
 		// bond
 		IAtomContainerSet molset = ConnectivityChecker.partitionIntoMolecules(atomContainer);
-		List<CDKCell> remainingMols = new ArrayList<CDKCell>(molset.getAtomContainerCount());
+		List<DataCell> remainingMols = new ArrayList<DataCell>(molset.getAtomContainerCount());
 		int addedMol = 0;
 		// Remove all sugars with an open ring structure
 		for (int i = 0; i < molset.getAtomContainerCount(); i++) {
@@ -242,7 +238,13 @@ public class SugarRemoverNodeModel extends NodeModel {
 				if (!hasSugarChains(molset.getAtomContainer(i), ringset.getAtomContainerCount())) {
 					if (explicitH_flag)
 						AtomContainerManipulator.convertImplicitToExplicitHydrogens(molset.getAtomContainer(i));
-					remainingMols.add(new CDKCell(molset.getAtomContainer(i)));
+					try {
+						IAtomContainer mol = molset.getAtomContainer(i);
+						CDKNodeUtils.getStandardMolecule(mol);
+						remainingMols.add(new CDKCell(mol));
+					} catch (Exception exception) {
+						remainingMols.add(DataType.getMissingCell());
+					}
 					addedMol++;
 				}
 			}
@@ -403,9 +405,7 @@ public class SugarRemoverNodeModel extends NodeModel {
 	@Override
 	protected void reset() {
 
-		// TODO Code executed on reset.
-		// Models build during execute are cleared here.
-		// Also data handled in load/saveInternals will be erased here.
+		// nothing to do
 	}
 
 	/**
@@ -439,8 +439,7 @@ public class SugarRemoverNodeModel extends NodeModel {
 			throw new InvalidSettingsException("Molecule column '" + m_settings.molColumnName() + "' does not exist");
 		}
 
-		// check if there is any issue with the name of the column to be
-		// appended
+		// check if there is any issue with the name of the column to be appended
 		if (!m_settings.replaceColumn()) {
 			String name = m_settings.appendColumnName();
 
@@ -452,7 +451,6 @@ public class SugarRemoverNodeModel extends NodeModel {
 			}
 		}
 
-		// configure the new column specs
 		DataColumnSpec[] colSpecs = createColSpec(inSpecs[0]);
 
 		return new DataTableSpec[] { new DataTableSpec(colSpecs) };
@@ -532,5 +530,4 @@ public class SugarRemoverNodeModel extends NodeModel {
 
 		// do nothing
 	}
-
 }

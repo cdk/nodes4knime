@@ -19,24 +19,36 @@ package org.openscience.cdk.knime.whim3d;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
+import org.knime.base.node.parallel.appender.AppendColumn;
+import org.knime.base.node.parallel.appender.ColumnDestination;
+import org.knime.base.node.parallel.appender.ExtendedCellFactory;
+import org.knime.base.node.parallel.appender.ThreadedColAppenderNodeModel;
+import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
+import org.knime.core.data.DataRow;
+import org.knime.core.data.DataTable;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
+import org.knime.core.data.collection.CollectionCellFactory;
 import org.knime.core.data.collection.ListCell;
-import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.data.def.DoubleCell;
-import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
-import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.openscience.cdk.graph.ConnectivityChecker;
+import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.knime.type.CDKValue;
+import org.openscience.cdk.qsar.DescriptorValue;
+import org.openscience.cdk.qsar.IMolecularDescriptor;
+import org.openscience.cdk.qsar.descriptors.molecular.WHIMDescriptor;
+import org.openscience.cdk.qsar.result.DoubleArrayResult;
 
 /**
  * This is the model implementation of Whim3d. Holistic descriptors described by Todeschini et al. The descriptors are
@@ -44,7 +56,7 @@ import org.openscience.cdk.knime.type.CDKValue;
  * 
  * @author Stephan Beisken, European Bioinformatics Institute
  */
-public class Whim3dNodeModel extends NodeModel {
+public class Whim3dNodeModel extends ThreadedColAppenderNodeModel {
 
 	private Whim3dSettings settings = new Whim3dSettings();
 	private int columnIndex;
@@ -61,30 +73,115 @@ public class Whim3dNodeModel extends NodeModel {
 	 * {@inheritDoc}
 	 */
 	@Override
-	protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
-			throws Exception {
+	protected ExtendedCellFactory[] prepareExecute(final DataTable[] data) throws Exception {
 
-		DataTableSpec inSpec = inData[0].getDataTableSpec();
-		ColumnRearranger rearranger = createColumnRearranger(inSpec);
-		BufferedDataTable outTable = exec.createColumnRearrangeTable(inData[0], rearranger, exec);
+		final List<Whim3dSchemes> weightingSchemes = new ArrayList<Whim3dSchemes>();
+		final List<DataColumnSpec> dataColSpec = createOutputTableSpecification();
 
-		return new BufferedDataTable[] { outTable };
+		for (DataColumnSpec outputColumnSpec : dataColSpec) {
+
+			if (outputColumnSpec.getName().equals(Whim3dSchemes.UNITY_WEIGHTS.getTitle()))
+				weightingSchemes.add(Whim3dSchemes.UNITY_WEIGHTS);
+			if (outputColumnSpec.getName().equals(Whim3dSchemes.ATOMIC_MASSES.getTitle()))
+				weightingSchemes.add(Whim3dSchemes.ATOMIC_MASSES);
+			if (outputColumnSpec.getName().equals(Whim3dSchemes.ATOMIC_POLARIZABILITIES.getTitle()))
+				weightingSchemes.add(Whim3dSchemes.ATOMIC_POLARIZABILITIES);
+			if (outputColumnSpec.getName().equals(Whim3dSchemes.VdW_VOLUMES.getTitle()))
+				weightingSchemes.add(Whim3dSchemes.VdW_VOLUMES);
+			if (outputColumnSpec.getName().equals(Whim3dSchemes.ATOMIC_ELECTRONEGATIVITIES.getTitle()))
+				weightingSchemes.add(Whim3dSchemes.ATOMIC_ELECTRONEGATIVITIES);
+		}
+
+		final IMolecularDescriptor whimDescriptor = new WHIMDescriptor();
+
+		ExtendedCellFactory cf = new ExtendedCellFactory() {
+
+			/**
+			 * {@inheritDoc}
+			 */
+			@Override
+			public DataCell[] getCells(DataRow row) {
+
+				DataCell cdkCell = row.getCell(columnIndex);
+				DataCell[] whimValueCells = new DataCell[dataColSpec.size()];
+
+				if (cdkCell.isMissing()) {
+					Arrays.fill(whimValueCells, DataType.getMissingCell());
+					return whimValueCells;
+				}
+
+				IAtomContainer molecule = ((CDKValue) row.getCell(columnIndex)).getAtomContainer();
+				if (!ConnectivityChecker.isConnected(molecule))
+					molecule = ConnectivityChecker.partitionIntoMolecules(molecule).getAtomContainer(0);
+
+				whimValueCells = calculateWhimValues(molecule);
+
+				return whimValueCells;
+			}
+
+			private DataCell[] calculateWhimValues(IAtomContainer molecule) {
+
+				DataCell[] whimValueCells = new DataCell[dataColSpec.size()];
+
+				int cellIndex = 0;
+				for (Whim3dSchemes weightingScheme : weightingSchemes) {
+					whimValueCells[cellIndex] = calculateValueForScheme(weightingScheme, molecule);
+					cellIndex++;
+				}
+
+				return whimValueCells;
+			}
+
+			private DataCell calculateValueForScheme(Whim3dSchemes scheme, IAtomContainer molecule) {
+
+				try {
+					Object[] whimParameter = new String[] { scheme.getParameterName() };
+					whimDescriptor.setParameters(whimParameter);
+
+					// try catch because WHIM works for certain elements only
+					DescriptorValue whimValue = whimDescriptor.calculate(molecule);
+					DoubleArrayResult whimResultArray = (DoubleArrayResult) whimValue.getValue();
+
+					return getDataCell(whimResultArray);
+
+				} catch (Exception exception) {
+					return DataType.getMissingCell();
+				}
+			}
+
+			private DataCell getDataCell(DoubleArrayResult whimResultArray) {
+
+				Collection<DoubleCell> resultCol = new ArrayList<DoubleCell>();
+				for (int i = 0; i < whimResultArray.length(); i++) {
+					double res = whimResultArray.get(i);
+					resultCol.add(new DoubleCell(res));
+				}
+				DataCell cell = CollectionCellFactory.createListCell(resultCol);
+
+				return cell;
+			}
+
+			@Override
+			public ColumnDestination[] getColumnDestinations() {
+
+				return new ColumnDestination[] { new AppendColumn() };
+			}
+
+			@Override
+			public DataColumnSpec[] getColumnSpecs() {
+
+				return createSpec();
+			}
+		};
+
+		return new ExtendedCellFactory[] { cf };
 	}
 
-	/**
-	 * Generates the output table specification and appends the calculated molecular properties to the input table.
-	 */
-	private ColumnRearranger createColumnRearranger(DataTableSpec spec) throws InvalidSettingsException {
+	private DataColumnSpec[] createSpec() {
 
-		List<DataColumnSpec> dataColumnSpecs = createOutputTableSpecification();
+		DataColumnSpec[] outSpec = createOutputTableSpecification().toArray(new DataColumnSpec[] {});
 
-		final int colIndex = spec.findColumnIndex(settings.getMolColumnName());
-
-		Whim3dGenerator generator = new Whim3dGenerator(colIndex, dataColumnSpecs.toArray(new DataColumnSpec[] {}));
-		ColumnRearranger arrange = new ColumnRearranger(spec);
-		arrange.append(generator);
-
-		return arrange;
+		return outSpec;
 	}
 
 	/**
@@ -159,8 +256,8 @@ public class Whim3dNodeModel extends NodeModel {
 			throw new InvalidSettingsException("Column does not contain CDK cells");
 		}
 
-		ColumnRearranger arranger = createColumnRearranger(inSpecs[0]);
-		return new DataTableSpec[] { arranger.createSpec() };
+		DataTableSpec outSpec = new DataTableSpec(createSpec());
+		return new DataTableSpec[] { new DataTableSpec(inSpecs[0], outSpec) };
 	}
 
 	/**
@@ -214,5 +311,4 @@ public class Whim3dNodeModel extends NodeModel {
 
 		// nothing to do
 	}
-
 }
