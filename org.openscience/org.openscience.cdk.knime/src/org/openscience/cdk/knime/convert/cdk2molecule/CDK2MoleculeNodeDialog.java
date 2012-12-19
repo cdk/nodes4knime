@@ -57,7 +57,7 @@ public class CDK2MoleculeNodeDialog extends NodeDialogPane {
 	@SuppressWarnings("unchecked")
 	private final ColumnSelectionComboxBox m_molColumn = new ColumnSelectionComboxBox((Border) null, CDKValue.class);
 
-	private final JComboBox m_destFormat = new JComboBox(new Object[] { Format.SDF, Format.Smiles, Format.Mol2 });
+	private final JComboBox m_destFormat = new JComboBox(new Format[] { Format.SDF, Format.Smiles, Format.Mol2 });
 
 	private final JCheckBox m_replaceColumn = new JCheckBox();
 

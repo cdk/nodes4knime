@@ -14,8 +14,7 @@ It is released by Egon Willighagen under the ISCL
 The original source code is available here:
 http://github.com/egonw/knime-chemspider/blob/master/README.
 
-This code is
-Copyright (C) 2007 Egon Willighagen <egon.willighagen@gmail.com>
+This code is Copyright (C) 2007 Egon Willighagen <egon.willighagen@gmail.com>
 Permission to use, copy, modify, and/or distribute this software for any 
 purpose with or without fee is hereby granted, provided that the above 
 copyright notice and this permission notice appear in all copies.

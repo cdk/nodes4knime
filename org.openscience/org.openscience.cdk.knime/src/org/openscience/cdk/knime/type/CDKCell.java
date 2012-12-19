@@ -318,7 +318,7 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 		try {
 			writer.write(cdkMol);
 			String value = stringWriter.toString();
-
+			
 			stringWriter.close();
 			writer.close();
 
@@ -333,7 +333,7 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 			gzip.close();
 
 			outStr = out.toString("ISO-8859-1");
-
+			
 			value = null;
 			gzip = null;
 			out = null;
