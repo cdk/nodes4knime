@@ -2,7 +2,7 @@
 <feature
       id="org.openscience.cdk.knime.feature"
       label="KNIME CDK Integration (based on CDK 1.5.x)"
-      version="1.4.0.qualifier"
+      version="1.4.1.qualifier"
       provider-name="University Konstanz and EBI"
       plugin="org.openscience.cdk.knime">
 
