@@ -83,7 +83,7 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 	private static AtomContainerRenderer renderer;
 
 	private static AtomContainerRenderer RENDERER;
-	private static final double SCALE = 0.9;
+	private static final double SCALE = 0.85;
 
 	static {
 		try {

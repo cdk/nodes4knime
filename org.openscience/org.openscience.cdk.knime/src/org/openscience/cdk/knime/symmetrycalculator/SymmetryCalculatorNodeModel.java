@@ -86,7 +86,6 @@ public class SymmetryCalculatorNodeModel extends ThreadedTableBuilderNodeModel {
 
 		molColIndex = data[0].getDataTableSpec().findColumnIndex(colName);
 		addColumns = (!visual) ? 2 : 1;
-		;
 
 		DataColumnSpec[] clmspecs = configCSpecs(data[0].getDataTableSpec());
 
