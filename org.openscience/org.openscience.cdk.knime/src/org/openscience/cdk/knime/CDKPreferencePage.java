@@ -1,7 +1,7 @@
 /*
  * Created on 25.03.2007 16:52:27 by thor
  * 
- * Copyright (C) 2003 - 2011 University of Konstanz, Germany and KNIME GmbH, Konstanz, Germany Website:
+ * Copyright (C) 2003 - 2013 University of Konstanz, Germany and KNIME GmbH, Konstanz, Germany Website:
  * http://www.knime.org; Email: contact@knime.org
  * 
  * This file is part of the KNIME CDK plugin.

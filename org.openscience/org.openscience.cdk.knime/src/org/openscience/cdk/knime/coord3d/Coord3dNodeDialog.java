@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Stephan Beisken (sbeisken@gmail.com). All rights reserved.
+ * Copyright (c) 2013, Stephan Beisken (sbeisken@gmail.com). All rights reserved.
  * 
  * This file is part of the KNIME CDK plugin.
  * 

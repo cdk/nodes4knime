@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 - 2012 University of Konstanz, Germany and KNIME GmbH, Konstanz, Germany Website:
+ * Copyright (C) 2003 - 2013 University of Konstanz, Germany and KNIME GmbH, Konstanz, Germany Website:
  * http://www.knime.org; Email: contact@knime.org
  * 
  * This file is part of the KNIME CDK plugin.
