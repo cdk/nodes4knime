@@ -219,7 +219,8 @@ public class MolPropsNodeModel extends ThreadedColAppenderNodeModel {
 							params = new Object[] { new Boolean(false) };
 						} else if (prop
 								.equalsIgnoreCase("org.openscience.cdk.qsar.descriptors.molecular.BCUTDescriptor")) {
-							params = new Object[] { 0, 0.25, new Boolean(false) };
+							int heavyAtomCount = AtomContainerManipulator.getHeavyAtoms(mol).size();
+							params = new Object[] { heavyAtomCount, 0, new Boolean(false) };
 						} else if (prop
 								.equalsIgnoreCase("org.openscience.cdk.qsar.descriptors.molecular.HBondAcceptorCountDescriptor")) {
 							params = new Object[] { new Boolean(false) };

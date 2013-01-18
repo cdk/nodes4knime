@@ -131,8 +131,10 @@ public final class MolPropsLibrary {
 					id = hashIndex >= 0 && hashIndex < id.length() ? id.substring(hashIndex + 1) : id;
 					id = id.toLowerCase();
 					if ((dict != null) && dict.hasEntry(id)) {
+						// tmp hack for the 3D descriptors
 						Entry e = dict.getEntry(id);
 						humanReadable = e.getLabel();
+						if (id.equals("cpsa")) humanReadable += " (3D)";
 					} else {
 						LOGGER.warn("No entry: " + id);
 					}
