@@ -240,8 +240,6 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 		StringWriter stringWriter = null;
 
 		try {
-			cdkMolSdf = CDKNodeUtils.calculateCoordinates(cdkMolSdf, false, false);
-
 			stringWriter = new StringWriter();
 			sdfWriter = new SDFWriter(stringWriter);
 

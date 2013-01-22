@@ -10,7 +10,11 @@
             <p>
                 Converts the elements in one of the input table's columns into an internal format (CDKCell), which can
                 then be rendered as molecule or used for further computations. The target column must contain string
-                representations of molecules (SDF, Mol2, Smiles [no stereo information], CML).
+                representations of molecules (SDF, Mol2, SMILES [no stereo information], CML, InChI).
+            </p>
+            <p>
+            For on untyped InChI or SMILES string, the line notation is inferred. If the string starts with "InChI=", the InChI parser is used, the SMILES parser otherwise.
+            The option's dialog will not automatically select an input column as a string cell may not contain the right input, in contrast to typed SDF, Mol2, or SMILES cells.
             </p>
             <p>
                 This node uses

@@ -125,7 +125,8 @@ public class CDKNodeUtils {
 	public static IAtomContainer calculateCoordinates(IAtomContainer molecule, boolean force, boolean clone)
 			throws CDKException {
 
-		if (force || (!(GeometryTools.has2DCoordinates(molecule)) && !GeometryTools.has3DCoordinates(molecule))) {
+		if (force || (!(GeometryTools.has2DCoordinates(molecule)) && !(GeometryTools.has3DCoordinates(molecule)))) {
+			
 			StructureDiagramGenerator sdg = new StructureDiagramGenerator();
 			if (!ConnectivityChecker.isConnected(molecule)) {
 				IAtomContainerSet set = ConnectivityChecker.partitionIntoMolecules(molecule);

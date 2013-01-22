@@ -24,20 +24,20 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import org.knime.base.node.parallel.appender.ColumnDestination;
-import org.knime.base.node.parallel.appender.ExtendedCellFactory;
-import org.knime.base.node.parallel.appender.ReplaceColumn;
-import org.knime.base.node.parallel.appender.ThreadedColAppenderNodeModel;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataRow;
-import org.knime.core.data.DataTable;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
+import org.knime.core.data.container.ColumnRearranger;
+import org.knime.core.data.container.SingleCellFactory;
+import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
+import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
+import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.util.Pointer;
@@ -45,7 +45,6 @@ import org.openscience.cdk.AtomContainer;
 import org.openscience.cdk.graph.ConnectivityChecker;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IAtomContainerSet;
-import org.openscience.cdk.knime.CDKNodeUtils;
 import org.openscience.cdk.knime.coord2d.Coord2DNodeModel;
 import org.openscience.cdk.knime.type.CDKCell;
 import org.openscience.cdk.knime.type.CDKValue;
@@ -58,7 +57,7 @@ import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
  * 
  * @author Stephan Beisken, European Bioinformatics Institute
  */
-public class Coord3dNodeModel extends ThreadedColAppenderNodeModel {
+public class Coord3dNodeModel extends NodeModel {
 
 	/** Config key for column name. */
 	static final String CFG_COLNAME = "colName";
@@ -66,6 +65,7 @@ public class Coord3dNodeModel extends ThreadedColAppenderNodeModel {
 
 	private static final NodeLogger LOGGER = NodeLogger.getLogger(Coord2DNodeModel.class);
 
+	private int colIndex;
 	private String m_colName;
 	private int timeout = 10000;
 
@@ -75,8 +75,6 @@ public class Coord3dNodeModel extends ThreadedColAppenderNodeModel {
 	public Coord3dNodeModel() {
 
 		super(1, 1);
-		
-		this.setMaxThreads(CDKNodeUtils.getMaxNumOfThreads());
 	}
 
 	/**
@@ -108,7 +106,22 @@ public class Coord3dNodeModel extends ThreadedColAppenderNodeModel {
 			throw new InvalidSettingsException("Column '" + m_colName + "' does not contain CDK cells");
 		}
 
+		colIndex = molColIndex;
 		return new DataTableSpec[] { inSpecs[0] };
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
+			throws Exception {
+
+		DataTableSpec inSpec = inData[0].getDataTableSpec();
+		ColumnRearranger rearranger = createColumnRearranger(inSpec);
+		BufferedDataTable outTable = exec.createColumnRearrangeTable(inData[0], rearranger, exec);
+
+		return new BufferedDataTable[] { outTable };
 	}
 
 	/**
@@ -174,26 +187,18 @@ public class Coord3dNodeModel extends ThreadedColAppenderNodeModel {
 		}
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	protected ExtendedCellFactory[] prepareExecute(final DataTable[] data) throws Exception {
+	private ColumnRearranger createColumnRearranger(DataTableSpec spec) throws InvalidSettingsException {
 
-		final int colIndex = data[0].getDataTableSpec().findColumnIndex(m_colName);
 		final ExecutorService executor = Executors.newCachedThreadPool();
 
-		ExtendedCellFactory cf = new ExtendedCellFactory() {
+		ColumnRearranger result = new ColumnRearranger(spec);
+		result.replace(new SingleCellFactory(spec.getColumnSpec(colIndex)) {
 
 			@Override
-			public DataCell[] getCells(final DataRow row) {
+			public DataCell getCell(final DataRow row) {
 
-				DataCell[] cells = new DataCell[1];
-
-				if (row.getCell(colIndex).isMissing()) {
-					cells[0] = DataType.getMissingCell();
-					return cells;
-				}
+				if (row.getCell(colIndex).isMissing())
+					return DataType.getMissingCell();
 
 				DataCell oldCell = row.getCell(colIndex);
 				final IAtomContainer m = ((CDKValue) oldCell).getAtomContainer();
@@ -234,9 +239,9 @@ public class Coord3dNodeModel extends ThreadedColAppenderNodeModel {
 					Future<?> future = executor.submit(r);
 					future.get(timeout, TimeUnit.MILLISECONDS);
 					if (pClone.get() != null) {
-						cells[0] = new CDKCell(pClone.get());
+						return new CDKCell(pClone.get());
 					} else {
-						cells[0] = DataType.getMissingCell();
+						return DataType.getMissingCell();
 					}
 				} catch (Exception ex) {
 					if (ex.getMessage() == null) {
@@ -244,25 +249,11 @@ public class Coord3dNodeModel extends ThreadedColAppenderNodeModel {
 					} else {
 						LOGGER.error(row.getKey() + " : " + ex.getMessage(), ex);
 					}
-					cells[0] = DataType.getMissingCell();
+					return DataType.getMissingCell();
 				}
-
-				return cells;
 			}
+		}, colIndex);
 
-			@Override
-			public ColumnDestination[] getColumnDestinations() {
-
-				return new ColumnDestination[] { new ReplaceColumn(colIndex) };
-			}
-
-			@Override
-			public DataColumnSpec[] getColumnSpecs() {
-
-				return new DataColumnSpec[] { data[0].getDataTableSpec().getColumnSpec(colIndex) };
-			}
-		};
-
-		return new ExtendedCellFactory[] { cf };
+		return result;
 	}
 }

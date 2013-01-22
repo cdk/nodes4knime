@@ -53,7 +53,6 @@ import org.openscience.cdk.io.MDLV2000Reader;
 import org.openscience.cdk.io.Mol2Reader;
 import org.openscience.cdk.knime.CDKNodeUtils;
 import org.openscience.cdk.knime.type.CDKCell;
-import org.openscience.cdk.normalize.SMSDNormalizer;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.smiles.FixBondOrdersTool;
 import org.openscience.cdk.smiles.SmilesParser;
@@ -182,8 +181,6 @@ class MolConverter implements ExtendedCellFactory {
 
 			SmilesParser reader = new SmilesParser(SilentChemObjectBuilder.getInstance());
 			IAtomContainer cdkMol = reader.parseSmiles(smiles);
-			// CMLWriter crashes if chiral centers are not eradicated
-			cdkMol = SMSDNormalizer.convertExplicitToImplicitHydrogens(cdkMol);
 			
 			reader = null;
 			smiles = null;
@@ -192,7 +189,7 @@ class MolConverter implements ExtendedCellFactory {
 		}
 	}
 
-	private class InChIConv implements Conv {
+	private class StringConv implements Conv {
 
 		/**
 		 * {@inheritDoc}
@@ -200,12 +197,21 @@ class MolConverter implements ExtendedCellFactory {
 		@Override
 		public IAtomContainer conv(final DataCell cell) throws Exception {
 
-			final String inchi = ((StringValue) cell).getStringValue();
+			final String lineNotation = ((StringValue) cell).getStringValue();
+			
+			IAtomContainer cdkMol;
+			if (lineNotation.startsWith("InChI=")) {
+				final InChIGeneratorFactory inchiFactory = InChIGeneratorFactory.getInstance();
+				InChIToStructure gen = inchiFactory.getInChIToStructure(lineNotation, SilentChemObjectBuilder.getInstance());
+				cdkMol = gen.getAtomContainer();
+			} else {
+				SmilesParser reader = new SmilesParser(SilentChemObjectBuilder.getInstance());
+				cdkMol = reader.parseSmiles(lineNotation);
+				reader = null;
+			}
 
-			final InChIGeneratorFactory inchiFactory = InChIGeneratorFactory.getInstance();
-			InChIToStructure gen = inchiFactory.getInChIToStructure(inchi, SilentChemObjectBuilder.getInstance());
 
-			return gen.getAtomContainer();
+			return cdkMol;
 		}
 	}
 
@@ -251,7 +257,7 @@ class MolConverter implements ExtendedCellFactory {
 		} else if (cs.getType().isCompatible(SmilesValue.class)) {
 			m_converter = new SmilesConv();
 		} else {
-			m_converter = new InChIConv();
+			m_converter = new StringConv();
 		}
 
 		bondDeducer = new FixBondOrdersTool();
@@ -310,10 +316,8 @@ class MolConverter implements ExtendedCellFactory {
 
 		CDKNodeUtils.getStandardMolecule(cdkMol);
 
-		if (m_settings.generate2D()) {
-			cdkMol = CDKNodeUtils.calculateCoordinates(cdkMol, m_settings.force2D(), false);
-		}
-
+		if (m_settings.generate2D()) cdkMol = CDKNodeUtils.calculateCoordinates(cdkMol, m_settings.force2D(), false);
+		
 		return cdkMol;
 	}
 
