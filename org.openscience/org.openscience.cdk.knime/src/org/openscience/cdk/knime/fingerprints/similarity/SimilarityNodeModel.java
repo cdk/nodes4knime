@@ -181,7 +181,6 @@ public class SimilarityNodeModel extends ThreadedColAppenderNodeModel {
 					}
 				} catch (CDKException exception) {
 					Arrays.fill(cells, DataType.getMissingCell());
-					return cells;
 				}
 				return cells;
 			}
@@ -275,6 +274,7 @@ public class SimilarityNodeModel extends ThreadedColAppenderNodeModel {
 		for (DataRow row : dt) {
 			if (row.getCell(fingerprintRefColIndex).isMissing()) {
 				fingerprintRefs.add(null);
+				continue;
 			}
 			BitVectorValue bitVectorValue = (BitVectorValue) row.getCell(fingerprintRefColIndex);
 			String bitString = bitVectorValue.toBinaryString();
