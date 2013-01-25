@@ -71,7 +71,7 @@ public class SimilarityNodeModel extends ThreadedColAppenderNodeModel {
 	protected SimilarityNodeModel() {
 
 		super(2, 1);
-		
+
 		setMaxThreads(CDKNodeUtils.getMaxNumOfThreads());
 	}
 
@@ -84,6 +84,7 @@ public class SimilarityNodeModel extends ThreadedColAppenderNodeModel {
 		String sr = m_settings.fingerprintRefColumn();
 		final int fingerprintRefColIndex = data[1].getDataTableSpec().findColumnIndex(sr);
 		final Map<BitSet, ArrayList<String>> fingerprintRefs = getFingerprintRefs(data[1], fingerprintRefColIndex);
+		final List<BitSet> matrixFingerprintRefs = getMatrixRefs(data[1], fingerprintRefColIndex);
 		rowCount = fingerprintRefs.size();
 
 		final int fingerprintColIndex = data[0].getDataTableSpec().findColumnIndex(m_settings.fingerprintColumn());
@@ -113,58 +114,69 @@ public class SimilarityNodeModel extends ThreadedColAppenderNodeModel {
 				}
 
 				try {
-					float coeff = 0.0f;
-					float pcoeff = 0.0f;
-					ArrayList<String> pkey = null;
-					Iterator<Map.Entry<BitSet, ArrayList<String>>> it = fingerprintRefs.entrySet().iterator();
-					if (m_settings.aggregationMethod().equals(AggregationMethod.Minimum)) {
-						pcoeff = 1;
-						while (it.hasNext()) {
-							Map.Entry<BitSet, ArrayList<String>> pairs = it.next();
-							coeff = Tanimoto.calculate(bs, pairs.getKey());
-							if (coeff <= pcoeff) {
-								pcoeff = coeff;
-								pkey = pairs.getValue();
-							}
+					if (m_settings.aggregationMethod() == AggregationMethod.Matrix) {
+						List<DoubleCell> results = new ArrayList<DoubleCell>();
+						for (BitSet refBs : matrixFingerprintRefs) {
+							results.add(new DoubleCell(Tanimoto.calculate(bs, refBs)));
 						}
-					} else if (m_settings.aggregationMethod().equals(AggregationMethod.Maximum)) {
-						while (it.hasNext()) {
-							Map.Entry<BitSet, ArrayList<String>> pairs = it.next();
-							coeff = Tanimoto.calculate(bs, pairs.getKey());
-							if (coeff >= pcoeff) {
-								pcoeff = coeff;
-								pkey = (ArrayList<String>) pairs.getValue();
-							}
-						}
-					} else if (m_settings.aggregationMethod().equals(AggregationMethod.Average)) {
-						while (it.hasNext()) {
-							Map.Entry<BitSet, ArrayList<String>> pairs = it.next();
-							coeff += Tanimoto.calculate(bs, pairs.getKey());
-						}
-						pcoeff = coeff / rowCount;
-						pkey = new ArrayList<String>();
-					}
-
-					cells[0] = new DoubleCell(pcoeff);
-					List<StringCell> res = new ArrayList<StringCell>();
-					for (String st : pkey) {
-						res.add(new StringCell(st));
-					}
-
-					if (res.size() > 0) {
-						if (m_settings.returnType().equals(ReturnType.String)) {
-							if (res.size() == 1)
-								cells[1] = res.get(0);
-							else {
-								String resString = "";
-								for (StringCell cell : res) {
-									resString += (cell.getStringValue() + "|");
+						cells[0] = CollectionCellFactory.createListCell(results);
+					} else {
+						float coeff = 0.0f;
+						float pcoeff = 0.0f;
+						ArrayList<String> pkey = null;
+						Iterator<Map.Entry<BitSet, ArrayList<String>>> it = fingerprintRefs.entrySet().iterator();
+						
+						if (m_settings.aggregationMethod() == AggregationMethod.Minimum) {
+							pcoeff = 1;
+							while (it.hasNext()) {
+								Map.Entry<BitSet, ArrayList<String>> pairs = it.next();
+								coeff = Tanimoto.calculate(bs, pairs.getKey());
+								if (coeff <= pcoeff) {
+									pcoeff = coeff;
+									pkey = pairs.getValue();
 								}
-								resString = resString.substring(0, resString.lastIndexOf("|"));
-								cells[1] = new StringCell(resString);
 							}
-						} else if (m_settings.returnType().equals(ReturnType.Collection)) {
-							cells[1] = CollectionCellFactory.createListCell(res);
+							
+						} else if (m_settings.aggregationMethod() == AggregationMethod.Maximum) {
+							while (it.hasNext()) {
+								Map.Entry<BitSet, ArrayList<String>> pairs = it.next();
+								coeff = Tanimoto.calculate(bs, pairs.getKey());
+								if (coeff >= pcoeff) {
+									pcoeff = coeff;
+									pkey = (ArrayList<String>) pairs.getValue();
+								}
+							}
+							
+						} else if (m_settings.aggregationMethod() == AggregationMethod.Average) {
+							while (it.hasNext()) {
+								Map.Entry<BitSet, ArrayList<String>> pairs = it.next();
+								coeff += Tanimoto.calculate(bs, pairs.getKey());
+							}
+							pcoeff = coeff / rowCount;
+							pkey = new ArrayList<String>();
+						}
+
+						cells[0] = new DoubleCell(pcoeff);
+						List<StringCell> res = new ArrayList<StringCell>();
+						for (String st : pkey) {
+							res.add(new StringCell(st));
+						}
+
+						if (res.size() > 0) {
+							if (m_settings.returnType().equals(ReturnType.String)) {
+								if (res.size() == 1)
+									cells[1] = res.get(0);
+								else {
+									String resString = "";
+									for (StringCell cell : res) {
+										resString += (cell.getStringValue() + "|");
+									}
+									resString = resString.substring(0, resString.lastIndexOf("|"));
+									cells[1] = new StringCell(resString);
+								}
+							} else if (m_settings.returnType().equals(ReturnType.Collection)) {
+								cells[1] = CollectionCellFactory.createListCell(res);
+							}
 						}
 					}
 				} catch (CDKException exception) {
@@ -193,8 +205,12 @@ public class SimilarityNodeModel extends ThreadedColAppenderNodeModel {
 	private DataColumnSpec[] createSpec(final DataTableSpec oldSpec) {
 
 		DataColumnSpec[] outSpec = null;
-		if (m_settings.aggregationMethod().name().equals("Average")) {
+		if (m_settings.aggregationMethod() == AggregationMethod.Average) {
 			DataColumnSpec colSpec = new DataColumnSpecCreator("Tanimoto", DoubleCell.TYPE).createSpec();
+			outSpec = new DataColumnSpec[] { colSpec };
+		} else if (m_settings.aggregationMethod() == AggregationMethod.Matrix) {
+			DataColumnSpec colSpec = new DataColumnSpecCreator("Tanimoto", ListCell.getCollectionType(DoubleCell.TYPE))
+					.createSpec();
 			outSpec = new DataColumnSpec[] { colSpec };
 		} else {
 			DataColumnSpec colSpec1 = new DataColumnSpecCreator("Tanimoto", DoubleCell.TYPE).createSpec();
@@ -242,6 +258,35 @@ public class SimilarityNodeModel extends ThreadedColAppenderNodeModel {
 				fingerprintRefs.put(bs, keyList);
 			}
 		}
+		return fingerprintRefs;
+	}
+
+	/**
+	 * Provides a list of bitsets in their given order.
+	 * 
+	 * @param bdt a buffered data table with DenseBitVector cells
+	 * @param fingerprintRefColIndex a fingerprint column index in bdt
+	 * @return the map
+	 */
+	private List<BitSet> getMatrixRefs(DataTable dt, int fingerprintRefColIndex) {
+
+		List<BitSet> fingerprintRefs = new ArrayList<BitSet>();
+
+		for (DataRow row : dt) {
+			if (row.getCell(fingerprintRefColIndex).isMissing()) {
+				fingerprintRefs.add(null);
+			}
+			BitVectorValue bitVectorValue = (BitVectorValue) row.getCell(fingerprintRefColIndex);
+			String bitString = bitVectorValue.toBinaryString();
+			BitSet bs = new BitSet((int) bitVectorValue.length());
+
+			for (int j = 0; j < bitString.length(); j++) {
+				if (bitString.charAt(j) == '1')
+					bs.set(j);
+			}
+			fingerprintRefs.add(bs);
+		}
+
 		return fingerprintRefs;
 	}
 

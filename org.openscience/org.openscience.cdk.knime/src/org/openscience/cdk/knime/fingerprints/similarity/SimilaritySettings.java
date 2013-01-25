@@ -29,7 +29,7 @@ public class SimilaritySettings {
 
 	/** Enum for the different aggregation methods. */
 	public enum AggregationMethod {
-		Minimum, Maximum, Average
+		Minimum, Maximum, Average, Matrix
 	}
 
 	/** Enum for the different fingerprint types. */

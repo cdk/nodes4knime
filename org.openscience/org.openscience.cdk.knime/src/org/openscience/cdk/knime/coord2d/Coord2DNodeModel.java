@@ -20,9 +20,9 @@ package org.openscience.cdk.knime.coord2d;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -46,16 +46,10 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.util.Pointer;
-import org.openscience.cdk.AtomContainer;
-import org.openscience.cdk.geometry.GeometryTools;
-import org.openscience.cdk.graph.ConnectivityChecker;
 import org.openscience.cdk.interfaces.IAtomContainer;
-import org.openscience.cdk.interfaces.IAtomContainerSet;
 import org.openscience.cdk.knime.CDKNodeUtils;
 import org.openscience.cdk.knime.type.CDKCell;
 import org.openscience.cdk.knime.type.CDKValue;
-import org.openscience.cdk.layout.StructureDiagramGenerator;
 
 /**
  * This class is the model for the CDK 2D-generation node. It takes the input molecules (if there are any), checks if
@@ -238,59 +232,35 @@ public class Coord2DNodeModel extends ThreadedColAppenderNodeModel {
 					return cells;
 				}
 
-				DataCell oldCell = row.getCell(colIndex);
-				final IAtomContainer m = ((CDKValue) oldCell).getAtomContainer();
-				boolean hasCoords = false;
-				if (!m_force) {
-					try { // sometimes this check throws an exception...
-						hasCoords = (GeometryTools.has2DCoordinates(m));
-					} catch (Exception e) {
-						hasCoords = false;
-					}
-				}
-				if (hasCoords) {
-					cells[0] = oldCell;
-				} else {
+				
 					try {
-						final Pointer<IAtomContainer> pClone = new Pointer<IAtomContainer>();
-						// bug fix: added thread-wrapper/watchdog timer to stop
-						// endless runs[...
-						Runnable r = new Runnable() {
+						// bug fix: added thread-wrapper/watchdog timer to stop endless runs[...
+						Callable<IAtomContainer> r = new Callable<IAtomContainer>() {
 
 							@Override
-							public void run() {
+							public IAtomContainer call() {
+								
+								DataCell oldCell = row.getCell(colIndex);
+								IAtomContainer m = ((CDKValue) oldCell).getAtomContainer();
 
 								try {
-									// bug: SDG works for connected molecules only
-									// quick fix: superimpose
-									if (!ConnectivityChecker.isConnected(m)) {
-										IAtomContainerSet mSet = ConnectivityChecker.partitionIntoMolecules(m);
-										Iterator<IAtomContainer> it = mSet.atomContainers().iterator();
-										IAtomContainer col = new AtomContainer();
-										while (it.hasNext()) {
-											IAtomContainer fm = it.next();
-											new StructureDiagramGenerator(fm).generateCoordinates();
-											col.add(fm);
-											pClone.set(col);
-										}
-									} else {
-										new StructureDiagramGenerator(m).generateCoordinates();
-										pClone.set(m);
-									}
+									m = CDKNodeUtils.calculateCoordinates(m, m_force, false);
 								} catch (ThreadDeath d) {
 									LOGGER.debug("2D coord generation" + " timed out for row \"" + row.getKey() + "\"");
 									throw d;
 								} catch (Throwable t) {
 									LOGGER.error(t.getMessage(), t);
 								}
+								
+								return m;
 							}
 						};
-						Future<?> future = executor.submit(r);
-						future.get(TIMEOUT, TimeUnit.MILLISECONDS);
-						if (pClone.get() != null) {
-							cells[0] = new CDKCell(pClone.get());
+						Future<IAtomContainer> future = executor.submit(r);
+						IAtomContainer m = future.get(TIMEOUT, TimeUnit.MILLISECONDS);
+						if (m != null) {
+							cells[0] = new CDKCell(m);
 						} else {
-							cells[0] = oldCell;
+							cells[0] = DataType.getMissingCell();
 						}
 					} catch (Exception ex) {
 						if (ex.getMessage() == null) {
@@ -300,7 +270,6 @@ public class Coord2DNodeModel extends ThreadedColAppenderNodeModel {
 						}
 						cells[0] = DataType.getMissingCell();
 					}
-				}
 
 				return cells;
 			}

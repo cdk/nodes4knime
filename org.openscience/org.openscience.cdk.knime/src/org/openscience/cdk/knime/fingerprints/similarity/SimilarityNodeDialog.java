@@ -24,6 +24,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.border.Border;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.vector.bitvector.BitVectorValue;
@@ -53,6 +55,7 @@ public class SimilarityNodeDialog extends NodeDialogPane {
 	private final JRadioButton m_minimum = new JRadioButton("Minimum");
 	private final JRadioButton m_maximum = new JRadioButton("Maximum");
 	private final JRadioButton m_average = new JRadioButton("Average");
+	private final JRadioButton m_matrix = new JRadioButton("Matrix");
 
 	private final JRadioButton returnString = new JRadioButton("String");
 	private final JRadioButton returnCollection = new JRadioButton("Collection");
@@ -91,6 +94,13 @@ public class SimilarityNodeDialog extends NodeDialogPane {
 		m_maximum.setSelected(true);
 		c.gridy++;
 		p.add(m_average, c);
+		c.gridy++;
+		p.add(m_matrix, c);
+		
+		m_minimum.addChangeListener(new SimListener());
+		m_maximum.addChangeListener(new SimListener());
+		m_average.addChangeListener(new SimListener());
+		m_matrix.addChangeListener(new SimListener());
 
 		c.gridy++;
 		c.gridx = 0;
@@ -105,6 +115,7 @@ public class SimilarityNodeDialog extends NodeDialogPane {
 		bg1.add(m_minimum);
 		bg1.add(m_maximum);
 		bg1.add(m_average);
+		bg1.add(m_matrix);
 
 		ButtonGroup bg2 = new ButtonGroup();
 		bg2.add(returnString);
@@ -129,18 +140,28 @@ public class SimilarityNodeDialog extends NodeDialogPane {
 		m_fingerprintColumn.update(specs[0], m_settings.fingerprintColumn());
 		m_fingerprintRefColumn.update(specs[1], m_settings.fingerprintRefColumn());
 
-		if (m_settings.aggregationMethod().equals(AggregationMethod.Minimum)) {
+		if (m_settings.aggregationMethod() == AggregationMethod.Minimum) {
 			m_minimum.setSelected(true);
-		} else if (m_settings.aggregationMethod().equals(AggregationMethod.Maximum)) {
+		} else if (m_settings.aggregationMethod() == AggregationMethod.Maximum) {
 			m_maximum.setSelected(true);
-		} else if (m_settings.aggregationMethod().equals(AggregationMethod.Average)) {
+		} else if (m_settings.aggregationMethod() == AggregationMethod.Average) {
 			m_average.setSelected(true);
+		} else if (m_settings.aggregationMethod() == AggregationMethod.Matrix) {
+			m_matrix.setSelected(true);
 		}
 
 		if (m_settings.returnType().equals(ReturnType.String)) {
 			returnString.setSelected(true);
 		} else if (m_settings.returnType().equals(ReturnType.Collection)) {
 			returnCollection.setSelected(true);
+		}
+
+		if (m_settings.aggregationMethod() == AggregationMethod.Matrix) {
+			returnString.setEnabled(false);
+			returnCollection.setEnabled(false);
+		} else {
+			returnString.setEnabled(true);
+			returnCollection.setEnabled(true);
 		}
 	}
 
@@ -158,6 +179,8 @@ public class SimilarityNodeDialog extends NodeDialogPane {
 			m_settings.aggregationMethod(AggregationMethod.Maximum);
 		} else if (m_average.isSelected()) {
 			m_settings.aggregationMethod(AggregationMethod.Average);
+		} else if (m_matrix.isSelected()) {
+			m_settings.aggregationMethod(AggregationMethod.Matrix);
 		}
 		if (returnString.isSelected()) {
 			m_settings.returnType(ReturnType.String);
@@ -166,5 +189,20 @@ public class SimilarityNodeDialog extends NodeDialogPane {
 		}
 
 		m_settings.saveSettingsTo(settings);
+	}
+
+	class SimListener implements ChangeListener {
+
+		@Override
+		public void stateChanged(ChangeEvent e) {
+
+			if (m_matrix.isSelected()) {
+				returnString.setEnabled(false);
+				returnCollection.setEnabled(false);
+			} else {
+				returnString.setEnabled(true);
+				returnCollection.setEnabled(true);
+			}
+		}
 	}
 }
