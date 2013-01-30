@@ -115,9 +115,10 @@ public class SimilarityNodeModel extends ThreadedColAppenderNodeModel {
 
 				try {
 					if (m_settings.aggregationMethod() == AggregationMethod.Matrix) {
-						List<DoubleCell> results = new ArrayList<DoubleCell>();
+						List<DataCell> results = new ArrayList<DataCell>();
 						for (BitSet refBs : matrixFingerprintRefs) {
-							results.add(new DoubleCell(Tanimoto.calculate(bs, refBs)));
+							if (refBs == null) results.add(DataType.getMissingCell());
+							else results.add(new DoubleCell(Tanimoto.calculate(bs, refBs)));
 						}
 						cells[0] = CollectionCellFactory.createListCell(results);
 					} else {
