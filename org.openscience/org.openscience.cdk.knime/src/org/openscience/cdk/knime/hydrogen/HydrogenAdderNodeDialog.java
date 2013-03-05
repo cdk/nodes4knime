@@ -50,6 +50,7 @@ public class HydrogenAdderNodeDialog extends NodeDialogPane {
 	private final ColumnSelectionComboxBox m_molColumn = new ColumnSelectionComboxBox((Border) null, CDKValue.class);
 	private final JCheckBox m_appendColumnChecker = new JCheckBox("Append Column");
 	private final JTextField m_appendColumnName = new JTextField(8);
+	private final JCheckBox exludeStereo = new JCheckBox();
 
 	private final HydrogenAdderSettings m_settings = new HydrogenAdderSettings();
 
@@ -70,6 +71,12 @@ public class HydrogenAdderNodeDialog extends NodeDialogPane {
 		c.gridx++;
 		p.add(m_molColumn, c);
 
+		c.gridy++;
+		c.gridx = 0;
+		p.add(new JLabel("Exclude 'stereo hydrogens'   "), c);
+		c.gridx++;
+		p.add(exludeStereo, c);
+		
 		c.gridy++;
 		c.gridx = 0;
 		p.add(m_appendColumnChecker, c);
@@ -123,6 +130,8 @@ public class HydrogenAdderNodeDialog extends NodeDialogPane {
 				m_appendColumnName.setText(name);
 			}
 		}
+		
+		exludeStereo.setSelected(m_settings.excludeStereo());
 	}
 
 	/**
@@ -132,6 +141,7 @@ public class HydrogenAdderNodeDialog extends NodeDialogPane {
 	protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
 
 		m_settings.molColumnName(m_molColumn.getSelectedColumn());
+		m_settings.excludeStereo(exludeStereo.isSelected());
 		m_settings.replaceColumn(!m_appendColumnChecker.isSelected());
 		m_settings.appendColumnName(m_appendColumnChecker.isSelected() ? m_appendColumnName.getText() : null);
 		m_settings.saveSettings(settings);

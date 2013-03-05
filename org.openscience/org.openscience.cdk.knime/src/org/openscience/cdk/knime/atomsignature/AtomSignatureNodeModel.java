@@ -126,7 +126,7 @@ public class AtomSignatureNodeModel extends ThreadedTableBuilderNodeModel {
 			String atomType = m_settings.atomType().toString();
 
 			HOSECodeGenerator hoseGen = new HOSECodeGenerator();
-			
+
 			// loop through the atoms and calculate the signatures
 			if (atomType.equals("H")) {
 
@@ -178,17 +178,17 @@ public class AtomSignatureNodeModel extends ThreadedTableBuilderNodeModel {
 		}
 	}
 
-	private DataCell[] computeSignatures(final IAtom atom, IAtomContainer mol, DataCell[] outCells, HOSECodeGenerator hoseGen)
-			throws CanceledExecutionException {
+	private DataCell[] computeSignatures(final IAtom atom, IAtomContainer mol, DataCell[] outCells,
+			HOSECodeGenerator hoseGen) throws CanceledExecutionException {
 
 		for (int i = 1; i < outCells.length; i++) {
 			String sign = null;
 			if (m_settings.signatureType().equals(SignatureTypes.AtomSignatures)) {
-				AtomSignature atomSignature = new AtomSignature(atom, (i + m_settings.getMinHeight()), mol);
+				AtomSignature atomSignature = new AtomSignature(atom, (i - 1 + m_settings.getMinHeight()), mol);
 				sign = atomSignature.toCanonicalString();
 			} else if (m_settings.signatureType().equals(SignatureTypes.Hose)) {
 				try {
-					sign = hoseGen.getHOSECode(mol, atom, (i + m_settings.getMinHeight()));
+					sign = hoseGen.getHOSECode(mol, atom, (i - 1 + m_settings.getMinHeight()));
 				} catch (CDKException e) {
 					// do nothing
 				}

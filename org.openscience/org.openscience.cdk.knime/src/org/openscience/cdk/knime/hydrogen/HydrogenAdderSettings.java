@@ -30,6 +30,7 @@ import org.knime.core.node.NodeSettingsWO;
 public class HydrogenAdderSettings {
 
 	private String m_molColumnName;
+	private boolean excludeStereo = false;
 	private boolean m_replaceColumn = true;
 	private String m_appendColumnName;
 
@@ -51,6 +52,24 @@ public class HydrogenAdderSettings {
 	public void molColumnName(final String colName) {
 
 		m_molColumnName = colName;
+	}
+
+	/**
+	 * Sets whether stereo-relevant hydrogens should be excluded.
+	 * 
+	 * @param excludeStereo whether stereo information should be kept
+	 */
+	public void excludeStereo(boolean excludeStereo) {
+		this.excludeStereo = excludeStereo;
+	}
+
+	/**
+	 * Returns whether stereo-relevant hydrogens should be excluded.
+	 * 
+	 * @return whether stereo information should be kept
+	 */
+	public boolean excludeStereo() {
+		return excludeStereo;
 	}
 
 	/**
@@ -98,6 +117,7 @@ public class HydrogenAdderSettings {
 	public void saveSettings(final NodeSettingsWO settings) {
 
 		settings.addString("molColumn", m_molColumnName);
+		settings.addBoolean("excludeStereo", excludeStereo);
 		settings.addBoolean("replaceColumn", m_replaceColumn);
 		settings.addString("appendColName", appendColumnName());
 	}
@@ -111,6 +131,7 @@ public class HydrogenAdderSettings {
 	public void loadSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
 
 		m_molColumnName = settings.getString("molColumn");
+		excludeStereo = settings.getBoolean("excludeStereo");
 		m_replaceColumn = settings.getBoolean("replaceColumn");
 		m_appendColumnName = settings.getString("appendColName", m_molColumnName + " (H)");
 	}

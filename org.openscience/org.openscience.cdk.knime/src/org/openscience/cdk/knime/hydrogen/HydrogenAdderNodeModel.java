@@ -44,7 +44,7 @@ import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.knime.CDKNodeUtils;
 import org.openscience.cdk.knime.type.CDKCell;
 import org.openscience.cdk.knime.type.CDKValue;
-import org.openscience.cdk.normalize.SMSDNormalizer;
+import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 
 /**
  * This is the model for the hydrogen node that performs all computation by using CDK functionality.
@@ -229,7 +229,7 @@ public class HydrogenAdderNodeModel extends ThreadedColAppenderNodeModel {
 
 				try {
 					IAtomContainer newMol = (IAtomContainer) ((CDKValue) molCell).getAtomContainer();
-					newMol = SMSDNormalizer.convertExplicitToImplicitHydrogens(newMol);
+					newMol = AtomContainerManipulator.removeHydrogens(newMol, m_settings.excludeStereo());
 					CDKNodeUtils.getStandardMolecule(newMol);
 					CDKCell newCell = new CDKCell(newMol);
 					return new DataCell[] { newCell };

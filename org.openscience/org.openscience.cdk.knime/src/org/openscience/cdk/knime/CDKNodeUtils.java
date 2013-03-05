@@ -87,6 +87,7 @@ public class CDKNodeUtils {
 		} catch (IllegalAccessError error) {
 			throw new CDKException("Illegal Access Error - QueryChemObject: " + error.getMessage());
 		} catch (Exception exception) {
+			exception.printStackTrace();
 			throw new CDKException("Exception while standardizing: " + exception.getMessage());
 		}
 	}
