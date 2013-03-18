@@ -229,7 +229,8 @@ public class HydrogenAdderNodeModel extends ThreadedColAppenderNodeModel {
 
 				try {
 					IAtomContainer newMol = (IAtomContainer) ((CDKValue) molCell).getAtomContainer();
-					newMol = AtomContainerManipulator.removeHydrogens(newMol, m_settings.excludeStereo());
+					if (m_settings.excludeStereo()) newMol = AtomContainerManipulator.removeNonChiralHydrogens(newMol);
+					else newMol = AtomContainerManipulator.removeHydrogens(newMol);
 					CDKNodeUtils.getStandardMolecule(newMol);
 					CDKCell newCell = new CDKCell(newMol);
 					return new DataCell[] { newCell };

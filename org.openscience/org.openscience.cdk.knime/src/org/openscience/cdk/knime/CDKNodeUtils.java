@@ -18,6 +18,10 @@ package org.openscience.cdk.knime;
 
 import java.awt.Color;
 
+import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataValue;
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.openscience.cdk.CDKConstants;
 import org.openscience.cdk.aromaticity.CDKHueckelAromaticityDetector;
@@ -127,7 +131,7 @@ public class CDKNodeUtils {
 			throws CDKException {
 
 		if (force || (!(GeometryTools.has2DCoordinates(molecule)) && !(GeometryTools.has3DCoordinates(molecule)))) {
-			
+
 			StructureDiagramGenerator sdg = new StructureDiagramGenerator();
 			if (!ConnectivityChecker.isConnected(molecule)) {
 				IAtomContainerSet set = ConnectivityChecker.partitionIntoMolecules(molecule);
@@ -225,5 +229,40 @@ public class CDKNodeUtils {
 			cols[i] = Color.getHSBColor((float) i / (float) n, 0.85f, 1.0f);
 		}
 		return cols;
+	}
+
+	/**
+	 * Configures the input column.
+	 * 
+	 * @param inSpec the input data table specification
+	 * @param columnName the input column name
+	 * @param cellClass the desired cell class
+	 * @return the input or autoconfigured column name
+	 * @throws InvalidSettingsException if no column in the data table specification is compatible with the desired cell
+	 *         class
+	 */
+	public static String getColumn(final DataTableSpec inSpec, String columnName, Class<? extends DataValue> cellClass)
+			throws InvalidSettingsException {
+
+		int columnIndex = inSpec.findColumnIndex(columnName);
+		if (columnIndex == -1) {
+			int i = 0;
+			for (DataColumnSpec spec : inSpec) {
+				if (spec.getType().isCompatible(cellClass)) {
+					columnIndex = i;
+					columnName = spec.getName();
+				}
+				i++;
+			}
+
+			if (columnIndex == -1)
+				throw new InvalidSettingsException("Column '" + columnName + "' does not exist.");
+		}
+
+		if (!inSpec.getColumnSpec(columnIndex).getType().isCompatible(cellClass))
+			throw new InvalidSettingsException("Column '" + columnName + "' does not contain " + cellClass.getName()
+					+ " cells");
+
+		return columnName;
 	}
 }

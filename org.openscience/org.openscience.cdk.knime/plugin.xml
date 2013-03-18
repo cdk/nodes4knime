@@ -1,59 +1,39 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<?eclipse version="3.4"?>
-
-<plugin>
+<?eclipse version="3.4"?><plugin>
    <extension point="org.knime.workbench.repository.nodes">
-      <node category-path="/community/cdk/io" expert-flag="false" factory-class="org.openscience.cdk.knime.convert.cdk2molecule.CDK2MoleculeNodeFactory" id="org.openscience.cdk.knime.convert.cdk2molecule.CDK2MoleculeNodeFactory"></node>
-      <node category-path="/community/cdk/io" expert-flag="false" factory-class="org.openscience.cdk.knime.convert.molecule2cdk.Molecule2CDKNodeFactory" id="org.openscience.cdk.knime.convert.molecule2cdk.Molecule2CDKNodeFactory"></node>
-      <node category-path="/community/cdk" expert-flag="false" factory-class="org.openscience.cdk.knime.connectivity.ConnectivityNodeFactory" id="org.openscience.cdk.knime.connectivity.ConnectivityNodeFactory"></node>
-      <node category-path="/community/cdk" expert-flag="false" factory-class="org.openscience.cdk.knime.coord2d.Coord2DNodeFactory" id="org.openscience.cdk.knime.coord2d.Coord2DNodeFactory"></node>
-      <node category-path="/community/cdk" expert-flag="false" factory-class="org.openscience.cdk.knime.fingerprints.FingerprintNodeFactory" id="org.openscience.cdk.knime.fingerprints.FingerprintNodeFactory"></node>
-      <node category-path="/community/cdk" expert-flag="false" factory-class="org.openscience.cdk.knime.fingerprints.similarity.SimilarityNodeFactory" id="org.openscience.cdk.knime.fingerprints.similarity.SimilarityNodeFactory"></node>
-      <node category-path="/community/cdk" expert-flag="false" factory-class="org.openscience.cdk.knime.lipinski.LipinskiNodeFactory" id="org.openscience.cdk.knime.lipinski.LipinskiNodeFactory"></node>
-      <node category-path="/community/cdk" expert-flag="false" factory-class="org.openscience.cdk.knime.molprops.MolPropsNodeFactory" id="org.openscience.cdk.knime.molprops.MolPropsNodeFactory"></node>
-      <node category-path="/community/cdk" expert-flag="false" factory-class="org.openscience.cdk.knime.hydrogen.HydrogenAdderNodeFactory" id="org.openscience.cdk.knime.hydrogen.HydrogenAdderNodeFactory"></node>
-      <node category-path="/community/cdk/3d" expert-flag="false" factory-class="org.openscience.cdk.knime.view3d.JmolViewerNodeFactory" id="org.openscience.cdk.knime.view3d.JmolViewerNodeFactory"></node>
-      <node category-path="/community/cdk" expert-flag="false" factory-class="org.openscience.cdk.knime.xlogp.XLogPNodeFactory" id="org.openscience.cdk.knime.xlogp.XLogPNodeFactory"></node>
-      <node category-path="/community/cdk" expert-flag="false" factory-class="org.openscience.cdk.knime.sketcher.SketcherNodeFactory" id="org.openscience.cdk.knime.sketcher.SketcherNodeFactory"></node>
-      <node category-path="/community/cdk" expert-flag="false" factory-class="org.chemspider.knime.ChemSpiderNodeFactory" id="org.chemspider.knime.ChemSpiderNodeFactory"></node>
-      <node category-path="/community/cdk" expert-flag="false" factory-class="org.openscience.cdk.knime.sssearch.SSSearchNodeFactory" id="org.openscience.cdk.knime.sssearch.SSSearchNodeFactory"></node>
+      <node category-path="/community/cdk/io" expert-flag="false" factory-class="org.openscience.cdk.knime.convert.cdk2molecule.CDK2MoleculeNodeFactory" id="org.openscience.cdk.knime.convert.cdk2molecule.CDK2MoleculeNodeFactory"/>
+      <node category-path="/community/cdk/io" expert-flag="false" factory-class="org.openscience.cdk.knime.convert.molecule2cdk.Molecule2CDKNodeFactory" id="org.openscience.cdk.knime.convert.molecule2cdk.Molecule2CDKNodeFactory"/>
+      <node category-path="/community/cdk" expert-flag="false" factory-class="org.openscience.cdk.knime.connectivity.ConnectivityNodeFactory" id="org.openscience.cdk.knime.connectivity.ConnectivityNodeFactory"/>
+      <node category-path="/community/cdk" expert-flag="false" factory-class="org.openscience.cdk.knime.coord2d.Coord2DNodeFactory" id="org.openscience.cdk.knime.coord2d.Coord2DNodeFactory"/>
+      <node category-path="/community/cdk" expert-flag="false" factory-class="org.openscience.cdk.knime.fingerprints.FingerprintNodeFactory" id="org.openscience.cdk.knime.fingerprints.FingerprintNodeFactory"/>
+      <node category-path="/community/cdk" expert-flag="false" factory-class="org.openscience.cdk.knime.fingerprints.similarity.SimilarityNodeFactory" id="org.openscience.cdk.knime.fingerprints.similarity.SimilarityNodeFactory"/>
+      <node category-path="/community/cdk" expert-flag="false" factory-class="org.openscience.cdk.knime.lipinski.LipinskiNodeFactory" id="org.openscience.cdk.knime.lipinski.LipinskiNodeFactory"/>
+      <node category-path="/community/cdk" expert-flag="false" factory-class="org.openscience.cdk.knime.molprops.MolPropsNodeFactory" id="org.openscience.cdk.knime.molprops.MolPropsNodeFactory"/>
+      <node category-path="/community/cdk" expert-flag="false" factory-class="org.openscience.cdk.knime.hydrogen.HydrogenAdderNodeFactory" id="org.openscience.cdk.knime.hydrogen.HydrogenAdderNodeFactory"/>
+      <node category-path="/community/cdk/3d" expert-flag="false" factory-class="org.openscience.cdk.knime.view3d.JmolViewerNodeFactory" id="org.openscience.cdk.knime.view3d.JmolViewerNodeFactory"/>
+      <node category-path="/community/cdk" expert-flag="false" factory-class="org.openscience.cdk.knime.xlogp.XLogPNodeFactory" id="org.openscience.cdk.knime.xlogp.XLogPNodeFactory"/>
+      <node category-path="/community/cdk" expert-flag="false" factory-class="org.openscience.cdk.knime.sketcher.SketcherNodeFactory" id="org.openscience.cdk.knime.sketcher.SketcherNodeFactory"/>
+      <node category-path="/community/cdk" expert-flag="false" factory-class="org.chemspider.knime.ChemSpiderNodeFactory" id="org.chemspider.knime.ChemSpiderNodeFactory"/>
+      <node category-path="/community/cdk" expert-flag="false" factory-class="org.openscience.cdk.knime.sssearch.SSSearchNodeFactory" id="org.openscience.cdk.knime.sssearch.SSSearchNodeFactory"/>
 	  <node category-path="/community/cdk" expert-flag="false" factory-class="org.openscience.cdk.knime.atomsignature.AtomSignatureNodeFactory" id="org.openscience.cdk.knime.atomsignature.AtomSignatureNodeFactory"/>
 	  <node category-path="/community/cdk" expert-flag="false" factory-class="org.openscience.cdk.knime.sugarremover.SugarRemoverNodeFactory" id="org.openscience.cdk.knime.sugarremover.SugarRemoverNodeFactory"/>
    	  <node category-path="/community/cdk/3d" expert-flag="false" factory-class="org.openscience.cdk.knime.rmsdcalculator.RMSDCalculatorNodeFactory" id="org.openscience.cdk.knime.rmsdcalculator.RMSDCalculatorNodeFactory"/>
-      <node category-path="/community/cdk" expert-flag="false" factory-class="org.openscience.cdk.knime.sumformula.SumFormulaNodeFactory" id="org.openscience.cdk.knime.sumformula.SumFormulaNodeFactory"></node>
-      <node category-path="/community/cdk" expert-flag="false" factory-class="org.openscience.cdk.knime.elementfilter.ElementFilterNodeFactory" id="org.openscience.cdk.knime.elementfilter.ElementFilterNodeFactory"></node>
-      <node category-path="/community/cdk" expert-flag="false" factory-class="org.openscience.cdk.knime.opsin.OpsinNameConverterNodeFactory" id="org.openscience.cdk.knime.opsin.OpsinNameConverterNodeFactory"></node>
+      <node category-path="/community/cdk" expert-flag="false" factory-class="org.openscience.cdk.knime.sumformula.SumFormulaNodeFactory" id="org.openscience.cdk.knime.sumformula.SumFormulaNodeFactory"/>
+      <node category-path="/community/cdk" expert-flag="false" factory-class="org.openscience.cdk.knime.elementfilter.ElementFilterNodeFactory" id="org.openscience.cdk.knime.elementfilter.ElementFilterNodeFactory"/>
+      <node category-path="/community/cdk" expert-flag="false" factory-class="org.openscience.cdk.knime.opsin.OpsinNameConverterNodeFactory" id="org.openscience.cdk.knime.opsin.OpsinNameConverterNodeFactory"/>
 	  <node category-path="/community/cdk/3d" expert-flag="false" factory-class="org.openscience.cdk.knime.whim3d.Whim3dNodeFactory" id="org.openscience.cdk.knime.whim3d.Whim3dNodeFactory"/>
 	  <node category-path="/community/cdk/3d" expert-flag="false" factory-class="org.openscience.cdk.knime.coord3d.Coord3dNodeFactory" id="org.openscience.cdk.knime.coord3d.Coord3dNodeFactory"/>
 	  <node category-path="/community/cdk/3d" expert-flag="false" factory-class="org.openscience.cdk.knime.distance3d.Distance3dNodeFactory" id="org.openscience.cdk.knime.distance3d.Distance3dNodeFactory"/>
 	  <node category-path="/community/cdk/3d" expert-flag="false" factory-class="org.openscience.cdk.knime.distance3d.similarity.DistanceSimilarityNodeFactory" id="org.openscience.cdk.knime.distance3d.similarity.DistanceSimilarityNodeFactory"/>
-   <node
-         category-path="/community/cdk"
-         expert-flag="false"
-         factory-class="org.openscience.cdk.knime.symmetrycalculator.SymmetryCalculatorNodeFactory"
-         id="org.openscience.cdk.knime.symmetrycalculator.SymmetryCalculatorNodeFactory">
+   <node category-path="/community/cdk" expert-flag="false" factory-class="org.openscience.cdk.knime.symmetrycalculator.SymmetryCalculatorNodeFactory" id="org.openscience.cdk.knime.symmetrycalculator.SymmetryCalculatorNodeFactory">
    </node>
-	</extension>
+	<node category-path="/community/cdk" factory-class="org.openscience.cdk.knime.masscalculator.MassCalculatorNodeFactory" id="org.openscience.cdk.knime.masscalculator.MassCalculatorNodeFactory"/>
+</extension>
    	<extension point="org.knime.workbench.repository.categories">
        <category after="" description="Nodes using the Chemistry Development Kit (CDK)" icon="icons/cdk.png" level-id="cdk" name="CDK" path="/community"/>
-       <category
-             description="Nodes for CDK molecule conversion"
-             icon="icons/category_translator.png"
-             level-id="translators"
-             name="Translators"
-             path="/community/cdk"/>
-       <category
-             description="Nodes for CDK molecule conversion"
-             icon="icons/category_io.png"
-             level-id="io"
-             name="I/O"
-             path="/community/cdk"/>
-       <category
-             description="Nodes for 3D CDK molecules"
-             icon="icons/category_3d.png"
-             level-id="3d"
-             name="3D"
-             path="/community/cdk">
+       <category description="Nodes for CDK molecule conversion" icon="icons/category_translator.png" level-id="translators" name="Translators" path="/community/cdk"/>
+       <category description="Nodes for CDK molecule conversion" icon="icons/category_io.png" level-id="io" name="I/O" path="/community/cdk"/>
+       <category description="Nodes for 3D CDK molecules" icon="icons/category_3d.png" level-id="3d" name="3D" path="/community/cdk">
        </category>
    </extension>
    <extension point="org.eclipse.equinox.preferences.preferences">
