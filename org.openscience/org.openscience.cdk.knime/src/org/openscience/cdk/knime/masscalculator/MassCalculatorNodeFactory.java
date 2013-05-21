@@ -19,10 +19,10 @@ package org.openscience.cdk.knime.masscalculator;
 import javax.swing.ButtonGroup;
 import javax.swing.JRadioButton;
 
+import org.knime.core.data.StringValue;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
-import org.knime.core.data.StringValue;
 import org.openscience.cdk.knime.CDKDefaultDialog;
 import org.openscience.cdk.knime.masscalculator.MassCalculatorNodeModel.Setting;
 

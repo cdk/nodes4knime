@@ -126,7 +126,8 @@ public class MassCalculatorNodeModel extends ThreadedColAppenderNodeModel {
 	@Override
 	protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
 		
-		if ((columnName == null) || (columnName.length() == 0))
+		String colName = settings.getString(Setting.COLUMN_NAME.label());
+		if (colName == null || colName.length() == 0)
 			throw new InvalidSettingsException("No sum formula column chosen.");
 	}
 
