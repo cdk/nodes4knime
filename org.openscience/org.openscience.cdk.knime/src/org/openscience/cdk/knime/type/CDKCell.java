@@ -75,7 +75,6 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 	 * @return StringValue.class
 	 */
 	public static final Class<? extends DataValue> getPreferredValueClass() {
-
 		return CDKValue.class;
 	}
 
@@ -115,7 +114,7 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 	/**
 	 * The hash code.
 	 */
-	private final int hash;
+	private final long hash;
 
 	/**
 	 * Factory method to be used for creation. It will parse the SDF string and if that is successful it will create a
@@ -161,8 +160,8 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 		compressedCml = getCompressedCml(atomContainer);
 
 		CDKNodeUtils.calculateHash(atomContainer);
-		hash = (Integer) atomContainer.getProperty(CDKConstants.MAPPED);
-
+		hash = (Long) atomContainer.getProperty(CDKConstants.MAPPED);
+		
 		atomContainer = null;
 	}
 
@@ -172,7 +171,7 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 	 * @param compressedCml the CML string
 	 * @param hash the CDK hash
 	 */
-	public CDKCell(final String compressedCml, final int hash) {
+	public CDKCell(final String compressedCml, final long hash) {
 
 		this.compressedCml = compressedCml;
 		this.hash = hash;
@@ -221,7 +220,6 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 	 */
 	@Override
 	public String getSmilesValue() {
-
 		return CDKNodeUtils.calculateSmiles(getMol(), false);
 	}
 
@@ -264,7 +262,6 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 	 * @return the compressed CML string
 	 */
 	public String getCmlValue() {
-
 		return compressedCml;
 	}
 
@@ -273,7 +270,6 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 	 */
 	@Override
 	public IAtomContainer getAtomContainer() {
-
 		return getMol();
 	}
 
@@ -357,7 +353,13 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 	 */
 	@Override
 	public int hashCode() {
-
+		return ((Long) hash).hashCode();
+	}
+	
+	/**
+	 * Molecule hash is 64 bit
+	 */
+	public long hashCode64() {
 		return hash;
 	}
 
@@ -366,7 +368,6 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 	 */
 	@Override
 	public String toString() {
-
 		return getStringValue();
 	}
 
@@ -382,7 +383,7 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 		public void serialize(final CDKCell cell, final DataCellDataOutput out) throws IOException {
 
 			out.writeUTF(cell.getCmlValue());
-			out.writeInt(cell.hashCode());
+			out.writeLong(cell.hashCode64());
 		}
 
 		/**
@@ -390,8 +391,7 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 		 */
 		@Override
 		public CDKCell deserialize(final DataCellDataInput input) throws IOException {
-
-			return new CDKCell(input.readUTF(), input.readInt());
+			return new CDKCell(input.readUTF(), input.readLong());
 		}
 	}
 }

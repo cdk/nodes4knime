@@ -81,8 +81,8 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 	private static final NodeLogger LOGGER = NodeLogger.getLogger(CDKValueRenderer.class);
 
 	private static AtomContainerRenderer renderer;
-
 	private static AtomContainerRenderer RENDERER;
+	
 	private static final double SCALE = 0.85;
 
 	static {

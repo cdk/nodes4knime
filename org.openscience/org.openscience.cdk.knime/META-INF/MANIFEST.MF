@@ -2,13 +2,12 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: KNIME CDK Integration
 Bundle-SymbolicName: org.openscience.cdk.knime;singleton:=true
-Bundle-Version: 1.4.2.qualifier
+Bundle-Version: 1.4.3.qualifier
 Bundle-Vendor: KNIME GmbH, Konstanz and EMBL-EBI, Cambridge
 Bundle-ClassPath: knime-cdk.jar,
- lib/cdk-1.5.1.jar,
+ lib/cdk-1.5.2.jar,
  lib/jmol-10.jar,
- lib/jchempaint-3.2.0.jar,
- lib/mdk-prototype-tool-hashcode-1.3.2-16.jar
+ lib/jchempaint-3.2.0.jar
 Require-Bundle: org.knime.base;bundle-version="2.5.4",
  org.eclipse.ui;bundle-version="3.6.1",
  org.knime.workbench.repository;bundle-version="2.5.1",
@@ -49,6 +48,8 @@ Export-Package: javax.vecmath,
  org.openscience.cdk.graph.matrix,
  org.openscience.cdk.graph.rebond,
  org.openscience.cdk.group,
+ org.openscience.cdk.hash,
+ org.openscience.cdk.hash.stereo,
  org.openscience.cdk.inchi,
  org.openscience.cdk.index,
  org.openscience.cdk.interfaces,
@@ -84,6 +85,7 @@ Export-Package: javax.vecmath,
  org.openscience.cdk.knime.fingerprints.similarity,
  org.openscience.cdk.knime.hydrogen,
  org.openscience.cdk.knime.lipinski,
+ org.openscience.cdk.knime.masscalculator,
  org.openscience.cdk.knime.molprops,
  org.openscience.cdk.knime.opsin,
  org.openscience.cdk.knime.rmsdcalculator,
@@ -192,10 +194,7 @@ Export-Package: javax.vecmath,
  org.openscience.jchempaint.rgroups,
  org.openscience.jchempaint.undoredo,
  org.openscience.jmol.app,
- signature,
- signature.chemistry,
- signature.display,
- signature.simple
+ signature
 Bundle-Activator: org.openscience.cdk.knime.CDKNodePlugin
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6

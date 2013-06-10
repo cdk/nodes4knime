@@ -28,6 +28,9 @@ import org.openscience.cdk.aromaticity.CDKHueckelAromaticityDetector;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.geometry.GeometryTools;
 import org.openscience.cdk.graph.ConnectivityChecker;
+import org.openscience.cdk.hash.BasicAtomEncoder;
+import org.openscience.cdk.hash.HashGeneratorMaker;
+import org.openscience.cdk.hash.MoleculeHashGenerator;
 import org.openscience.cdk.inchi.InChIGenerator;
 import org.openscience.cdk.inchi.InChIGeneratorFactory;
 import org.openscience.cdk.interfaces.IAtomContainer;
@@ -38,9 +41,6 @@ import org.openscience.cdk.smiles.SmilesGenerator;
 import org.openscience.cdk.tools.CDKHydrogenAdder;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 
-import uk.ac.ebi.mdk.prototype.hash.HashGenerator;
-import uk.ac.ebi.mdk.prototype.hash.HashGeneratorMaker;
-
 /**
  * Utility functions for CDK object standardisation.
  * 
@@ -49,8 +49,7 @@ import uk.ac.ebi.mdk.prototype.hash.HashGeneratorMaker;
 public class CDKNodeUtils {
 
 	private static final NodeLogger LOGGER = NodeLogger.getLogger(CDKNodeUtils.class);
-	private static final HashGenerator<Integer> GENERATOR = new HashGeneratorMaker().withDepth(8).charged().chiral()
-			.isotopic().radicals().withBondOrderSum().nullable().build();
+	private static final MoleculeHashGenerator GENERATOR = new HashGeneratorMaker().depth(8).charged().encode(BasicAtomEncoder.BOND_ORDER_SUM).chiral().isotopic().radical().molecular();
 	private static final SmilesGenerator SG = new SmilesGenerator(true);
 
 	private static InChIGeneratorFactory ig;
@@ -197,12 +196,13 @@ public class CDKNodeUtils {
 
 	public static void calculateHash(IAtomContainer molecule) {
 
-		int hash;
+		long hash;
 		try {
 			hash = GENERATOR.generate(molecule);
 		} catch (Exception exception) {
 			hash = 0;
 		}
+		
 		molecule.setProperty(CDKConstants.MAPPED, hash);
 	}
 

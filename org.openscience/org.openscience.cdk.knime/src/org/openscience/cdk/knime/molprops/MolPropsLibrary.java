@@ -54,6 +54,7 @@ import org.openscience.cdk.qsar.result.IDescriptorResult;
 import org.openscience.cdk.qsar.result.IntegerArrayResultType;
 import org.openscience.cdk.qsar.result.IntegerResult;
 import org.openscience.cdk.qsar.result.IntegerResultType;
+import org.openscience.cdk.silent.SilentChemObjectBuilder;
 
 /**
  * Utility class that generates various molecular properties using CDK.
@@ -106,9 +107,9 @@ public final class MolPropsLibrary {
 		Dictionary dict = null;
 		try {
 			if (!classNames.isEmpty()) {
-				engine = new DescriptorEngine(classNames);
+				engine = new DescriptorEngine(classNames, SilentChemObjectBuilder.getInstance());
 			} else {
-				engine = new DescriptorEngine(DescriptorEngine.MOLECULAR);
+				engine = new DescriptorEngine(DescriptorEngine.MOLECULAR, SilentChemObjectBuilder.getInstance());
 			}
 			nativeDescs = engine.getDescriptorInstances();
 			dict = new DictionaryDatabase().getDictionary("descriptor-algorithms");

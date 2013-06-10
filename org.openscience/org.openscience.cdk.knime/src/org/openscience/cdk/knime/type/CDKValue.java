@@ -82,7 +82,6 @@ public interface CDKValue extends DataValue {
 		 */
 		@Override
 		public Icon getIcon() {
-
 			return ICON;
 		}
 
@@ -91,7 +90,6 @@ public interface CDKValue extends DataValue {
 		 */
 		@Override
 		protected DataValueComparator getComparator() {
-
 			return COMPARATOR;
 		}
 
@@ -100,7 +98,6 @@ public interface CDKValue extends DataValue {
 		 */
 		@Override
 		protected DataValueRendererFamily getRendererFamily(final DataColumnSpec spec) {
-
 			return new DefaultDataValueRendererFamily(new CDKValueRenderer(),
 					new MultiLineStringValueRenderer("String"));
 		}

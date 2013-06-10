@@ -150,7 +150,7 @@ class MolConverter implements ExtendedCellFactory {
 		@Override
 		public IAtomContainer conv(final DataCell cell) throws Exception {
 
-			String cml = "";;
+			String cml = "";
 			if (cell instanceof CMLValue) {
 				cml = ((CMLValue) cell).getCMLValue();
 			} else if (cell instanceof XMLValue) {
