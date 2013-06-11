@@ -4,7 +4,6 @@
     <dependencies>
         <!--  necessary for for the automated build system -->
         <dependency name="org.knime.workbench.help" versionDesignator="2.4.0" componentType="osgi.bundle" />
-        <dependency name="org.knime.product" componentType="osgi.bundle" />
         <!-- necessary for all SWT fragments -->
         <dependency name="org.eclipse.platform" componentType="eclipse.feature" />
     </dependencies>
