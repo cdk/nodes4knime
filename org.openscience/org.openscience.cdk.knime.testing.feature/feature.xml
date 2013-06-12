@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feature
+      id="org.openscience.cdk.knime.testing.feature"
+      label="CDK Testing feature"
+      version="1.0.0.qualifier"
+      provider-name="University Konstanz and EBI">
+
+   <description>
+      Testcases for CDK.
+   </description>
+
+   <requires>
+      <import feature="org.knime.features.testingapplication" version="2.7.0" match="greaterOrEqual"/>
+      <import feature="org.knime.features.chem.types" version="2.7.0.0" match="greaterOrEqual"/>
+   </requires>
+
+</feature>

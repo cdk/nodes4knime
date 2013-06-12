@@ -20,4 +20,8 @@
          id="org.openscience.cdk.knime.feature"
          version="0.0.0"/>
 
+   <includes
+         id="org.openscience.cdk.knime.testing.feature"
+         version="0.0.0"/>
+
 </feature>
