@@ -12,6 +12,7 @@
    <requires>
       <import feature="org.knime.features.testingapplication" version="2.7.0" match="greaterOrEqual"/>
       <import feature="org.knime.features.chem.types" version="2.7.0.0" match="greaterOrEqual"/>
+      <import feature="jp.co.infocom.cheminfo.marvin.feature" version="2.6.3" match="greaterOrEqual"/>
    </requires>
 
 </feature>
