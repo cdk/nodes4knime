@@ -1,17 +1,17 @@
 /*
  * Copyright (C) 2003 - 2013 University of Konstanz, Germany and KNIME GmbH, Konstanz, Germany Website:
  * http://www.knime.org; Email: contact@knime.org
- * 
+ *
  * This file is part of the KNIME CDK plugin.
- * 
+ *
  * The KNIME CDK plugin is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
  * General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your
  * option) any later version.
- * 
+ *
  * The KNIME CDK plugin is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
  * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License
  * for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License along with the plugin. If not, see
  * <http://www.gnu.org/licenses/>.
  */
@@ -28,34 +28,26 @@ import javax.swing.event.ListSelectionListener;
 import org.knime.chem.types.SdfValue;
 import org.knime.core.data.DataCell;
 import org.knime.core.node.NodeView;
-import org.knime.core.node.tableview.TableContentModel;
 import org.knime.core.node.tableview.TableView;
 import org.openscience.cdk.knime.type.CDKValue;
 
 /**
  * View that shows a table on top and the off structure at the bottom.
- * 
+ *
  * @author wiswedel, University of Konstanz
  */
 public class JmolViewerNodeView extends NodeView<JmolViewerNodeModel> {
-
 	private final TableView m_tableView;
 	private final JmolViewerPanel m_panel;
-	private final int column;
 
 	/**
 	 * Inits view.
-	 * 
+	 *
 	 * @param model To get data from.
 	 */
 	public JmolViewerNodeView(final JmolViewerNodeModel model) {
-
 		super(model);
-		
-		TableContentModel tableContentModel = model.getContentModel();
-		String columnName = model.getSettings().molColumnName();
-		column = tableContentModel.getDataTable().getDataTableSpec().findColumnIndex(columnName);
-		
+
 		m_panel = new JmolViewerPanel();
 		m_panel.setMinimumSize(new Dimension(200, 200));
 		m_tableView = new TableView(model.getContentModel());
@@ -110,7 +102,10 @@ public class JmolViewerNodeView extends NodeView<JmolViewerNodeModel> {
 			m_panel.setCDKValue(null);
 		} else {
 			JmolViewerNodeModel model = getNodeModel();
-			
+
+			String columnName = model.getSettings().molColumnName();
+	        int column = model.getContentModel().getDataTable().getDataTableSpec().findColumnIndex(columnName);
+
 			assert column >= 0;
 
 			DataCell cell = model.getContentModel().getValueAt(index, column);
