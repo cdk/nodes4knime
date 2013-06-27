@@ -12,9 +12,14 @@
         The computations are based of the <a href="http://cdk.sf.net">CDK</a> toolkit. At the moment two types of
          RMSD calculations are possible.
         One based on the alignment using the Kabsch algorithm and the other based on the isomorphic alignment of the 
+<<<<<<< .mine
+        molecular structure and using the global geometry.
+   		</intro> 
+=======
         molecular structure and using the global geometry.        
         </intro>
    
+>>>>>>> .r6325
         <option name="Column with molecules">Select the column containing the molecular structure with 3D coordinates</option>
         <option name="Alignment algorithm">Select the type of alignment to be used for the RMSD calculation</option>
     </fullDescription>
