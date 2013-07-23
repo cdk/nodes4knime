@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode type="Other" icon="./xlogp.png">
+    <name>XLogP</name>
+    <shortDescription>Prediction of logP based on the atom-type method called XLogP.</shortDescription>
+    <fullDescription>
+        <intro>
+        	Prediction of logP based on the atom-type method called XLogP, for details of the methodology see<br/>
+        	Wang, R., Fu, Y., and Lai, L. A <i>New Atom-Additive Method for Calculating Partition Coefficients</i>, 
+        	Journal of Chemical Information and Computer Sciences. vol. 37. 1997, pp. 615-621. 
+        </intro>
+        <option name="Molecule column">Select the column containing the molecular structure.</option>
+    </fullDescription>
+    <ports>
+        <inPort index="0" name="Molecule input">Table containing molecular structure based on which the logP shall be computed.</inPort>
+        <outPort index="0" name="Input table with appended XLogP column">As input but with one additional column containing the XLogP value.</outPort>
+    </ports>
+</knimeNode>
+
+
