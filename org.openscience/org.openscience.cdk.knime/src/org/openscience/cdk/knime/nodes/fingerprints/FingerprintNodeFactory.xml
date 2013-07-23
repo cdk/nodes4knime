@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode type="Other" icon="./fingerprint.png">
+    <name>Fingerprints</name>
+    <shortDescription>Generate fingerprints for CDK molecules</shortDescription>
+    <fullDescription>
+        <intro>
+            Creates a new column containing a fingerprint for the molecules. The computations are based on the
+            <a href="http://cdk.sf.net">CDK</a>
+            toolkit.
+        </intro>
+        <option name="Molecule column">Select the column containing the molecular structure.</option>
+        <option name="Extended fingerprints">Generate extended fingerprints.</option>
+    </fullDescription>
+    <ports>
+        <inPort index="0" name="Molecule input">Table containing molecular structure based on which the fingerprints should be calculated.</inPort>
+        <outPort index="0" name="Input with fingerprints">As input but with an additional column.</outPort>
+    </ports>
+</knimeNode>
+
+
