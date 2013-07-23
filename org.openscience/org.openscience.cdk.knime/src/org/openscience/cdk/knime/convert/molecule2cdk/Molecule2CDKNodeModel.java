@@ -39,7 +39,7 @@ import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.openscience.cdk.knime.CDKNodeUtils;
+import org.openscience.cdk.knime.commons.CDKNodeUtils;
 import org.openscience.cdk.knime.type.CDKCell;
 
 /**

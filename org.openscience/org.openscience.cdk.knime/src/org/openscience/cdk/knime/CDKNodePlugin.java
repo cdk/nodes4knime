@@ -36,9 +36,10 @@ import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.knime.ext.chem.moss.CDKMolConverter;
 import org.knime.ext.chem.moss.MolConverter;
-import org.openscience.cdk.knime.CDKPreferencePage.AROMATICITY;
-import org.openscience.cdk.knime.CDKPreferencePage.LABELS;
-import org.openscience.cdk.knime.CDKPreferencePage.NUMBERING;
+import org.openscience.cdk.knime.preferences.CDKPreferenceInitializer;
+import org.openscience.cdk.knime.preferences.CDKPreferencePage.AROMATICITY;
+import org.openscience.cdk.knime.preferences.CDKPreferencePage.LABELS;
+import org.openscience.cdk.knime.preferences.CDKPreferencePage.NUMBERING;
 import org.osgi.framework.BundleContext;
 
 /**
@@ -135,7 +136,6 @@ public class CDKNodePlugin extends AbstractUIPlugin {
 	 * @return Singleton instance of the Plugin
 	 */
 	public static CDKNodePlugin getDefault() {
-
 		return plugin;
 	}
 
@@ -145,7 +145,6 @@ public class CDKNodePlugin extends AbstractUIPlugin {
 	 * @return <code>true</code> if the id labels should be displayed, <code>false</code> otherwise
 	 */
 	public static LABELS showNumbers() {
-
 		return showNumbers;
 	}
 
@@ -155,7 +154,6 @@ public class CDKNodePlugin extends AbstractUIPlugin {
 	 * @return the numbering type
 	 */
 	public static NUMBERING numbering() {
-
 		return numbering;
 	}
 
@@ -165,7 +163,6 @@ public class CDKNodePlugin extends AbstractUIPlugin {
 	 * @return if the aromaticity should be shown Kekule style
 	 */
 	public static AROMATICITY showAomaticity() {
-
 		return showRings;
 	}
 }

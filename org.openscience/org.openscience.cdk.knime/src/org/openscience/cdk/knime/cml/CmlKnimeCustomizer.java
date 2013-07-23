@@ -85,7 +85,6 @@ public class CmlKnimeCustomizer implements ICMLCustomizer {
 
 	@Override
 	public void customize(final IAtomContainer molecule, final Object nodeToAdd) throws Exception {
-
 		// do nothing
 	}
 }

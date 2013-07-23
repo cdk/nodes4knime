@@ -35,7 +35,7 @@ import org.openscience.cdk.interfaces.IChemModel;
 import org.openscience.cdk.io.CMLReader;
 import org.openscience.cdk.io.SDFWriter;
 import org.openscience.cdk.io.iterator.IteratingSDFReader;
-import org.openscience.cdk.knime.CDKNodeUtils;
+import org.openscience.cdk.knime.commons.CDKNodeUtils;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.tools.manipulator.ChemFileManipulator;
 import org.openscience.jchempaint.JChemPaintPanel;

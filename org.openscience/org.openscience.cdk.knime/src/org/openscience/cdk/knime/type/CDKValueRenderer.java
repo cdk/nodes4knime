@@ -29,6 +29,7 @@ import java.util.List;
 import javax.vecmath.Point2d;
 import javax.vecmath.Point3d;
 
+import org.knime.core.data.AdapterValue;
 import org.knime.core.data.renderer.AbstractPainterDataValueRenderer;
 import org.knime.core.node.NodeLogger;
 import org.openscience.cdk.AtomContainer;
@@ -38,8 +39,8 @@ import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IAtomContainerSet;
 import org.openscience.cdk.knime.CDKNodePlugin;
-import org.openscience.cdk.knime.CDKPreferencePage.AROMATICITY;
-import org.openscience.cdk.knime.CDKPreferencePage.NUMBERING;
+import org.openscience.cdk.knime.preferences.CDKPreferencePage.AROMATICITY;
+import org.openscience.cdk.knime.preferences.CDKPreferencePage.NUMBERING;
 import org.openscience.cdk.renderer.AtomContainerRenderer;
 import org.openscience.cdk.renderer.RendererModel;
 import org.openscience.cdk.renderer.font.AWTFontManager;
@@ -82,7 +83,7 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 
 	private static AtomContainerRenderer renderer;
 	private static AtomContainerRenderer RENDERER;
-	
+
 	private static final double SCALE = 0.85;
 
 	static {
@@ -103,14 +104,14 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 		RENDERER = renderer;
 	}
 
-	private static void setDefaultRendererProps(RendererModel renderer2dModel, AROMATICITY aromaticity) {
+	private static void setDefaultRendererProps(final RendererModel renderer2dModel, final AROMATICITY aromaticity) {
 
 		if (aromaticity.equals(AROMATICITY.SHOW_KEKULE)) {
 			renderer.getRenderer2DModel().set(RingGenerator.ShowAromaticity.class, false);
 		} else {
 			renderer.getRenderer2DModel().set(RingGenerator.ShowAromaticity.class, true);
 		}
-		
+
 		renderer2dModel.set(RingGenerator.MaxDrawableAromaticRing.class, 9);
 		renderer2dModel.set(BasicSceneGenerator.UseAntiAliasing.class, true);
 		renderer2dModel.set(BasicAtomGenerator.ShowExplicitHydrogens.class, true);
@@ -128,9 +129,9 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 		super();
 
 		AROMATICITY aromaticity;
-		
+
 		switch (CDKNodePlugin.showAomaticity()) {
-		
+
 		case SHOW_KEKULE:
 			aromaticity = AROMATICITY.SHOW_KEKULE;
 			break;
@@ -138,7 +139,7 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 			aromaticity = AROMATICITY.SHOW_RINGS;
 			break;
 		}
-		
+
 		NUMBERING numbering;
 
 		switch (CDKNodePlugin.numbering()) {
@@ -174,19 +175,19 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 	 * @param type the element symbol to be replaced by a number
 	 * @param numbering the numbering scheme (sequential, canonical)
 	 */
-	private void setRendererProps(TYPE type, NUMBERING numbering, AROMATICITY aromaticity) {
+	private void setRendererProps(final TYPE type, final NUMBERING numbering, final AROMATICITY aromaticity) {
 
 		renderer.getRenderer2DModel().set(ExtendedAtomGenerator.ShowImplicitHydrogens.class, false);
 		renderer.getRenderer2DModel().set(BasicAtomGenerator.ShowEndCarbons.class, false);
 		renderer.getRenderer2DModel().set(AtomNumberGenerator.WillDrawAtomNumbers.class, true);
 		renderer.getRenderer2DModel().set(AtomNumberGenerator.DrawSpecificElement.class, type.getSymbol());
-		
+
 		if (aromaticity.equals(AROMATICITY.SHOW_KEKULE)) {
 			renderer.getRenderer2DModel().set(RingGenerator.ShowAromaticity.class, false);
 		} else {
 			renderer.getRenderer2DModel().set(RingGenerator.ShowAromaticity.class, true);
 		}
-		
+
 		if (numbering.equals(NUMBERING.SEQUENTIAL)) {
 			renderer.getRenderer2DModel().set(AtomNumberGenerator.DrawSequential.class, true);
 		} else {
@@ -200,7 +201,6 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 	 * @param con the new molecule to be rendered (<code>null</code> is ok)
 	 */
 	protected void setAtomContainer(final IAtomContainer con) {
-
 		m_mol = con;
 	}
 
@@ -210,7 +210,6 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 	 * @return the current molecule
 	 */
 	protected IAtomContainer getAtomContainer() {
-
 		return m_mol;
 	}
 
@@ -227,7 +226,9 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 
 		if (value instanceof CDKValue) { // when used directly on CDKCell
 			setAtomContainer(((CDKValue) value).getAtomContainer());
-			return;
+		} else if ((value instanceof AdapterValue) && ((AdapterValue) value).isAdaptable(CDKValue.class)
+				&& (((AdapterValue) value).getAdapterError(CDKValue.class) == null)) {
+			setAtomContainer(((AdapterValue) value).getAdapter(CDKValue.class).getAtomContainer());
 		} else {
 			setAtomContainer(null);
 		}
@@ -240,7 +241,7 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 	protected void paintComponent(final Graphics g) {
 
 		super.paintComponent(g);
-		
+
 		g.setFont(NO_2D_FONT);
 
 		if (m_mol == null) {
@@ -296,8 +297,9 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 			for (int i = 1; i < molSet.getAtomContainerCount(); i++) {
 				IAtomContainer curMol = molSet.getAtomContainer(i);
 				Rectangle2D molRecCur = GeometryTools.getRectangle2D(curMol);
-				double xShift = molRec.getCenterX() + (molRec.getWidth() / 2) + (molRecCur.getWidth() / 2);
-				double yShift = molRecCur.getCenterY();
+				double curWidth =  molRecCur.getWidth() == 0 ? 3 : molRecCur.getWidth();
+				double xShift = molRec.getMaxX() + curWidth;
+				double yShift = molRec.getCenterY();
 				GeometryTools.translate2DCenterTo(curMol, new Point2d(new double[] { xShift, yShift }));
 
 				molRec = molRecCur;
@@ -328,7 +330,6 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 	 */
 	@Override
 	public String getDescription() {
-
 		return "CDK Molecule";
 	}
 
@@ -338,7 +339,6 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 	 */
 	@Override
 	public Dimension getPreferredSize() {
-
 		return new Dimension(100, 100);
 	}
 }

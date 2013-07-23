@@ -51,7 +51,7 @@ import org.openscience.cdk.interfaces.IChemFile;
 import org.openscience.cdk.io.CMLReader;
 import org.openscience.cdk.io.MDLV2000Reader;
 import org.openscience.cdk.io.Mol2Reader;
-import org.openscience.cdk.knime.CDKNodeUtils;
+import org.openscience.cdk.knime.commons.CDKNodeUtils;
 import org.openscience.cdk.knime.type.CDKCell;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.smiles.FixBondOrdersTool;
@@ -292,7 +292,7 @@ class MolConverter implements ExtendedCellFactory {
 		try {
 			IAtomContainer mol = future.get(TIMEOUT, TimeUnit.SECONDS);
 			if (mol != null)
-				cell = new CDKCell(mol);
+				cell = CDKCell.createCDKCell(mol);
 			mol = null;
 		} catch (Exception e) {
 			future.cancel(true);
@@ -323,13 +323,11 @@ class MolConverter implements ExtendedCellFactory {
 
 	@Override
 	public ColumnDestination[] getColumnDestinations() {
-
 		return m_colDest;
 	}
 
 	@Override
 	public DataColumnSpec[] getColumnSpecs() {
-
 		return m_colSpec;
 	}
 }

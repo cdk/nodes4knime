@@ -146,7 +146,6 @@ public class CDKMolConverter extends MolConverter<IAtomContainer, CDKValue> {
 	 */
 	@Override
 	public NamedGraph convert(final String name, final CDKValue value, final boolean active) throws ParseException {
-
 		return convert(name, value.getAtomContainer(), active);
 	}
 
@@ -155,14 +154,12 @@ public class CDKMolConverter extends MolConverter<IAtomContainer, CDKValue> {
 	 */
 	@Override
 	public DataCell createCell(final Graph graph) {
-
-		return new CDKCell(convert(graph));
+		return CDKCell.createCDKCell(convert(graph));
 	}
 
 //  Change of API in KNIME 2.7?
 //	@Override
 	public DataType getDataType() {
-
 		return CDKCell.TYPE;
 	}
 }

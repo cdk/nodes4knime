@@ -29,6 +29,7 @@ import java.util.zip.GZIPOutputStream;
 
 import org.knime.chem.types.SdfValue;
 import org.knime.chem.types.SmilesValue;
+import org.knime.core.data.AdapterValue;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataCellDataInput;
 import org.knime.core.data.DataCellDataOutput;
@@ -47,9 +48,9 @@ import org.openscience.cdk.io.CMLReader;
 import org.openscience.cdk.io.CMLWriter;
 import org.openscience.cdk.io.SDFWriter;
 import org.openscience.cdk.io.iterator.IteratingSDFReader;
-import org.openscience.cdk.knime.CDKNodeUtils;
 import org.openscience.cdk.knime.cml.CmlKnimeCore;
 import org.openscience.cdk.knime.cml.CmlKnimeCustomizer;
+import org.openscience.cdk.knime.commons.CDKNodeUtils;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.tools.manipulator.ChemFileManipulator;
 
@@ -103,7 +104,6 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 	 * @see DataCell
 	 */
 	public static final DataCellSerializer<CDKCell> getCellSerializer() {
-
 		return SERIALIZER;
 	}
 
@@ -125,11 +125,11 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 	 */
 	public static final DataCell newInstance(final String sdf) {
 
-		DataCell resultCell = DataType.getMissingCell();
+		IAtomContainer cdkMol = null;
 
 		if (sdf != null && !sdf.isEmpty()) {
 
-			IAtomContainer cdkMol = SilentChemObjectBuilder.getInstance().newInstance(IAtomContainer.class);
+			cdkMol = SilentChemObjectBuilder.getInstance().newInstance(IAtomContainer.class);
 			IteratingSDFReader reader = new IteratingSDFReader(new StringReader(sdf),
 					SilentChemObjectBuilder.getInstance());
 
@@ -141,15 +141,34 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 					CDKNodeUtils.getStandardMolecule(cdkMol);
 					cdkMol = CDKNodeUtils.calculateCoordinates(cdkMol, false, false);
 				}
-				resultCell = new CDKCell(cdkMol);
 			} catch (Exception e) {
 				// do nothing
 			}
 		}
 
-		return resultCell;
+		return (cdkMol == null) ? DataType.getMissingCell() : new CDKAdapterCell(new CDKCell(cdkMol));
 	}
 
+	/**
+	 * Creates a new DataCell containing the atom container.
+	 * 
+	 * @param atomContainer an atom container
+	 * @return a new data cell containing the atom container
+	 */
+	public static DataCell createCDKCell(final IAtomContainer atomContainer) {
+		return new CDKAdapterCell(new CDKCell(atomContainer));
+	}
+
+	/**
+	 * Creates a new DataCell containing the atom container.
+	 * 
+	 * @param atomContainer an atom container
+	 * @return a new data cell containing the atom container
+	 */
+	public static DataCell createCDKCell(final DataCell source, final IAtomContainer atomContainer) {
+		return new CDKAdapterCell((AdapterValue) source, new CDKCell(atomContainer));
+	}
+	
 	/**
 	 * Creates new CDK cell.
 	 * 
@@ -161,7 +180,7 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 
 		CDKNodeUtils.calculateHash(atomContainer);
 		hash = (Long) atomContainer.getProperty(CDKConstants.MAPPED);
-		
+
 		atomContainer = null;
 	}
 
@@ -312,7 +331,7 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 		try {
 			writer.write(cdkMol);
 			String value = stringWriter.toString();
-			
+
 			stringWriter.close();
 			writer.close();
 
@@ -327,7 +346,7 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 			gzip.close();
 
 			outStr = out.toString("ISO-8859-1");
-			
+
 			value = null;
 			gzip = null;
 			out = null;
@@ -355,7 +374,7 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 	public int hashCode() {
 		return ((Long) hash).hashCode();
 	}
-	
+
 	/**
 	 * Molecule hash is 64 bit
 	 */
