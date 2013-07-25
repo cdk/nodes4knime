@@ -16,6 +16,7 @@
     
     <ports>
         <inPort index="0" name="Molecule input">Table containing molecular structures.</inPort>
+        <inPort index="1" name="Molecule input">Table containing the reference structure.</inPort>
 		<outPort index="0" name="Input with calculated properties">As input but with one additional column for the similarity score.</outPort>
     </ports>    
 </knimeNode>
