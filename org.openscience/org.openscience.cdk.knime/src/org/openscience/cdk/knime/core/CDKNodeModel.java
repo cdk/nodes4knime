@@ -21,6 +21,7 @@ import java.io.IOException;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataValue;
 import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
@@ -140,6 +141,11 @@ public abstract class CDKNodeModel extends NodeModel {
 				} else if ((name == null) && s.getType().isAdaptableToAny(CDKNodeUtils.ACCEPTED_VALUE_CLASSES)) {
 					name = s.getName();
 				}
+				
+				// hack to circumvent empty adapter value list map
+				if ((name == null) && isAdaptableToAny(s)) {
+					name = s.getName();
+				}
 			}
 			if (name != null) {
 				settings.targetColumn(name);
@@ -148,6 +154,22 @@ public abstract class CDKNodeModel extends NodeModel {
 				throw new InvalidSettingsException("No CDK compatible column in input table");
 			}
 		}
+	}
+	
+	/**
+	 * Checks the data type of the column spec for CDK compatibility.
+	 * 
+	 * @param s the data column spec
+	 * @return if compatible
+	 */
+	private boolean isAdaptableToAny(DataColumnSpec s) {
+
+		for (Class<? extends DataValue> cl : CDKNodeUtils.ACCEPTED_VALUE_CLASSES) {
+			if (cl == s.getType().getPreferredValueClass()) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**

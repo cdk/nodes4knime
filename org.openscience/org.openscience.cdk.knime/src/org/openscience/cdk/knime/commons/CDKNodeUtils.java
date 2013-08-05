@@ -298,13 +298,33 @@ public class CDKNodeUtils {
 				} else if ((name == null) && s.getType().isAdaptableToAny(CDKNodeUtils.ACCEPTED_VALUE_CLASSES)) {
 					moleculeColumn = s.getName();
 				}
+				// hack to circumvent empty adapter value list map
+				if ((name == null) && isAdaptableToAny(s)) {
+					moleculeColumn = s.getName();
+				}
 			}
 			if (moleculeColumn == null) {
 				throw new InvalidSettingsException("No CDK compatible column in input table");
 			}
 		}
-		
+
 		return moleculeColumn;
+	}
+
+	/**
+	 * Checks the data type of the column spec for CDK compatibility.
+	 * 
+	 * @param s the data column spec
+	 * @return if compatible
+	 */
+	private static boolean isAdaptableToAny(DataColumnSpec s) {
+
+		for (Class<? extends DataValue> cl : CDKNodeUtils.ACCEPTED_VALUE_CLASSES) {
+			if (cl == s.getType().getPreferredValueClass()) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
@@ -338,24 +358,24 @@ public class CDKNodeUtils {
 		return column;
 	}
 
-//	public static IAtomContainer getMolecule(final DataCell cell) {
-//
-//		IAtomContainer mol = null;
-//
-//		if (cell.isMissing()) {
-//
-//		} else if (cell != null) {
-//			if (cell.getType().isCompatible(CDKValue.class)) {
-//				mol = ((CDKValue) cell).getAtomContainer();
-//			} else if (cell.getType().isCompatible(AdapterValue.class)
-//					&& ((AdapterValue) cell).isAdaptable(CDKValue.class)) {
-//				mol = ((AdapterValue) cell).getAdapter(CDKValue.class).getAtomContainer();
-//			} else {
-//				throw new IllegalArgumentException(
-//						"The cell is not compatible with a CDKValue. This is usually an implementation error.");
-//			}
-//		}
-//
-//		return mol;
-//	}
+	// public static IAtomContainer getMolecule(final DataCell cell) {
+	//
+	// IAtomContainer mol = null;
+	//
+	// if (cell.isMissing()) {
+	//
+	// } else if (cell != null) {
+	// if (cell.getType().isCompatible(CDKValue.class)) {
+	// mol = ((CDKValue) cell).getAtomContainer();
+	// } else if (cell.getType().isCompatible(AdapterValue.class)
+	// && ((AdapterValue) cell).isAdaptable(CDKValue.class)) {
+	// mol = ((AdapterValue) cell).getAdapter(CDKValue.class).getAtomContainer();
+	// } else {
+	// throw new IllegalArgumentException(
+	// "The cell is not compatible with a CDKValue. This is usually an implementation error.");
+	// }
+	// }
+	//
+	// return mol;
+	// }
 }

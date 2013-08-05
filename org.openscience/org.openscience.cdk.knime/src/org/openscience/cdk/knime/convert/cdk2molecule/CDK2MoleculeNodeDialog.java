@@ -114,6 +114,7 @@ public class CDK2MoleculeNodeDialog extends NodeDialogPane {
 
 		m_destFormat.setRenderer(new DefaultListCellRenderer() {
 
+			@SuppressWarnings("deprecation")
 			@Override
 			public Component getListCellRendererComponent(final JList list, final Object value, final int index,
 					final boolean isSelected, final boolean cellHasFocus) {

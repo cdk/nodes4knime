@@ -8,12 +8,12 @@ Bundle-ClassPath: knime-cdk.jar,
  lib/cdk-1.5.2.jar,
  lib/jmol-10.jar,
  lib/jchempaint-3.2.0.jar
-Require-Bundle: org.knime.base;bundle-version="2.5.4",
+Require-Bundle: org.knime.base;bundle-version="[2.5.4,3.0.0)",
  org.eclipse.ui;bundle-version="3.6.1",
- org.knime.workbench.repository;bundle-version="2.5.1",
- org.knime.distmatrix;bundle-version="2.5.0",
- org.knime.chem.types;bundle-version="2.3.0",
- org.knime.ext.chem.moss;bundle-version="2.4.0";resolution:=optional
+ org.knime.workbench.repository;bundle-version="[2.5.4,3.0.0)",
+ org.knime.distmatrix;bundle-version="[2.5.0,3.0.0)",
+ org.knime.chem.types;bundle-version="[2.3.0,3.0.0)",
+ org.knime.ext.chem.moss;bundle-version="[2.4.0,3.0.0)";resolution:=optional
 Export-Package: javax.vecmath,
  org.chemspider.knime,
  org.knime.ext.chem.moss,
