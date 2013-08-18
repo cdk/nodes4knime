@@ -72,6 +72,8 @@ public class FingerprintNodeModel extends CDKNodeModel {
 	@Override
 	protected ColumnRearranger createColumnRearranger(final DataTableSpec spec) throws InvalidSettingsException {
 
+		columnIndex = spec.findColumnIndex(settings.targetColumn());
+		
 		final IFingerprinter fp;
 		FingerprintTypes fpType = settings(FingerprintSettings.class).fingerprintType();
 		if (fpType.equals(FingerprintTypes.Extended)) {

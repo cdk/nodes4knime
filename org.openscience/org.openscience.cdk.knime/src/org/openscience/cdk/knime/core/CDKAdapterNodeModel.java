@@ -31,6 +31,7 @@ import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
+import org.knime.core.data.DataValue;
 import org.knime.core.data.MissingCell;
 import org.knime.core.data.RWAdapterValue;
 import org.knime.core.data.StringValue;
@@ -265,6 +266,11 @@ public abstract class CDKAdapterNodeModel extends NodeModel {
 				} else if ((name == null) && s.getType().isAdaptableToAny(CDKNodeUtils.ACCEPTED_VALUE_CLASSES)) {
 					name = s.getName();
 				}
+				
+				// hack to circumvent empty adapter value list map
+				if ((name == null) && isAdaptableToAny(s)) {
+					name = s.getName();
+				}
 			}
 			if (name != null) {
 				settings.targetColumn(name);
@@ -275,6 +281,22 @@ public abstract class CDKAdapterNodeModel extends NodeModel {
 		}
 
 		columnIndex = inSpecs[0].findColumnIndex(settings.targetColumn());
+	}
+	
+	/**
+	 * Checks the data type of the column spec for CDK compatibility.
+	 * 
+	 * @param s the data column spec
+	 * @return if compatible
+	 */
+	private boolean isAdaptableToAny(DataColumnSpec s) {
+
+		for (Class<? extends DataValue> cl : CDKNodeUtils.ACCEPTED_VALUE_CLASSES) {
+			if (cl == s.getType().getPreferredValueClass()) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
