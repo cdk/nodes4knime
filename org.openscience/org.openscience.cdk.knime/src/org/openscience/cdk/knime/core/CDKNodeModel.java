@@ -154,6 +154,8 @@ public abstract class CDKNodeModel extends NodeModel {
 				throw new InvalidSettingsException("No CDK compatible column in input table");
 			}
 		}
+		
+		columnIndex = inSpecs[0].findColumnIndex(settings.targetColumn());
 	}
 	
 	/**

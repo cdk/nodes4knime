@@ -83,7 +83,7 @@ public class Whim3dNodeModel extends CDKNodeModel {
 				weightingSchemes.add(Whim3dSchemes.ATOMIC_ELECTRONEGATIVITIES);
 		}
 
-		final IMolecularDescriptor whimDescriptor = new WHIMDescriptor();
+//		final IMolecularDescriptor whimDescriptor = new WHIMDescriptor();
 
 		AbstractCellFactory cf = new AbstractCellFactory(true, dataColSpec) {
 
@@ -124,6 +124,7 @@ public class Whim3dNodeModel extends CDKNodeModel {
 			private DataCell calculateValueForScheme(Whim3dSchemes scheme, IAtomContainer molecule) {
 
 				try {
+					IMolecularDescriptor whimDescriptor = new WHIMDescriptor();
 					Object[] whimParameter = new String[] { scheme.getParameterName() };
 					whimDescriptor.setParameters(whimParameter);
 
