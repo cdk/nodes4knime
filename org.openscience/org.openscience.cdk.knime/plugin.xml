@@ -16,6 +16,7 @@
       <node category-path="/community/cdk" expert-flag="false" factory-class="org.openscience.cdk.knime.nodes.sssearch.SSSearchNodeFactory" id="org.openscience.cdk.knime.sssearch.SSSearchNodeFactory"/>
 	  <node category-path="/community/cdk" expert-flag="false" factory-class="org.openscience.cdk.knime.nodes.atomsignature.AtomSignatureNodeFactory" id="org.openscience.cdk.knime.atomsignature.AtomSignatureNodeFactory"/>
 	  <node category-path="/community/cdk" expert-flag="false" factory-class="org.openscience.cdk.knime.nodes.sugarremover.SugarRemoverNodeFactory" id="org.openscience.cdk.knime.sugarremover.SugarRemoverNodeFactory"/>
+	  <node category-path="/community/cdk" expert-flag="false" factory-class="org.chemspider.knime.ChemSpiderNodeFactory" id="org.chemspider.knime.ChemSpiderNodeFactory"/>
    	  <node category-path="/community/cdk/3d" expert-flag="false" factory-class="org.openscience.cdk.knime.nodes.rmsdcalculator.RMSDCalculatorNodeFactory" id="org.openscience.cdk.knime.rmsdcalculator.RMSDCalculatorNodeFactory"/>
       <node category-path="/community/cdk" expert-flag="false" factory-class="org.openscience.cdk.knime.nodes.sumformula.SumFormulaNodeFactory" id="org.openscience.cdk.knime.sumformula.SumFormulaNodeFactory"/>
       <node category-path="/community/cdk" expert-flag="false" factory-class="org.openscience.cdk.knime.nodes.elementfilter.ElementFilterNodeFactory" id="org.openscience.cdk.knime.elementfilter.ElementFilterNodeFactory"/>
