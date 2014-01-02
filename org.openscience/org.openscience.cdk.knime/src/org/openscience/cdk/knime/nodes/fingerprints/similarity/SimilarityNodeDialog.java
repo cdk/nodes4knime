@@ -20,6 +20,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 
 import javax.swing.ButtonGroup;
+import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
@@ -59,6 +60,8 @@ public class SimilarityNodeDialog extends NodeDialogPane {
 
 	private final JRadioButton returnString = new JRadioButton("String");
 	private final JRadioButton returnCollection = new JRadioButton("Collection");
+
+	private final JCheckBox identicalBox = new JCheckBox();
 
 	private final SimilaritySettings m_settings = new SimilaritySettings();
 
@@ -110,6 +113,14 @@ public class SimilarityNodeDialog extends NodeDialogPane {
 		c.gridy++;
 		p.add(returnCollection, c);
 		returnString.setSelected(true);
+
+		c.gridy++;
+		c.gridx = 0;
+		p.add(new JLabel("All against all   "), c);
+		c.gridx = 1;
+		p.add(identicalBox, c);
+
+		identicalBox.addChangeListener(new SimListener());
 
 		ButtonGroup bg1 = new ButtonGroup();
 		bg1.add(m_minimum);
@@ -163,6 +174,8 @@ public class SimilarityNodeDialog extends NodeDialogPane {
 			returnString.setEnabled(true);
 			returnCollection.setEnabled(true);
 		}
+
+		identicalBox.setSelected(m_settings.identical());
 	}
 
 	/**
@@ -188,6 +201,8 @@ public class SimilarityNodeDialog extends NodeDialogPane {
 			m_settings.returnType(ReturnType.Collection);
 		}
 
+		m_settings.identical(identicalBox.isSelected());
+		
 		m_settings.saveSettings(settings);
 	}
 
@@ -199,7 +214,13 @@ public class SimilarityNodeDialog extends NodeDialogPane {
 			if (m_matrix.isSelected()) {
 				returnString.setEnabled(false);
 				returnCollection.setEnabled(false);
+				identicalBox.setEnabled(false);
+			} else if (m_maximum.isSelected()) {
+				identicalBox.setEnabled(true);
+				returnString.setEnabled(true);
+				returnCollection.setEnabled(true);
 			} else {
+				identicalBox.setEnabled(false);
 				returnString.setEnabled(true);
 				returnCollection.setEnabled(true);
 			}

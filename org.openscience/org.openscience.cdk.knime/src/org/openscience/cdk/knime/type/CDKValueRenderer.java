@@ -22,8 +22,8 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
-import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import javax.vecmath.Point2d;
@@ -44,16 +44,17 @@ import org.openscience.cdk.knime.preferences.CDKPreferencePage.NUMBERING;
 import org.openscience.cdk.renderer.AtomContainerRenderer;
 import org.openscience.cdk.renderer.RendererModel;
 import org.openscience.cdk.renderer.font.AWTFontManager;
-import org.openscience.cdk.renderer.generators.AtomNumberGenerator;
 import org.openscience.cdk.renderer.generators.BasicAtomGenerator;
 import org.openscience.cdk.renderer.generators.BasicSceneGenerator;
-import org.openscience.cdk.renderer.generators.ExtendedAtomGenerator;
 import org.openscience.cdk.renderer.generators.IGenerator;
-import org.openscience.cdk.renderer.generators.RingGenerator;
-import org.openscience.cdk.renderer.visitor.AWTDrawVisitor;
+import org.openscience.cdk.renderer.generators.SmartAtomNumberGenerator;
+import org.openscience.cdk.renderer.generators.SmartExtendedAtomGenerator;
+import org.openscience.cdk.renderer.generators.SmartRingGenerator;
+import org.openscience.cdk.renderer.visitor.SmartAWTDrawVisitor;
 
 /**
- * Renderer for {@link CDKValue}s. It will use CDK classes to render a 2D structure of a molecule.
+ * Renderer for {@link CDKValue}s. It will use CDK classes to render a 2D
+ * structure of a molecule.
  * 
  * @author Bernd Wiswedel, University of Konstanz
  * @author Andreas Truszkowski, EMBL-EBI
@@ -69,12 +70,10 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 		private final String symbol;
 
 		private TYPE(String symbol) {
-
 			this.symbol = symbol;
 		}
 
 		public String getSymbol() {
-
 			return symbol;
 		}
 	};
@@ -90,9 +89,9 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 		try {
 			List<IGenerator<IAtomContainer>> generators = new ArrayList<IGenerator<IAtomContainer>>();
 			generators.add(new BasicSceneGenerator());
-			generators.add(new RingGenerator());
-			generators.add(new ExtendedAtomGenerator());
-			generators.add(new AtomNumberGenerator());
+			generators.add(new SmartRingGenerator());
+			generators.add(new SmartExtendedAtomGenerator());
+			generators.add(new SmartAtomNumberGenerator());
 			renderer = new AtomContainerRenderer(generators, new AWTFontManager());
 
 			setDefaultRendererProps(renderer.getRenderer2DModel(), CDKNodePlugin.showAomaticity());
@@ -107,17 +106,17 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 	private static void setDefaultRendererProps(final RendererModel renderer2dModel, final AROMATICITY aromaticity) {
 
 		if (aromaticity.equals(AROMATICITY.SHOW_KEKULE)) {
-			renderer.getRenderer2DModel().set(RingGenerator.ShowAromaticity.class, false);
+			renderer.getRenderer2DModel().set(SmartRingGenerator.ShowAromaticity.class, false);
 		} else {
-			renderer.getRenderer2DModel().set(RingGenerator.ShowAromaticity.class, true);
+			renderer.getRenderer2DModel().set(SmartRingGenerator.ShowAromaticity.class, true);
 		}
 
-		renderer2dModel.set(RingGenerator.MaxDrawableAromaticRing.class, 9);
+		renderer2dModel.set(SmartRingGenerator.MaxDrawableAromaticRing.class, 9);
 		renderer2dModel.set(BasicSceneGenerator.UseAntiAliasing.class, true);
 		renderer2dModel.set(BasicAtomGenerator.ShowExplicitHydrogens.class, true);
 		renderer2dModel.set(BasicAtomGenerator.ShowEndCarbons.class, true);
-		renderer2dModel.set(ExtendedAtomGenerator.ShowImplicitHydrogens.class, true);
-		renderer2dModel.set(AtomNumberGenerator.WillDrawAtomNumbers.class, false);
+		renderer2dModel.set(SmartExtendedAtomGenerator.ShowImplicitHydrogens.class, true);
+		renderer2dModel.set(SmartAtomNumberGenerator.WillDrawAtomNumbers.class, false);
 	}
 
 	private IAtomContainer m_mol;
@@ -177,21 +176,21 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 	 */
 	private void setRendererProps(final TYPE type, final NUMBERING numbering, final AROMATICITY aromaticity) {
 
-		renderer.getRenderer2DModel().set(ExtendedAtomGenerator.ShowImplicitHydrogens.class, false);
+		renderer.getRenderer2DModel().set(SmartExtendedAtomGenerator.ShowImplicitHydrogens.class, false);
 		renderer.getRenderer2DModel().set(BasicAtomGenerator.ShowEndCarbons.class, false);
-		renderer.getRenderer2DModel().set(AtomNumberGenerator.WillDrawAtomNumbers.class, true);
-		renderer.getRenderer2DModel().set(AtomNumberGenerator.DrawSpecificElement.class, type.getSymbol());
+		renderer.getRenderer2DModel().set(SmartAtomNumberGenerator.WillDrawAtomNumbers.class, true);
+		renderer.getRenderer2DModel().set(SmartAtomNumberGenerator.DrawSpecificElement.class, type.getSymbol());
 
 		if (aromaticity.equals(AROMATICITY.SHOW_KEKULE)) {
-			renderer.getRenderer2DModel().set(RingGenerator.ShowAromaticity.class, false);
+			renderer.getRenderer2DModel().set(SmartRingGenerator.ShowAromaticity.class, false);
 		} else {
-			renderer.getRenderer2DModel().set(RingGenerator.ShowAromaticity.class, true);
+			renderer.getRenderer2DModel().set(SmartRingGenerator.ShowAromaticity.class, true);
 		}
 
 		if (numbering.equals(NUMBERING.SEQUENTIAL)) {
-			renderer.getRenderer2DModel().set(AtomNumberGenerator.DrawSequential.class, true);
+			renderer.getRenderer2DModel().set(SmartAtomNumberGenerator.DrawSequential.class, true);
 		} else {
-			renderer.getRenderer2DModel().set(AtomNumberGenerator.DrawSequential.class, false);
+			renderer.getRenderer2DModel().set(SmartAtomNumberGenerator.DrawSequential.class, false);
 		}
 	}
 
@@ -216,8 +215,8 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 	/**
 	 * Sets the string object for the cell being rendered.
 	 * 
-	 * @param value the string value for this cell; if value is <code>null</code> it sets the text value to an empty
-	 *        string
+	 * @param value the string value for this cell; if value is
+	 *        <code>null</code> it sets the text value to an empty string
 	 * @see javax.swing.JLabel#setText
 	 * 
 	 */
@@ -288,21 +287,35 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 		IAtomContainer cont = new AtomContainer();
 		Dimension aPrefferedSize = new Dimension(width, height);
 
-		// if not connected, draw every compound in succession next to each other
+		// if not connected, draw every compound in succession next to each
+		// other
 		if (!ConnectivityChecker.isConnected(m_mol)) {
+			double cumX = 0;
 			IAtomContainerSet molSet = ConnectivityChecker.partitionIntoMolecules(m_mol);
-			Rectangle2D molRec = GeometryTools.getRectangle2D(molSet.getAtomContainer(0));
+			
+			molSet.sortAtomContainers(new Comparator<IAtomContainer>() {
+				
+				@Override
+				public int compare(IAtomContainer o1, IAtomContainer o2) {
+					
+					if (o1.getBondCount() < o2.getBondCount()) {
+						return 1;
+					} else if (o1.getBondCount() > o2.getBondCount()) {
+						return -1;
+					}
+					
+					return 0;
+				}
+			});
+			
+			Dimension dim = GeometryTools.get2DDimension(molSet.getAtomContainer(0));
 			cont.add(molSet.getAtomContainer(0));
 
 			for (int i = 1; i < molSet.getAtomContainerCount(); i++) {
 				IAtomContainer curMol = molSet.getAtomContainer(i);
-				Rectangle2D molRecCur = GeometryTools.getRectangle2D(curMol);
-				double curWidth =  molRecCur.getWidth() == 0 ? 3 : molRecCur.getWidth();
-				double xShift = molRec.getMaxX() + curWidth;
-				double yShift = molRec.getCenterY();
-				GeometryTools.translate2DCenterTo(curMol, new Point2d(new double[] { xShift, yShift }));
-
-				molRec = molRecCur;
+				cumX += dim.width;
+				GeometryTools.translate2D(curMol, cumX, 0);
+				dim = GeometryTools.get2DDimension(curMol);
 				cont.add(curMol);
 			}
 		} else {
@@ -322,7 +335,7 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 		GeometryTools.scaleMolecule(cont, aPrefferedSize, 0.8f);
 		GeometryTools.center(cont, aPrefferedSize);
 
-		RENDERER.paint(cont, new AWTDrawVisitor(g2), new Rectangle(x, y, width, height), true);
+		RENDERER.paint(cont, new SmartAWTDrawVisitor(g2), new Rectangle(x, y, width, height), true);
 	}
 
 	/**

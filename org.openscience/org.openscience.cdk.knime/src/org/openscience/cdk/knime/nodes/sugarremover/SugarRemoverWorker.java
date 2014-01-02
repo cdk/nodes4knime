@@ -177,7 +177,7 @@ public class SugarRemoverWorker extends MultiThreadWorker<DataRow, DataRow> {
 							AtomContainerManipulator.convertImplicitToExplicitHydrogens(molset.getAtomContainer(i));
 						try {
 							IAtomContainer mol = molset.getAtomContainer(i);
-							CDKNodeUtils.getStandardMolecule(mol);
+							CDKNodeUtils.getFullMolecule(mol);
 							finalAtomContainer.add(mol);
 						} catch (Exception exception) {
 							finalAtomContainer = null;

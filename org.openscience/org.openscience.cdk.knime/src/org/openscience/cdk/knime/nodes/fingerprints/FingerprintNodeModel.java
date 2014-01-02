@@ -17,47 +17,27 @@
  */
 package org.openscience.cdk.knime.nodes.fingerprints;
 
-import java.util.BitSet;
-
-import org.knime.core.data.AdapterValue;
-import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
-import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.DataType;
-import org.knime.core.data.container.ColumnRearranger;
-import org.knime.core.data.container.SingleCellFactory;
-import org.knime.core.data.vector.bitvector.DenseBitVector;
 import org.knime.core.data.vector.bitvector.DenseBitVectorCell;
-import org.knime.core.data.vector.bitvector.DenseBitVectorCellFactory;
+import org.knime.core.node.BufferedDataContainer;
+import org.knime.core.node.BufferedDataTable;
+import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
-import org.openscience.cdk.fingerprint.EStateFingerprinter;
-import org.openscience.cdk.fingerprint.ExtendedFingerprinter;
-import org.openscience.cdk.fingerprint.Fingerprinter;
-import org.openscience.cdk.fingerprint.IFingerprinter;
-import org.openscience.cdk.fingerprint.MACCSFingerprinter;
-import org.openscience.cdk.fingerprint.PubchemFingerprinter;
-import org.openscience.cdk.interfaces.IAtomContainer;
-import org.openscience.cdk.knime.commons.CDKNodeUtils;
-import org.openscience.cdk.knime.core.CDKNodeModel;
-import org.openscience.cdk.knime.nodes.fingerprints.FingerprintSettings.FingerprintTypes;
-import org.openscience.cdk.knime.type.CDKTypeConverter;
-import org.openscience.cdk.knime.type.CDKValue;
+import org.openscience.cdk.knime.core.CDKAdapterNodeModel;
 
 /**
- * This is the model for the fingerprint node. It uses the CDK to create fingerprints (which are essentially bit sets)
- * for the molecules in the input table.
+ * This is the model for the fingerprint node. It uses the CDK to create
+ * fingerprints (which are essentially bit sets) for the molecules in the input
+ * table.
  * 
  * @author Thorsten Meinl, University of Konstanz
  * @author Stephan Beisken, European Bioinformatics Institute
  * 
  */
-public class FingerprintNodeModel extends CDKNodeModel {
-
-	private static final NodeLogger LOGGER = NodeLogger.getLogger(FingerprintNodeModel.class);
+public class FingerprintNodeModel extends CDKAdapterNodeModel {
 
 	/**
 	 * Creates a new model for the fingerprint node.
@@ -70,23 +50,37 @@ public class FingerprintNodeModel extends CDKNodeModel {
 	 * {@inheritDoc}
 	 */
 	@Override
-	protected ColumnRearranger createColumnRearranger(final DataTableSpec spec) throws InvalidSettingsException {
+	protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
 
-		columnIndex = spec.findColumnIndex(settings.targetColumn());
-		
-		final IFingerprinter fp;
-		FingerprintTypes fpType = settings(FingerprintSettings.class).fingerprintType();
-		if (fpType.equals(FingerprintTypes.Extended)) {
-			fp = new ExtendedFingerprinter();
-		} else if (fpType.equals(FingerprintTypes.EState)) {
-			fp = new EStateFingerprinter();
-		} else if (fpType.equals(FingerprintTypes.Pubchem)) {
-			fp = new PubchemFingerprinter();
-		} else if (fpType.equals(FingerprintTypes.MACCS)) {
-			fp = new MACCSFingerprinter();
-		} else {
-			fp = new Fingerprinter();
+		FingerprintSettings tmpSettings = new FingerprintSettings();
+		tmpSettings.loadSettings(settings);
+
+		if ((tmpSettings.targetColumn() == null) || (tmpSettings.targetColumn().length() == 0)) {
+			throw new InvalidSettingsException("No compatible molecule column chosen");
 		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected BufferedDataTable[] process(BufferedDataTable[] convertedTables, ExecutionContext exec) throws Exception {
+
+		BufferedDataContainer outputTable = exec.createDataContainer(appendSpec(convertedTables[0].getDataTableSpec()));
+
+		FingerprintWorker worker = new FingerprintWorker(maxQueueSize, maxParallelWorkers, columnIndex, exec,
+				convertedTables[0].getRowCount(), outputTable, settings(FingerprintSettings.class));
+
+		try {
+			worker.run(convertedTables[0]);
+		} finally {
+			outputTable.close();
+		}
+
+		return new BufferedDataTable[] { outputTable.getTable() };
+	}
+
+	private DataTableSpec appendSpec(DataTableSpec spec) {
 
 		String newColName = settings(FingerprintSettings.class).fingerprintType() + " fingerprints for "
 				+ settings.targetColumn();
@@ -94,53 +88,19 @@ public class FingerprintNodeModel extends CDKNodeModel {
 
 		DataColumnSpecCreator c = new DataColumnSpecCreator(newColName, DenseBitVectorCell.TYPE);
 		DataColumnSpec appendSpec = c.createSpec();
-		
-		SingleCellFactory cf = new SingleCellFactory(true, appendSpec) {
 
-			@Override
-			public DataCell getCell(final DataRow row) {
-				
-				if (row.getCell(columnIndex).isMissing()
-						|| (((AdapterValue) row.getCell(columnIndex)).getAdapterError(CDKValue.class) != null)) {
-					return DataType.getMissingCell();
-				}
-				
-				CDKValue mol = ((AdapterValue) row.getCell(columnIndex)).getAdapter(CDKValue.class);
-				try {
-					BitSet fingerprint;
-					IAtomContainer con = CDKNodeUtils.getExplicitClone(mol.getAtomContainer());
-					fingerprint = fp.getBitFingerprint(con).asBitSet();
-					// transfer the bitset into a dense bit vector
-					DenseBitVector bitVector = new DenseBitVector(fingerprint.size());
-					for (int i = fingerprint.nextSetBit(0); i >= 0; i = fingerprint.nextSetBit(i + 1)) {
-						bitVector.set(i);
-					}
-					DenseBitVectorCellFactory fact = new DenseBitVectorCellFactory(bitVector);
-					return fact.createDataCell();
-				} catch (Exception ex) {
-					LOGGER.error("Error while creating fingerprints", ex);
-					return DataType.getMissingCell();
-				}
-			}
-		};
-
-		ColumnRearranger arranger = new ColumnRearranger(spec);
-		arranger.ensureColumnIsConverted(CDKTypeConverter.createConverter(spec, columnIndex), columnIndex);
-		arranger.append(cf);
-		return arranger;
+		return new DataTableSpec(spec, new DataTableSpec(appendSpec));
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
+	protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
 
-		FingerprintSettings tmpSettings = new FingerprintSettings();
-		tmpSettings.loadSettings(settings);
-		
-		if ((tmpSettings.targetColumn() == null) || (tmpSettings.targetColumn().length() == 0)) {
-			throw new InvalidSettingsException("No compatible molecule column chosen");
-		}
+		autoConfigure(inSpecs);
+		DataTableSpec outSpec = convertTables(inSpecs)[0];
+
+		return new DataTableSpec[] { appendSpec(outSpec) };
 	}
 }

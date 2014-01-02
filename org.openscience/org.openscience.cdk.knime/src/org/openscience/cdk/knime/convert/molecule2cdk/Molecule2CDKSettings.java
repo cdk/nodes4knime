@@ -20,6 +20,7 @@ package org.openscience.cdk.knime.convert.molecule2cdk;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.openscience.cdk.knime.core.CDKSettings;
 
 /**
  * This class holds the settings for the Molecule->CDK node.
@@ -27,7 +28,7 @@ import org.knime.core.node.NodeSettingsWO;
  * @author Thorsten Meinl, University of Konstanz
  * @author Stephan Beisken, European Bioinformatics Institute
  */
-public class Molecule2CDKSettings {
+public class Molecule2CDKSettings implements CDKSettings {
 
 	private String m_colName;
 	private boolean m_replaceColumn = true;
@@ -41,8 +42,7 @@ public class Molecule2CDKSettings {
 	 * 
 	 * @param colName a column name
 	 */
-	public void columnName(final String colName) {
-
+	public void targetColumn(final String colName) {
 		m_colName = colName;
 	}
 
@@ -51,8 +51,7 @@ public class Molecule2CDKSettings {
 	 * 
 	 * @return a column name
 	 */
-	public String columnName() {
-
+	public String targetColumn() {
 		return m_colName;
 	}
 
@@ -62,7 +61,6 @@ public class Molecule2CDKSettings {
 	 * @param b <code>true</code> if the source column should be replaced, <code>false</code> otherwise
 	 */
 	public void replaceColumn(final boolean b) {
-
 		m_replaceColumn = b;
 	}
 
@@ -72,7 +70,6 @@ public class Molecule2CDKSettings {
 	 * @return <code>true</code> if the source column should be replaced, <code>false</code> otherwise
 	 */
 	public boolean replaceColumn() {
-
 		return m_replaceColumn;
 	}
 
@@ -82,7 +79,6 @@ public class Molecule2CDKSettings {
 	 * @param name the name of the new column
 	 */
 	public void newColumnName(final String name) {
-
 		m_newColName = name;
 	}
 
@@ -92,7 +88,6 @@ public class Molecule2CDKSettings {
 	 * @return the name of the new column
 	 */
 	public String newColumnName() {
-
 		return m_newColName;
 	}
 
@@ -102,7 +97,6 @@ public class Molecule2CDKSettings {
 	 * @param gen <code>true</code> if they should be generated, <code>false</code> otherwise
 	 */
 	public void generate2D(final boolean gen) {
-
 		m_generate2D = gen;
 	}
 
@@ -112,7 +106,6 @@ public class Molecule2CDKSettings {
 	 * @return <code>true</code> if they should be generated, <code>false</code> otherwise
 	 */
 	public boolean generate2D() {
-
 		return m_generate2D;
 	}
 
@@ -122,7 +115,6 @@ public class Molecule2CDKSettings {
 	 * @param force <code>true</code> if they should be generated in any case, <code>false</code> otherwise
 	 */
 	public void force2D(final boolean force) {
-
 		m_force2D = force;
 	}
 
@@ -132,7 +124,6 @@ public class Molecule2CDKSettings {
 	 * @return <code>true</code> if they should be generated in any case, <code>false</code> otherwise
 	 */
 	public boolean force2D() {
-
 		return m_force2D;
 	}
 
@@ -142,7 +133,6 @@ public class Molecule2CDKSettings {
 	 * @return <code>true</code> if they should be converted, <code>false</code> otherwise
 	 */
 	public boolean convertOrder() {
-
 		return convertOrder;
 	}
 
@@ -152,7 +142,6 @@ public class Molecule2CDKSettings {
 	 * @param force <code>true</code> if they should be converted, <code>false</code> otherwise
 	 */
 	public void convertOrder(final boolean conertOrder) {
-
 		this.convertOrder = conertOrder;
 	}
 

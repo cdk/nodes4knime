@@ -20,7 +20,7 @@
 	</fullDescription>
 	
 	<ports>
-		<inPort index="0" name="Molecule input">Table containing molecular structure based on which the logP shall be computed.</inPort>
+		<inPort index="0" name="Molecule input">Table containing molecular structures.</inPort>
 		<outPort index="0" name="Input with calculated properties">As input but with additional columns (one for each weighting scheme property).</outPort>
 	</ports>
 </knimeNode>

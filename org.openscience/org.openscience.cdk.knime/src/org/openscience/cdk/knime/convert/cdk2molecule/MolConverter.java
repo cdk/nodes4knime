@@ -18,7 +18,6 @@
 package org.openscience.cdk.knime.convert.cdk2molecule;
 
 import java.io.StringWriter;
-import java.util.Properties;
 
 import org.knime.base.node.parallel.appender.AppendColumn;
 import org.knime.base.node.parallel.appender.ColumnDestination;
@@ -43,10 +42,9 @@ import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.io.CMLWriter;
 import org.openscience.cdk.io.MDLV2000Writer;
 import org.openscience.cdk.io.Mol2Writer;
-import org.openscience.cdk.io.SMILESWriter;
-import org.openscience.cdk.io.listener.PropertiesListener;
 import org.openscience.cdk.knime.convert.cdk2molecule.CDK2MoleculeSettings.Format;
 import org.openscience.cdk.knime.type.CDKValue;
+import org.openscience.cdk.smiles.NonCanonicalSmilesGenerator;
 
 /**
  * Helper class for converting CDK molecules into strings representations.
@@ -106,28 +104,20 @@ class MolConverter implements ExtendedCellFactory {
 
 	private class SmilesConv implements Conv {
 
+		private final NonCanonicalSmilesGenerator SG = new NonCanonicalSmilesGenerator();
+		
 		/**
 		 * {@inheritDoc}
 		 */
 		@Override
 		public DataCell conv(final IAtomContainer mol) throws Exception {
-
-			StringWriter out = new StringWriter(1024);
-			SMILESWriter writer = new SMILESWriter(out);
-			Properties prop = new Properties();
-	        prop.setProperty("UseAromaticity","true");
-	        PropertiesListener listener = new PropertiesListener(prop);
-	        writer.addChemObjectIOListener(listener);
-	        writer.customizeJob();
-			writer.writeAtomContainer(mol);
-			writer.close();
 			
-			String smiles = out.toString().trim();
+			String smiles = SG.createSMILES(mol);
 			if (smiles == null || smiles.isEmpty()) {
 				throw new CDKException("Smiles generation failed.");
 			}
 			
-			return new SmilesCell(out.toString().trim());
+			return new SmilesCell(smiles);
 		}
 	}
 

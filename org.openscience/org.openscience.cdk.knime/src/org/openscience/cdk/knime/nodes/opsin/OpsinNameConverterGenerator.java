@@ -141,7 +141,7 @@ public class OpsinNameConverterGenerator implements CellFactory {
 					IAtomContainer container = ChemFileManipulator.getAllAtomContainers(chemFile).get(0);
 					// OPSIN WS return has explicit Hs
 					container = SMSDNormalizer.convertExplicitToImplicitHydrogens(container);
-					CDKNodeUtils.getStandardMolecule(container);
+					CDKNodeUtils.getFullMolecule(container);
 					container = CDKNodeUtils.calculateCoordinates(container, true, false);
 					newCells[i] = CDKCell.createCDKCell(container);
 					bais.close();

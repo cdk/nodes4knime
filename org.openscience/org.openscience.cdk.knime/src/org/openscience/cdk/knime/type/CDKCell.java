@@ -17,15 +17,11 @@
  */
 package org.openscience.cdk.knime.type;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.StringReader;
 import java.io.StringWriter;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
+
+import javax.vecmath.Point2d;
+import javax.vecmath.Point3d;
 
 import org.knime.chem.types.SdfValue;
 import org.knime.chem.types.SmilesValue;
@@ -40,19 +36,13 @@ import org.knime.core.data.StringValue;
 import org.knime.core.data.container.BlobDataCell;
 import org.knime.core.node.NodeLogger;
 import org.openscience.cdk.CDKConstants;
-import org.openscience.cdk.ChemFile;
 import org.openscience.cdk.exception.CDKException;
+import org.openscience.cdk.geometry.GeometryTools;
+import org.openscience.cdk.graph.ConnectivityChecker;
+import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
-import org.openscience.cdk.interfaces.IChemFile;
-import org.openscience.cdk.io.CMLReader;
-import org.openscience.cdk.io.CMLWriter;
 import org.openscience.cdk.io.SDFWriter;
-import org.openscience.cdk.io.iterator.IteratingSDFReader;
-import org.openscience.cdk.knime.cml.CmlKnimeCore;
-import org.openscience.cdk.knime.cml.CmlKnimeCustomizer;
 import org.openscience.cdk.knime.commons.CDKNodeUtils;
-import org.openscience.cdk.silent.SilentChemObjectBuilder;
-import org.openscience.cdk.tools.manipulator.ChemFileManipulator;
 
 /**
  * Smiles {@link DataCell} holding a string as internal representation.
@@ -70,10 +60,11 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 	public static final DataType TYPE = DataType.getType(CDKCell.class);
 
 	/**
-	 * Returns the preferred value class of this cell implementation. This method is called per reflection to determine
-	 * which is the preferred renderer, comparator, etc.
+	 * Returns the preferred value class of this cell implementation. This
+	 * method is called per reflection to determine which is the preferred
+	 * renderer, comparator, etc.
 	 * 
-	 * @return StringValue.class
+	 * @return CDKValue.class
 	 */
 	public static final Class<? extends DataValue> getPreferredValueClass() {
 		return CDKValue.class;
@@ -82,23 +73,25 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 	private static final NodeLogger LOGGER = NodeLogger.getLogger(CDKCell.class);
 
 	/**
-	 * Name of the data column spec property that indicates if the molecules in the column have 2D coordinates.
+	 * Name of the data column spec property that indicates if the molecules in
+	 * the column have 2D coordinates.
 	 */
 	public static final String COORD2D_AVAILABLE = "2D coordinates available";
 
 	/**
-	 * Name of the data column spec property that indicates if the molecules in the column have 3D coordinates.
+	 * Name of the data column spec property that indicates if the molecules in
+	 * the column have 3D coordinates.
 	 */
 	public static final String COORD3D_AVAILABLE = "3D coordinates available";
 
 	/**
-	 * Static instance of the serializer that uses CML as transfer format.
+	 * Static instance of the serializer.
 	 */
 	private static final DataCellSerializer<CDKCell> SERIALIZER = new CDKSerializer();
 
 	/**
-	 * Returns the factory to read/write DataCells of this class from/to a DataInput/DataOutput. This method is called
-	 * via reflection.
+	 * Returns the factory to read/write DataCells of this class from/to a
+	 * DataInput/DataOutput. This method is called via reflection.
 	 * 
 	 * @return A serializer for reading/writing cells of this kind.
 	 * @see DataCell
@@ -110,44 +103,15 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 	/**
 	 * The visual representation for this CDK cell.
 	 */
-	private final String compressedCml;
+	private final String smiles;
 	/**
 	 * The hash code.
 	 */
 	private final long hash;
-
 	/**
-	 * Factory method to be used for creation. It will parse the SDF string and if that is successful it will create a
-	 * new instance of the CDKCell, otherwise it will return a missing cell instance.
-	 * 
-	 * @param sdf the sdf string to parse
-	 * @return a new CDKCell if possible, otherwise a missing cell
+	 * The aux vector: 2d|3d;coords;atomIndex-color
 	 */
-	public static final DataCell newInstance(final String sdf) {
-
-		IAtomContainer cdkMol = null;
-
-		if (sdf != null && !sdf.isEmpty()) {
-
-			cdkMol = SilentChemObjectBuilder.getInstance().newInstance(IAtomContainer.class);
-			IteratingSDFReader reader = new IteratingSDFReader(new StringReader(sdf),
-					SilentChemObjectBuilder.getInstance());
-
-			try {
-				while (reader.hasNext()) {
-					cdkMol.add(reader.next());
-				}
-				if (cdkMol != null) {
-					CDKNodeUtils.getStandardMolecule(cdkMol);
-					cdkMol = CDKNodeUtils.calculateCoordinates(cdkMol, false, false);
-				}
-			} catch (Exception e) {
-				// do nothing
-			}
-		}
-
-		return (cdkMol == null) ? DataType.getMissingCell() : new CDKAdapterCell(new CDKCell(cdkMol));
-	}
+	private final byte[] auxBytes;
 
 	/**
 	 * Creates a new DataCell containing the atom container.
@@ -168,32 +132,108 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 	public static DataCell createCDKCell(final DataCell source, final IAtomContainer atomContainer) {
 		return new CDKAdapterCell((AdapterValue) source, new CDKCell(atomContainer));
 	}
-	
+
 	/**
 	 * Creates new CDK cell.
 	 * 
 	 * @param atomContainer the CDK atom container
 	 */
-	public CDKCell(IAtomContainer atomContainer) {
+	public CDKCell(final IAtomContainer atomContainer) {
 
-		compressedCml = getCompressedCml(atomContainer);
+		int[] seq = new int[atomContainer.getAtomCount()];
 
-		CDKNodeUtils.calculateHash(atomContainer);
-		hash = (Long) atomContainer.getProperty(CDKConstants.MAPPED);
+		smiles = CDKNodeUtils.calculateSmiles(atomContainer, seq);
 
-		atomContainer = null;
+		int[] aux = new int[seq.length];
+		for (int v = 0; v < seq.length; v++) {
+			aux[seq[v]] = v;
+		}
+
+		hash = CDKNodeUtils.calculateSimpleHash(atomContainer);
+		auxBytes = toByte(atomContainer, aux);
+	}
+
+	private byte[] toByte(final IAtomContainer atomContainer, int[] seq) {
+
+		byte[] coords = new byte[0];
+		byte[] acols = new byte[0];
+
+		if (GeometryTools.has3DCoordinates(atomContainer)) {
+			coords = new byte[atomContainer.getAtomCount() * 24 + 1];
+			coords[0] = 1; // 3D
+			for (int v = 0, k = 0, j = 0; v < seq.length; v++, k += 3) {
+				Point3d p = atomContainer.getAtom(seq[v]).getPoint3d();
+				System.arraycopy(toByte(p.x), 0, coords, k * 8 + 1, 8);
+				System.arraycopy(toByte(p.y), 0, coords, k * 8 + 9, 8);
+				System.arraycopy(toByte(p.z), 0, coords, k * 8 + 17, 8);
+				Integer color = atomContainer.getAtom(seq[v]).getProperty(CDKConstants.ANNOTATIONS, Integer.class);
+				if (color != null) {
+					byte[] tmpCols = new byte[acols.length + 8];
+					System.arraycopy(acols, 0, tmpCols, 0, acols.length);
+					acols = tmpCols;
+					System.arraycopy(toByte(seq[v]), 0, acols, j * 8, 4);
+					System.arraycopy(toByte(color), 0, acols, j++ * 8 + 4, 4);
+				}
+			}
+		} else if (GeometryTools.has2DCoordinates(atomContainer)) {
+			coords = new byte[atomContainer.getAtomCount() * 16 + 1];
+			coords[0] = 0; // 2D
+			for (int v = 0, k = 0, j = 0; v < seq.length; v++, k += 2) {
+				Point2d p = atomContainer.getAtom(seq[v]).getPoint2d();
+				System.arraycopy(toByte(p.x), 0, coords, k * 8 + 1, 8);
+				System.arraycopy(toByte(p.y), 0, coords, k * 8 + 9, 8);
+				Integer color = atomContainer.getAtom(seq[v]).getProperty(CDKConstants.ANNOTATIONS, Integer.class);
+				if (color != null) {
+					byte[] tmpCols = new byte[acols.length + 8];
+					System.arraycopy(acols, 0, tmpCols, 0, acols.length);
+					acols = tmpCols;
+					System.arraycopy(toByte(seq[v]), 0, acols, j * 8, 4);
+					System.arraycopy(toByte(color), 0, acols, j++ * 8 + 4, 4);
+				}
+			}
+		}
+
+		byte[] aux = new byte[coords.length + acols.length];
+		System.arraycopy(coords, 0, aux, 0, coords.length);
+		System.arraycopy(acols, 0, aux, coords.length, acols.length);
+
+		return aux;
+	}
+
+	public byte[] toByte(int value) {
+
+		return new byte[] {
+				(byte) ((value >> 24) & 0xff),
+				(byte) ((value >> 16) & 0xff),
+				(byte) ((value >> 8) & 0xff),
+				(byte) ((value >> 0) & 0xff) };
+	}
+
+	private byte[] toByte(double value) {
+
+		long raw = Double.doubleToRawLongBits(value);
+
+		return new byte[] {
+				(byte) ((raw >> 56) & 0xff),
+				(byte) ((raw >> 48) & 0xff),
+				(byte) ((raw >> 40) & 0xff),
+				(byte) ((raw >> 32) & 0xff),
+				(byte) ((raw >> 24) & 0xff),
+				(byte) ((raw >> 16) & 0xff),
+				(byte) ((raw >> 8) & 0xff),
+				(byte) ((raw >> 0) & 0xff) };
 	}
 
 	/**
 	 * Creates new CDK cell.
 	 * 
-	 * @param compressedCml the CML string
+	 * @param smiles the CML string
 	 * @param hash the CDK hash
 	 */
-	public CDKCell(final String compressedCml, final long hash) {
-
-		this.compressedCml = compressedCml;
+	public CDKCell(final String smiles, final long hash, final byte[] coordinates) {
+		this.smiles = smiles;
 		this.hash = hash;
+		this.auxBytes = coordinates;
 	}
 
 	/**
@@ -203,35 +243,7 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 	 */
 	@Override
 	public String getStringValue() {
-
-		BufferedReader br;
-		GZIPInputStream gis;
-		String decompressedCml = "";
-
-		try {
-			gis = new GZIPInputStream(new ByteArrayInputStream(compressedCml.getBytes("ISO-8859-1")));
-			br = new BufferedReader(new InputStreamReader(gis));
-
-			StringBuilder sb = new StringBuilder();
-
-			String line;
-			while ((line = br.readLine()) != null) {
-				// clean output from CDK artifacts
-				if (line.contains(CmlKnimeCore.CONVENTION) || line.contains("cdk:aromaticAtom")
-						|| line.contains("cdk:aromaticBond"))
-					continue;
-				sb.append(line);
-				sb.append("\n");
-			}
-
-			gis.close();
-			br.close();
-			decompressedCml = sb.toString();
-		} catch (IOException ex) {
-			// do nothing;
-		}
-
-		return decompressedCml;
+		return getSmilesValue();
 	}
 
 	/**
@@ -239,7 +251,7 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 	 */
 	@Override
 	public String getSmilesValue() {
-		return CDKNodeUtils.calculateSmiles(getMol(), false);
+		return smiles;
 	}
 
 	/**
@@ -248,10 +260,11 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 	@Override
 	public String getSdfValue() {
 
-		IAtomContainer cdkMolSdf = getMol();
+		IAtomContainer mol = getAtomContainerWithCoordinates();
 
-		if (cdkMolSdf.getAtomCount() == 0)
+		if (mol.getAtomCount() == 0) {
 			return "";
+		}
 
 		SDFWriter sdfWriter = null;
 		StringWriter stringWriter = null;
@@ -259,29 +272,19 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 		try {
 			stringWriter = new StringWriter();
 			sdfWriter = new SDFWriter(stringWriter);
-
-			sdfWriter.write(cdkMolSdf);
-
+			sdfWriter.write(mol);
 		} catch (CDKException exception) {
-			LOGGER.error("Error while cwriting sdf", exception);
+			LOGGER.warn("SDfile conversion failed:", exception);
 		} finally {
 			try {
 				sdfWriter.close();
 				stringWriter.close();
 			} catch (IOException exception) {
-				// do nothing
+				LOGGER.warn("SDfile conversion failed:", exception);
 			}
 		}
-		return stringWriter.toString();
-	}
 
-	/**
-	 * Returns the compressed CML string of the molecule.
-	 * 
-	 * @return the compressed CML string
-	 */
-	public String getCmlValue() {
-		return compressedCml;
+		return stringWriter.toString();
 	}
 
 	/**
@@ -289,72 +292,114 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 	 */
 	@Override
 	public IAtomContainer getAtomContainer() {
-		return getMol();
+		return getAtomContainerWithCoordinates();
 	}
 
-	private IAtomContainer getMol() {
+	/**
+	 * {@inheritDoc}
+	 */
+	public IAtomContainer getAtomContainerWithCoordinates() {
 
-		IAtomContainer mol = SilentChemObjectBuilder.getInstance().newInstance(IAtomContainer.class);
+		IAtomContainer molecule = CDKNodeUtils.getFullMolecule(smiles);
+		int nAtoms = molecule.getAtomCount();
 
-		if (compressedCml == null || compressedCml.length() == 0) {
-			return mol;
+		if (auxBytes.length == 0) {
+			return molecule;
+		}
+		
+		int f = (auxBytes[0] == 0) ? 2 : 3;
+
+		double[] coords = new double[nAtoms * f];
+		for (int i = 0; i < coords.length; i++) {
+			int k = (i * 8) + 1;
+			coords[i] = Double.longBitsToDouble(toLong(new byte[] {
+					auxBytes[k],
+					auxBytes[k + 1],
+					auxBytes[k + 2],
+					auxBytes[k + 3],
+					auxBytes[k + 4],
+					auxBytes[k + 5],
+					auxBytes[k + 6],
+					auxBytes[k + 7] }));
 		}
 
-		try {
-			GZIPInputStream gis = new GZIPInputStream(new ByteArrayInputStream(compressedCml.getBytes("ISO-8859-1")));
-			CMLReader reader = new CMLReader(gis);
-			reader.registerConvention(CmlKnimeCore.CONVENTION, new CmlKnimeCore());
+		boolean hasAnnotations = (nAtoms * 8 * f + 1 == auxBytes.length) ? false : true;
 
-			IChemFile chemFile = (ChemFile) reader.read(new ChemFile());
-			mol = ChemFileManipulator.getAllAtomContainers(chemFile).get(0);
-			mol.setProperty(CDKConstants.MAPPED, hash);
-
-			gis = null;
-			reader = null;
-			chemFile = null;
-		} catch (Exception exception) {
-			// do nothing
-		} finally {
-
+		int[] cols = new int[nAtoms];
+		for (int i = nAtoms * 8 * f + 1; i < auxBytes.length; i += 8) {
+			int pos = toInt(new byte[] { auxBytes[i], auxBytes[i + 1], auxBytes[i + 2], auxBytes[i + 3] });
+			int col = toInt(new byte[] { auxBytes[i + 4], auxBytes[i + 5], auxBytes[i + 6], auxBytes[i + 7] });
+			cols[pos] = col;
+		}
+		
+		if (f == 2) {
+			for (int v = 0, k = 0; v < nAtoms; v++, k += 2) {
+				molecule.getAtom(v).setID("" + v);
+				molecule.getAtom(v).setPoint2d(new Point2d(coords[k], coords[k + 1]));
+				if (cols[v] != 0) {
+					molecule.getAtom(v).setProperty(CDKConstants.ANNOTATIONS, cols[v]);
+				}
+			}
+		} else {
+			for (int v = 0, k = 0; v < nAtoms; v++, k += 3) {
+				molecule.getAtom(v).setID("" + v);
+				molecule.getAtom(v).setPoint3d(new Point3d(coords[k], coords[k + 1], coords[k + 2]));
+				if (cols[v] != 0) {
+					molecule.getAtom(v).setProperty(CDKConstants.ANNOTATIONS, cols[v]);
+				}
+			}
 		}
 
-		return mol;
+		if (hasAnnotations) {
+			int[] visited = new int[nAtoms];
+			if (ConnectivityChecker.isConnected(molecule)) {
+				IAtom atom = molecule.getAtom(0);
+				visited[0] = atom.getProperty(CDKConstants.ANNOTATIONS) == null ? 1 : 2;
+				colorDfs(molecule, atom, cols, visited);
+			} else {
+				for (IAtomContainer mol : ConnectivityChecker.partitionIntoMolecules(molecule).atomContainers()) {
+					IAtom atom = mol.getAtom(0);
+					visited[Integer.parseInt(atom.getID())] = atom.getProperty(CDKConstants.ANNOTATIONS) == null ? 1 : 2;
+					colorDfs(mol, atom, cols, visited);
+				}
+			}
+		}
+		
+		return molecule;
 	}
 
-	private String getCompressedCml(IAtomContainer cdkMol) {
+	private void colorDfs(IAtomContainer molecule, IAtom atom, int[] cols, int[] visited) {
 
-		String outStr = "";
-		StringWriter stringWriter = new StringWriter(8192);
-		CMLWriter writer = new CMLWriter(stringWriter);
-		writer.registerCustomizer(new CmlKnimeCustomizer());
+		int v = Integer.parseInt(atom.getID());
 
-		try {
-			writer.write(cdkMol);
-			String value = stringWriter.toString();
+		for (IAtom neighbor : molecule.getConnectedAtomsList(atom)) {
 
-			stringWriter.close();
-			writer.close();
+			int w = Integer.parseInt(neighbor.getID());
 
-			stringWriter = null;
-			writer = null;
-
-			ByteArrayOutputStream out = new ByteArrayOutputStream();
-			GZIPOutputStream gzip = new GZIPOutputStream(out);
-			gzip.write(value.getBytes());
-
-			out.close();
-			gzip.close();
-
-			outStr = out.toString("ISO-8859-1");
-
-			value = null;
-			gzip = null;
-			out = null;
-		} catch (Exception ex) {
-			// do nothing;
+			if (visited[w] == 0) {
+				visited[w] = neighbor.getProperty(CDKConstants.ANNOTATIONS) == null ? 1 : 2;
+				if (visited[v] == 2 && visited[w] == 2) {
+					molecule.getBond(atom, neighbor).setProperty(CDKConstants.ANNOTATIONS, cols[v]);
+				}
+				colorDfs(molecule, neighbor, cols, visited);
+			} else if (visited[w] == 2) {
+				if (visited[v] == 2) {
+					molecule.getBond(atom, neighbor).setProperty(CDKConstants.ANNOTATIONS, cols[v]);
+				}
+			}
 		}
+	}
 
-		return outStr;
+	public long toLong(byte[] data) {
+
+		return (long) ((long) (0xff & data[0]) << 56 | (long) (0xff & data[1]) << 48 | (long) (0xff & data[2]) << 40
+				| (long) (0xff & data[3]) << 32 | (long) (0xff & data[4]) << 24 | (long) (0xff & data[5]) << 16
+				| (long) (0xff & data[6]) << 8 | (long) (0xff & data[7]) << 0);
+	}
+
+	public int toInt(byte[] data) {
+
+		return (int) ((0xff & data[0]) << 24 | (0xff & data[1]) << 16 | (0xff & data[2]) << 8 | (0xff & data[3]) << 0);
 	}
 
 	/**
@@ -362,9 +407,14 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 	 */
 	@Override
 	protected boolean equalsDataCell(final DataCell dc) {
-
 		int hashRef = ((CDKCell) dc).hashCode();
-		return this.hashCode() == hashRef;
+
+		if (this.hashCode() == hashRef) {
+			Long fullHash = CDKNodeUtils.calculateFullHash(((CDKValue) dc).getAtomContainer());
+			return this.hashCode() == fullHash.hashCode();
+		} else {
+			return false;
+		}
 	}
 
 	/**
@@ -383,6 +433,13 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 	}
 
 	/**
+	 * Coordinates byte array
+	 */
+	public byte[] auxBytes() {
+		return auxBytes;
+	}
+
+	/**
 	 * {@inheritDoc}
 	 */
 	@Override
@@ -391,7 +448,7 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 	}
 
 	/**
-	 * Factory for (de-)serializing a DoubleCell.
+	 * Factory for (de-)serializing a CDKCell.
 	 */
 	private static class CDKSerializer implements DataCellSerializer<CDKCell> {
 
@@ -400,9 +457,10 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 		 */
 		@Override
 		public void serialize(final CDKCell cell, final DataCellDataOutput out) throws IOException {
-
-			out.writeUTF(cell.getCmlValue());
+			out.writeUTF(cell.getSmilesValue());
 			out.writeLong(cell.hashCode64());
+			out.writeInt(cell.auxBytes().length);
+			out.write(cell.auxBytes());
 		}
 
 		/**
@@ -410,7 +468,13 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 		 */
 		@Override
 		public CDKCell deserialize(final DataCellDataInput input) throws IOException {
-			return new CDKCell(input.readUTF(), input.readLong());
+
+			String smiles = input.readUTF();
+			long hash64 = input.readLong();
+			byte[] coords = new byte[input.readInt()];
+			input.readFully(coords);
+
+			return new CDKCell(smiles, hash64, coords);
 		}
 	}
 }

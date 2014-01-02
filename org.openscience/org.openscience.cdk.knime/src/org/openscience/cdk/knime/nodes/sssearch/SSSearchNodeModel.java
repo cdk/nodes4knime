@@ -96,10 +96,10 @@ public class SSSearchNodeModel extends CDKAdapterNodeModel {
 	protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
 
 		try {
-			m_fragment = JMolSketcherPanel.readStringNotation(settings(SSSearchSettings.class).getSdf())
+			m_fragment = JMolSketcherPanel.readStringNotation(settings(SSSearchSettings.class).getSmiles())
 					.getAtomContainer(0);
 			if (m_fragment.getAtomCount() != 0) {
-				CDKNodeUtils.getStandardMolecule(m_fragment);
+				CDKNodeUtils.getFullMolecule(m_fragment);
 			}
 		} catch (Exception ex) {
 			throw new InvalidSettingsException("Unable to read fragment", ex);
@@ -147,7 +147,7 @@ public class SSSearchNodeModel extends CDKAdapterNodeModel {
 		SSSearchSettings s = new SSSearchSettings();
 		s.loadSettings(settings);
 		try {
-			JMolSketcherPanel.readStringNotation(s.getSdf());
+			JMolSketcherPanel.readStringNotation(s.getSmiles());
 		} catch (Exception ex) {
 			throw new InvalidSettingsException("Unable to read fragment", ex);
 		}

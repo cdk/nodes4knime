@@ -35,8 +35,7 @@
  */
 package org.openscience.cdk.knime.type;
 
-import java.io.StringReader;
-
+import org.knime.chem.types.InchiValue;
 import org.knime.chem.types.SdfValue;
 import org.knime.chem.types.SmilesValue;
 import org.knime.core.data.AdapterValue;
@@ -47,13 +46,11 @@ import org.knime.core.data.DataType;
 import org.knime.core.data.RWAdapterValue;
 import org.knime.core.data.StringValue;
 import org.openscience.cdk.interfaces.IAtomContainer;
-import org.openscience.cdk.io.MDLV2000Reader;
-import org.openscience.cdk.knime.commons.CDKNodeUtils;
-import org.openscience.cdk.silent.SilentChemObjectBuilder;
-import org.openscience.cdk.smiles.SmilesParser;
+import org.openscience.cdk.knime.commons.MolConverter;
+import org.openscience.cdk.knime.commons.MolConverter.FORMAT;
 
 /**
- * Converter for CDK that converts Smiles or SDF cells into an adapter cell that contains CDK cells.
+ * Converter for CDK.
  * 
  * @author Thorsten Meinl, University of Konstanz
  * @author Stephan Beisken, European Bioinformatics Institute
@@ -76,8 +73,9 @@ public abstract class CDKTypeConverter extends DataCellTypeConverter {
 	}
 
 	/**
-	 * Creates a new converter for a specific column in a table. The output type and the specific converter that is used
-	 * is determined automatically from the input type.
+	 * Creates a new converter for a specific column in a table. The output type
+	 * and the specific converter that is used is determined automatically from
+	 * the input type.
 	 * 
 	 * @param tableSpec the input table's spec
 	 * @param columnIndex the index of the column that should be converted.
@@ -89,13 +87,15 @@ public abstract class CDKTypeConverter extends DataCellTypeConverter {
 
 		if (type.isCompatible(AdapterValue.class)) {
 
-			if (type.isCompatible(CDKValue.class)) {
+			if (type.isAdaptable(CDKValue.class) || type.isCompatible(CDKValue.class)) {
 
-				// We have already an Adapter cell that is compatible with CDK Value - we return it
+				// We have already an Adapter cell that is compatible with CDK
+				// Value - we return it
 				return new CDKTypeConverter(type) {
 
 					/**
-					 * {@inheritDoc} Just returns the existing CDK Value within a new CDK Adapter Cell.
+					 * {@inheritDoc} Just returns the existing CDK Value within
+					 * a new CDK Adapter Cell.
 					 */
 					@Override
 					public DataCell convert(final DataCell source) throws Exception {
@@ -103,10 +103,15 @@ public abstract class CDKTypeConverter extends DataCellTypeConverter {
 					}
 				};
 			} else if (type.isCompatible(RWAdapterValue.class) && type.isCompatible(StringValue.class)
-					&& type.isCompatible(SmilesValue.class) && type.isCompatible(SdfValue.class)) {
-				// we have a writable adapter cell that already represents all value
-				// interfaces of CDK (except CDK) thus we can just add the CDKCell
+					&& type.isCompatible(SmilesValue.class) && type.isCompatible(SdfValue.class)
+					&& type.isCompatible(InchiValue.class)) {
+				// we have a writable adapter cell that already represents all
+				// value, interfaces of CDK (except CDK) thus we can just add
+				// the CDKCell
 				return new CDKTypeConverter(type.createNewWithAdapter(CDKValue.class)) {
+
+					private final MolConverter conv = new MolConverter.Builder(FORMAT.SDF).configure().coordinates()
+							.build();
 
 					@Override
 					public DataCell convert(final DataCell source) throws Exception {
@@ -116,16 +121,16 @@ public abstract class CDKTypeConverter extends DataCellTypeConverter {
 						}
 
 						String sdf = ((RWAdapterValue) source).getAdapter(SdfValue.class).getSdfValue();
-						MDLV2000Reader reader = new MDLV2000Reader(new StringReader(sdf));
-						IAtomContainer cdkMol = reader.read(SilentChemObjectBuilder.getInstance().newInstance(
-								IAtomContainer.class));
-						CDKNodeUtils.getStandardMolecule(cdkMol);
-						cdkMol = CDKNodeUtils.calculateCoordinates(cdkMol, false, false);
-						return ((RWAdapterValue) source).cloneAndAddAdapter(new CDKCell(cdkMol), CDKValue.class);
+						IAtomContainer mol = conv.convert(sdf);
+
+						return ((RWAdapterValue) source).cloneAndAddAdapter(new CDKCell(mol), CDKValue.class);
 					}
 				};
 			} else if (type.isAdaptable(SdfValue.class)) {
 				return new CDKTypeConverter(DataType.getType(CDKAdapterCell.class, null, type.getValueClasses())) {
+
+					private final MolConverter conv = new MolConverter.Builder(FORMAT.SDF).configure().coordinates()
+							.build();
 
 					@Override
 					public DataCell convert(final DataCell source) throws Exception {
@@ -135,16 +140,16 @@ public abstract class CDKTypeConverter extends DataCellTypeConverter {
 						}
 
 						String sdf = ((AdapterValue) source).getAdapter(SdfValue.class).getSdfValue();
-						MDLV2000Reader reader = new MDLV2000Reader(new StringReader(sdf));
-						IAtomContainer cdkMol = reader.read(SilentChemObjectBuilder.getInstance().newInstance(
-								IAtomContainer.class));
-						CDKNodeUtils.getStandardMolecule(cdkMol);
-						cdkMol = CDKNodeUtils.calculateCoordinates(cdkMol, false, false);
-						return CDKCell.createCDKCell(source, cdkMol);
+						IAtomContainer mol = conv.convert(sdf);
+
+						return CDKCell.createCDKCell(source, mol);
 					}
 				};
 			} else if (type.isAdaptable(SmilesValue.class)) {
 				return new CDKTypeConverter(DataType.getType(CDKAdapterCell.class, null, type.getValueClasses())) {
+
+					private final MolConverter conv = new MolConverter.Builder(FORMAT.SMILES).configure().coordinates()
+							.build();
 
 					@Override
 					public DataCell convert(final DataCell source) throws Exception {
@@ -154,22 +159,40 @@ public abstract class CDKTypeConverter extends DataCellTypeConverter {
 						}
 
 						String smiles = ((AdapterValue) source).getAdapter(SmilesValue.class).getSmilesValue();
-						SmilesParser reader = new SmilesParser(SilentChemObjectBuilder.getInstance());
-						IAtomContainer cdkMol = reader.parseSmiles(smiles);
-						CDKNodeUtils.getStandardMolecule(cdkMol);
-						cdkMol = CDKNodeUtils.calculateCoordinates(cdkMol, false, false);
-						return CDKCell.createCDKCell(source, cdkMol);
+						IAtomContainer mol = conv.convert(smiles);
+
+						return CDKCell.createCDKCell(source, mol);
+					}
+				};
+			} else if (type.isAdaptable(InchiValue.class)) {
+				return new CDKTypeConverter(DataType.getType(CDKAdapterCell.class, null, type.getValueClasses())) {
+
+					private final MolConverter conv = new MolConverter.Builder(FORMAT.INCHI).configure().coordinates()
+							.build();
+
+					@Override
+					public DataCell convert(final DataCell source) throws Exception {
+
+						if (source == null || source.isMissing()) {
+							return DataType.getMissingCell();
+						}
+
+						String smiles = ((AdapterValue) source).getAdapter(InchiValue.class).getInchiString();
+						IAtomContainer mol = conv.convert(smiles);
+
+						return CDKCell.createCDKCell(source, mol);
 					}
 				};
 			}
 		} else {
 			if (type.isCompatible(CDKValue.class)) {
-
-				// We have already an CDK Value - we just create from it an CDK Adapter Cell
+				// We have already an CDK Value - we just create from it an CDK
+				// Adapter Cell
 				return new CDKTypeConverter(CDKAdapterCell.RAW_TYPE) {
 
 					/**
-					 * {@inheritDoc} Just returns the existing CDK Value within a new CDK Adapter Cell.
+					 * {@inheritDoc} Just returns the existing CDK Value within
+					 * a new CDK Adapter Cell.
 					 */
 					@Override
 					public DataCell convert(final DataCell source) throws Exception {
@@ -186,6 +209,9 @@ public abstract class CDKTypeConverter extends DataCellTypeConverter {
 			else if (type.isCompatible(SdfValue.class)) {
 				return new CDKTypeConverter(CDKAdapterCell.RAW_TYPE) {
 
+					private final MolConverter conv = new MolConverter.Builder(FORMAT.SDF).configure().coordinates()
+							.build();
+
 					@Override
 					public DataCell convert(final DataCell source) throws Exception {
 
@@ -194,16 +220,16 @@ public abstract class CDKTypeConverter extends DataCellTypeConverter {
 						}
 
 						String sdf = ((SdfValue) source).getSdfValue();
-						MDLV2000Reader reader = new MDLV2000Reader(new StringReader(sdf));
-						IAtomContainer cdkMol = reader.read(SilentChemObjectBuilder.getInstance().newInstance(
-								IAtomContainer.class));
-						CDKNodeUtils.getStandardMolecule(cdkMol);
-						cdkMol = CDKNodeUtils.calculateCoordinates(cdkMol, false, false);
-						return CDKCell.createCDKCell(cdkMol);
+						IAtomContainer mol = conv.convert(sdf);
+
+						return CDKCell.createCDKCell(mol);
 					}
 				};
 			} else if (type.isCompatible(SmilesValue.class)) {
 				return new CDKTypeConverter(CDKAdapterCell.RAW_TYPE) {
+
+					private final MolConverter conv = new MolConverter.Builder(FORMAT.SMILES).configure().coordinates()
+							.build();
 
 					@Override
 					public DataCell convert(final DataCell source) throws Exception {
@@ -213,11 +239,47 @@ public abstract class CDKTypeConverter extends DataCellTypeConverter {
 						}
 
 						String smiles = ((SmilesValue) source).getSmilesValue();
-						SmilesParser reader = new SmilesParser(SilentChemObjectBuilder.getInstance());
-						IAtomContainer cdkMol = reader.parseSmiles(smiles);
-						CDKNodeUtils.getStandardMolecule(cdkMol);
-						cdkMol = CDKNodeUtils.calculateCoordinates(cdkMol, false, false);
-						return CDKCell.createCDKCell(cdkMol);
+						IAtomContainer mol = conv.convert(smiles);
+
+						return CDKCell.createCDKCell(mol);
+					}
+				};
+			} else if (type.isCompatible(InchiValue.class)) {
+				return new CDKTypeConverter(CDKAdapterCell.RAW_TYPE) {
+
+					private final MolConverter conv = new MolConverter.Builder(FORMAT.INCHI).configure().coordinates()
+							.build();
+
+					@Override
+					public DataCell convert(final DataCell source) throws Exception {
+
+						if (source == null || source.isMissing()) {
+							return DataType.getMissingCell();
+						}
+
+						String smiles = ((InchiValue) source).getInchiString();
+						IAtomContainer mol = conv.convert(smiles);
+
+						return CDKCell.createCDKCell(mol);
+					}
+				};
+			} else if (type.isCompatible(StringValue.class)) {
+				return new CDKTypeConverter(CDKAdapterCell.RAW_TYPE) {
+
+					private final MolConverter conv = new MolConverter.Builder(FORMAT.STRING).configure().coordinates()
+							.build();
+
+					@Override
+					public DataCell convert(final DataCell source) throws Exception {
+
+						if (source == null || source.isMissing()) {
+							return DataType.getMissingCell();
+						}
+
+						String smiles = ((StringValue) source).getStringValue();
+						IAtomContainer mol = conv.convert(smiles);
+
+						return CDKCell.createCDKCell(mol);
 					}
 				};
 			}

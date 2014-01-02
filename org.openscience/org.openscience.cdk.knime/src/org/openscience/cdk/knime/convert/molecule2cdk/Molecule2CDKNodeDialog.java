@@ -145,7 +145,7 @@ public class Molecule2CDKNodeDialog extends NodeDialogPane {
 
 		m_settings.loadSettingsForDialog(settings);
 
-		m_colName.update(specs[0], m_settings.columnName());
+		m_colName.update(specs[0], m_settings.targetColumn());
 		m_replaceColumn.setSelected(m_settings.replaceColumn());
 		m_newColNameLabel.setEnabled(!m_settings.replaceColumn());
 		m_newColName.setEnabled(!m_settings.replaceColumn());
@@ -164,7 +164,7 @@ public class Molecule2CDKNodeDialog extends NodeDialogPane {
 	@Override
 	protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
 
-		m_settings.columnName(m_colName.getSelectedColumn());
+		m_settings.targetColumn(m_colName.getSelectedColumn());
 		m_settings.replaceColumn(m_replaceColumn.isSelected());
 		m_settings.newColumnName(m_newColName.getText());
 		m_settings.generate2D(m_generate2D.isSelected());

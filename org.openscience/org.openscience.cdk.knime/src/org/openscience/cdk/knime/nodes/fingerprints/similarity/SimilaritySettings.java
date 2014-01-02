@@ -42,11 +42,13 @@ public class SimilaritySettings implements CDKSettings {
 	public enum ReturnType {
 		String, Collection
 	}
-
+	
+	
 	private String m_fingerprintColumn = null;
 	private String m_fingerprintRefColumn = null;
 	private AggregationMethod m_aggregation = AggregationMethod.Average;
 	private ReturnType returnType = ReturnType.String;
+	private boolean identicalInput = false;
 
 	/**
 	 * Returns the name of the column that holds the fingerprints.
@@ -119,6 +121,20 @@ public class SimilaritySettings implements CDKSettings {
 	public void returnType(final ReturnType returnType) {
 		this.returnType = returnType;
 	}
+	
+	/**
+	 * If input table equals reference table.
+	 */
+	public void identical(final boolean identical) {
+		this.identicalInput = identical;
+	}
+	
+	/**
+	 * If input table equals reference table.
+	 */
+	public boolean identical() {
+		return identicalInput;
+	}
 
 	/**
 	 * Loads the settings from the given node settings object.
@@ -132,6 +148,7 @@ public class SimilaritySettings implements CDKSettings {
 		m_fingerprintRefColumn = settings.getString("molRefColumn");
 		returnType = ReturnType.valueOf(settings.getString("returnType"));
 		m_aggregation = AggregationMethod.valueOf(settings.getString("aggregationMethod"));
+		identicalInput = settings.getBoolean("identical");
 	}
 
 	/**
@@ -145,5 +162,6 @@ public class SimilaritySettings implements CDKSettings {
 		settings.addString("molRefColumn", m_fingerprintRefColumn);
 		settings.addString("returnType", returnType.toString());
 		settings.addString("aggregationMethod", m_aggregation.toString());
+		settings.addBoolean("identical", identicalInput);
 	}
 }

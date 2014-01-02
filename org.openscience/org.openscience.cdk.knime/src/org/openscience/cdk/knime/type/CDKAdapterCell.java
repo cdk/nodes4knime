@@ -37,6 +37,7 @@ package org.openscience.cdk.knime.type;
 
 import java.io.IOException;
 
+import org.knime.chem.types.InchiValue;
 import org.knime.chem.types.SdfValue;
 import org.knime.chem.types.SmilesValue;
 import org.knime.core.data.AdapterCell;
@@ -48,6 +49,7 @@ import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.StringValue;
 import org.openscience.cdk.interfaces.IAtomContainer;
+import org.openscience.cdk.knime.commons.CDKNodeUtils;
 
 /**
  * Adapter cell implementation for CDK.
@@ -55,11 +57,12 @@ import org.openscience.cdk.interfaces.IAtomContainer;
  * @author Thorsten Meinl, University of Konstanz
  * @author Stephan Beisken, European Bioinformatics Institute
  */
-public class CDKAdapterCell extends AdapterCell implements CDKValue, SmilesValue, SdfValue, StringValue {
+public class CDKAdapterCell extends AdapterCell implements CDKValue, SmilesValue, SdfValue, InchiValue, StringValue {
 
 	/**
-	 * The raw type of this adapter cell with only the implemented value classes. The type of the cell may change if
-	 * additional adapters are added.
+	 * The raw type of this adapter cell with only the implemented value
+	 * classes. The type of the cell may change if additional adapters are
+	 * added.
 	 */
 	public static final DataType RAW_TYPE = DataType.getType(CDKAdapterCell.class);
 
@@ -98,8 +101,9 @@ public class CDKAdapterCell extends AdapterCell implements CDKValue, SmilesValue
 	}
 
 	/**
-	 * Creates a new CDK adapter cell based on a CDK cell and an existing adapter cell. All cells in the given adapter
-	 * are copied into this new cell.
+	 * Creates a new CDK adapter cell based on a CDK cell and an existing
+	 * adapter cell. All cells in the given adapter are copied into this new
+	 * cell.
 	 * 
 	 * @param copy an existing adapter whose values are copied
 	 * @param cell the CDK cell that should be added to the adapter
@@ -131,6 +135,14 @@ public class CDKAdapterCell extends AdapterCell implements CDKValue, SmilesValue
 	public String getSmilesValue() {
 		return ((SmilesValue) lookupFromAdapterMap(SmilesValue.class)).getSmilesValue();
 	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public String getInchiString() {
+		return ((InchiValue) lookupFromAdapterMap(InchiValue.class)).getInchiString();
+	}
 
 	/**
 	 * {@inheritDoc}
@@ -140,14 +152,14 @@ public class CDKAdapterCell extends AdapterCell implements CDKValue, SmilesValue
 		return ((CDKValue) lookupFromAdapterMap(CDKValue.class)).getAtomContainer();
 	}
 
-	/** 
-	 * {@inheritDoc} 
+	/**
+	 * {@inheritDoc}
 	 */
 	@Override
 	public String toString() {
 		return ((CDKValue) lookupFromAdapterMap(CDKValue.class)).toString();
 	}
-	
+
 	/**
 	 * {@inheritDoc}
 	 */
@@ -155,7 +167,13 @@ public class CDKAdapterCell extends AdapterCell implements CDKValue, SmilesValue
 	protected boolean equalsDataCell(final DataCell dc) {
 
 		int hashRef = ((AdapterValue) dc).getAdapter(CDKValue.class).hashCode();
-		return this.hashCode() == hashRef;
+		if (this.hashCode() == hashRef) {
+			Long fullHash = CDKNodeUtils.calculateFullHash(((AdapterValue) dc).getAdapter(CDKValue.class)
+					.getAtomContainer());
+			return this.hashCode() == fullHash.hashCode();
+		} else {
+			return false;
+		}
 	}
 
 	/**

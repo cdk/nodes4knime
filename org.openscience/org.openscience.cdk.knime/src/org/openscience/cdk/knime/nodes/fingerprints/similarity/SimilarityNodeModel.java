@@ -51,17 +51,18 @@ import org.openscience.cdk.knime.nodes.fingerprints.similarity.SimilaritySetting
 import org.openscience.cdk.similarity.Tanimoto;
 
 /**
- * This is the model implementation of the similarity node. CDK is used to calculate the Tanimoto coefficient for two
- * fingerprints. The minimum, maximum or average can be selected as aggregation method.
+ * This is the model implementation of the similarity node. CDK is used to
+ * calculate the Tanimoto coefficient for two fingerprints. The minimum, maximum
+ * or average can be selected as aggregation method.
  * 
  * @author Stephan Beisken, European Bioinformatics Institute
  */
 public class SimilarityNodeModel extends CDKNodeModel {
-	
+
 	private Map<BitSet, ArrayList<String>> fingerprintRefs;
 	private List<BitSet> matrixFingerprintRefs;
 	private int rowCount;
-	
+
 	/**
 	 * Constructor for the node model.
 	 */
@@ -81,11 +82,11 @@ public class SimilarityNodeModel extends CDKNodeModel {
 		fingerprintRefs = getFingerprintRefs(inData[1], fingerprintRefColIndex);
 		matrixFingerprintRefs = getMatrixRefs(inData[1], fingerprintRefColIndex);
 		rowCount = fingerprintRefs.size();
-		
+
 		ColumnRearranger cr = createColumnRearranger(inData[0].getDataTableSpec());
 		return new BufferedDataTable[] { exec.createColumnRearrangeTable(inData[0], cr, exec) };
 	}
-	
+
 	/**
 	 * {@inheritDoc}
 	 */
@@ -95,7 +96,7 @@ public class SimilarityNodeModel extends CDKNodeModel {
 		final int fingerprintColIndex = spec.findColumnIndex(settings.targetColumn());
 
 		DataColumnSpec[] outSpec = createSpec(spec);
-		
+
 		AbstractCellFactory cf = new AbstractCellFactory(true, outSpec) {
 
 			@Override
@@ -103,7 +104,7 @@ public class SimilarityNodeModel extends CDKNodeModel {
 
 				DataCell dataCell = row.getCell(fingerprintColIndex);
 				DataCell[] cells = new DataCell[getColumnSpecs().length];
-				
+
 				if (dataCell.isMissing()) {
 					Arrays.fill(cells, DataType.getMissingCell());
 					return cells;
@@ -149,12 +150,33 @@ public class SimilarityNodeModel extends CDKNodeModel {
 							}
 
 						} else if (settings(SimilaritySettings.class).aggregationMethod() == AggregationMethod.Maximum) {
-							while (it.hasNext()) {
-								Map.Entry<BitSet, ArrayList<String>> pairs = it.next();
-								coeff = Tanimoto.calculate(bs, pairs.getKey());
-								if (coeff >= pcoeff) {
-									pcoeff = coeff;
-									pkey = (ArrayList<String>) pairs.getValue();
+
+							if (settings(SimilaritySettings.class).identical()) {
+								while (it.hasNext()) {
+									Map.Entry<BitSet, ArrayList<String>> pairs = it.next();
+									coeff = Tanimoto.calculate(bs, pairs.getKey());
+									if (coeff >= pcoeff) {
+										if (pairs.getValue().contains(row.getKey().getString())) {
+											if (pairs.getValue().size() > 1) {
+												ArrayList<String> keys = pairs.getValue();
+												keys.remove(row.getKey().getString());
+												pcoeff = coeff;
+												pkey = keys;
+											}
+										} else {
+											pcoeff = coeff;
+											pkey = (ArrayList<String>) pairs.getValue();
+										}
+									}
+								}
+							} else {
+								while (it.hasNext()) {
+									Map.Entry<BitSet, ArrayList<String>> pairs = it.next();
+									coeff = Tanimoto.calculate(bs, pairs.getKey());
+									if (coeff >= pcoeff) {
+										pcoeff = coeff;
+										pkey = (ArrayList<String>) pairs.getValue();
+									}
 								}
 							}
 
@@ -313,7 +335,8 @@ public class SimilarityNodeModel extends CDKNodeModel {
 			}
 		}
 
-		// creates the column rearranger -- does the heavy lifting for adapter cells
+		// creates the column rearranger -- does the heavy lifting for adapter
+		// cells
 		ColumnRearranger arranger = createColumnRearranger(inSpecs[0]);
 		return new DataTableSpec[] { arranger.createSpec() };
 	}

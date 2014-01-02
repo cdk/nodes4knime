@@ -75,7 +75,7 @@ public class HydrogenAdderWorker extends MultiThreadWorker<DataRow, DataRow> {
 					mol = AtomContainerManipulator.removeHydrogens(mol);
 				}
 
-				CDKNodeUtils.getStandardMolecule(mol);
+				CDKNodeUtils.getFullMolecule(mol);
 				outCell = CDKCell.createCDKCell(mol);
 			} catch (Throwable t) {
 				outCell = DataType.getMissingCell();

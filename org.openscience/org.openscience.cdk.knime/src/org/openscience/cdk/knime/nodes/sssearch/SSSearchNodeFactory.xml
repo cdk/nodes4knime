@@ -9,8 +9,8 @@
             the molecules from the input table are divided into two sets, one with
             all molecules that contain the fragments, the other with all molecules
             that do not contain it.<br/><br/>
-            The fragments are passed between JChemPaint and the CDK in SDFile format. Hence, 
-            if the fragment string is provided as flow variable, the input must be in SDFile format as well.         
+            The fragments are passed between JChemPaint and the CDK in SMILES format. Hence, 
+            if the fragment string is provided as flow variable, the input must be in SMILES format as well.         
         </intro>
         <option name="Sketcher">Use the control options to assemble a structure. If a previously
         drawn molecule does not show up when opening the dialog, you may need to scroll down the editor pane.</option>

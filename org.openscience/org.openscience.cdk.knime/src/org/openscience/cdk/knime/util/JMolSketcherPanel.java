@@ -17,32 +17,23 @@
  */
 package org.openscience.cdk.knime.util;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.StringReader;
-import java.io.StringWriter;
+import java.awt.Dimension;
 
-import org.openscience.cdk.AtomContainerSet;
-import org.openscience.cdk.ChemFile;
 import org.openscience.cdk.DefaultChemObjectBuilder;
 import org.openscience.cdk.exception.CDKException;
+import org.openscience.cdk.geometry.GeometryTools;
+import org.openscience.cdk.graph.ConnectivityChecker;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IAtomContainerSet;
-import org.openscience.cdk.interfaces.IChemFile;
 import org.openscience.cdk.interfaces.IChemModel;
-import org.openscience.cdk.io.CMLReader;
-import org.openscience.cdk.io.SDFWriter;
-import org.openscience.cdk.io.iterator.IteratingSDFReader;
 import org.openscience.cdk.knime.commons.CDKNodeUtils;
-import org.openscience.cdk.silent.SilentChemObjectBuilder;
-import org.openscience.cdk.tools.manipulator.ChemFileManipulator;
+import org.openscience.cdk.silent.AtomContainerSet;
 import org.openscience.jchempaint.JChemPaintPanel;
 
 /**
- * This is a panel that lets the user draw structures and returns them as SDF string. They can be loaded again into an
- * empty panel afterwards.
+ * This is a panel that lets the user draw structures and returns them as SDF
+ * string. They can be loaded again into an empty panel afterwards.
  * 
  * @author Thorsten Meinl, University of Konstanz
  * @author Stephan Beisken, European Bioinformatics Institute
@@ -81,78 +72,32 @@ public class JMolSketcherPanel extends JChemPaintPanel {
 		chemModel.setMoleculeSet(JMolSketcherPanel.readStringNotation(stringNotation));
 	}
 
-	/**
-	 * Returns a SDF string for the drawn molecules.
-	 * 
-	 * @return a SDF string
-	 */
-	public String getSDF() {
-
-		IAtomContainerSet s = getChemModel().getMoleculeSet();
-		SDFWriter sdfWriter = null;
-		StringWriter stringWriter = null;
-
-		try {
-			stringWriter = new StringWriter();
-			sdfWriter = new SDFWriter(stringWriter);
-
-			sdfWriter.write(s);
-
-		} catch (CDKException exception) {
-			// do nothing
-		} finally {
-			try {
-				sdfWriter.close();
-				stringWriter.close();
-			} catch (IOException exception) {
-				// do nothing
-			}
-		}
-
-		return stringWriter.toString();
-	}
-
 	public static IAtomContainerSet readStringNotation(String stringNotation) throws CDKException {
 
-		AtomContainerSet atomContainerSet = new AtomContainerSet();
-
-		BufferedReader stringReader = new BufferedReader(new StringReader(stringNotation));
-		try {
-			if (stringReader.readLine().length() > 80 || stringReader.readLine().length() > 80
-					|| stringReader.readLine().length() > 80 || !stringReader.readLine().contains("V2000")) {
-
-				CMLReader reader = new CMLReader(new ByteArrayInputStream(stringNotation.getBytes()));
-				IChemFile chemFile = (ChemFile) reader.read(new ChemFile());
-				for (IAtomContainer container : ChemFileManipulator.getAllAtomContainers(chemFile)) {
-					atomContainerSet.addAtomContainer(container);
-				}
-				reader.close();
-
-			} else {
-
-				IteratingSDFReader reader = new IteratingSDFReader(new StringReader(stringNotation),
-						SilentChemObjectBuilder.getInstance());
-
-				while (reader.hasNext()) {
-					IAtomContainer cdkMol = reader.next();
-					cdkMol.removeProperty("cdk:Title");
-
-					if (cdkMol != null) {
-						CDKNodeUtils.getStandardMolecule(cdkMol);
-					}
-					for (IAtom atom : cdkMol.atoms()) {
-						atom.setValency(null);
-					}
-					atomContainerSet.addAtomContainer(cdkMol);
-					reader.close();
-				}
-			}
-
-			stringReader.close();
-		} catch (Exception exception) {
-			throw new CDKException(exception.getMessage());
+		IAtomContainer mol = CDKNodeUtils.getFullMolecule(stringNotation);
+		mol = CDKNodeUtils.calculateCoordinates(mol, false);
+		for (IAtom atom : mol.atoms()) {
+			atom.setValency(null);
 		}
-		
+
+		IAtomContainerSet atomContainerSet = ConnectivityChecker.partitionIntoMolecules(mol);
+
+		if (atomContainerSet.getAtomContainerCount() != 1) {
+			double cumX = 0;
+			IAtomContainerSet atomContainerSet2 = new AtomContainerSet();
+			Dimension dim = GeometryTools.get2DDimension(atomContainerSet.getAtomContainer(0));
+			atomContainerSet2.addAtomContainer(atomContainerSet.getAtomContainer(0));
+
+			for (int i = 1; i < atomContainerSet.getAtomContainerCount(); i++) {
+				IAtomContainer curMol = atomContainerSet.getAtomContainer(i);
+				cumX += dim.width;
+				GeometryTools.translate2D(curMol, cumX, 0);
+				dim = GeometryTools.get2DDimension(curMol);
+				atomContainerSet2.addAtomContainer(curMol);
+			}
+			return atomContainerSet2;
+		}
+
 		return atomContainerSet;
 	}
 }

@@ -25,8 +25,8 @@ import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
-import org.openscience.cdk.DefaultChemObjectBuilder;
 import org.openscience.cdk.config.IsotopeFactory;
+import org.openscience.cdk.config.Isotopes;
 import org.openscience.cdk.knime.core.CDKAdapterNodeModel;
 
 /**
@@ -103,7 +103,7 @@ public class ElementFilterNodeModel extends CDKAdapterNodeModel {
 
 		try {
 			String[] elements = tmpSettings.getElements().split(",");
-			IsotopeFactory factory = IsotopeFactory.getInstance(DefaultChemObjectBuilder.getInstance());
+			IsotopeFactory factory = Isotopes.getInstance();
 			for (String element : elements) {
 				factory.getElement(element);
 			}

@@ -109,7 +109,7 @@ public final class MolPropsLibrary {
 			if (!classNames.isEmpty()) {
 				engine = new DescriptorEngine(classNames, SilentChemObjectBuilder.getInstance());
 			} else {
-				engine = new DescriptorEngine(DescriptorEngine.MOLECULAR, SilentChemObjectBuilder.getInstance());
+				engine = new DescriptorEngine(IMolecularDescriptor.class, SilentChemObjectBuilder.getInstance());
 			}
 			nativeDescs = engine.getDescriptorInstances();
 			dict = new DictionaryDatabase().getDictionary("descriptor-algorithms");

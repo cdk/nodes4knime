@@ -2,12 +2,12 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: KNIME CDK Integration
 Bundle-SymbolicName: org.openscience.cdk.knime;singleton:=true
-Bundle-Version: 1.4.4.qualifier
+Bundle-Version: 1.5.0.qualifier
 Bundle-Vendor: KNIME GmbH, Konstanz and EMBL-EBI, Cambridge
 Bundle-ClassPath: knime-cdk.jar,
- lib/cdk-1.5.2.jar,
+ lib/cdk-1.5.4.jar,
  lib/jmol-10.jar,
- lib/jchempaint-3.2.0.jar
+ lib/jchempaint-hotfix-3.4.jar
 Require-Bundle: org.knime.base;bundle-version="[2.5.4,3.0.0)",
  org.eclipse.ui;bundle-version="3.6.1",
  org.knime.workbench.repository;bundle-version="[2.5.4,3.0.0)",
@@ -97,6 +97,7 @@ Export-Package: javax.vecmath,
  org.openscience.cdk.knime.nodes.sugarremover,
  org.openscience.cdk.knime.nodes.sumformula,
  org.openscience.cdk.knime.nodes.symmetrycalculator,
+ org.openscience.cdk.knime.preferences,
  org.openscience.cdk.knime.sketcher,
  org.openscience.cdk.knime.type,
  org.openscience.cdk.knime.util,
@@ -140,7 +141,6 @@ Export-Package: javax.vecmath,
  org.openscience.cdk.smiles,
  org.openscience.cdk.smiles.smarts,
  org.openscience.cdk.smiles.smarts.parser,
- org.openscience.cdk.smiles.smarts.parser.visitor,
  org.openscience.cdk.smsd,
  org.openscience.cdk.smsd.algorithm.matchers,
  org.openscience.cdk.smsd.algorithm.mcgregor,

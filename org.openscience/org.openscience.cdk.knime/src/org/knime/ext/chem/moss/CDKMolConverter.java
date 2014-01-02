@@ -31,7 +31,7 @@ import moss.SMILES;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataType;
 import org.openscience.cdk.CDKConstants;
-import org.openscience.cdk.config.IsotopeFactory;
+import org.openscience.cdk.config.Isotopes;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IBond;
@@ -68,7 +68,7 @@ public class CDKMolConverter extends MolConverter<IAtomContainer, CDKValue> {
 			IAtom atom = description.getAtom(i);
 			if (atom.getAtomicNumber() == 0) {
 				try {
-					IsotopeFactory.getInstance(atom.getBuilder()).configure(atom);
+					Isotopes.getInstance();
 				} catch (Exception ex) {
 					throw new RuntimeException(ex);
 				}

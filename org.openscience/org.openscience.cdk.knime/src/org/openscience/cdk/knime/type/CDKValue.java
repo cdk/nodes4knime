@@ -54,7 +54,7 @@ public interface CDKValue extends DataValue {
 	 * @return the corresponding atom container
 	 */
 	IAtomContainer getAtomContainer();
-
+	
 	/** Implementations of the meta information of this value class. */
 	public static class CDKUtilityFactory extends UtilityFactory {
 

@@ -35,6 +35,8 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.openscience.cdk.interfaces.IAtomContainer;
+import org.openscience.cdk.knime.commons.CDKNodeUtils;
 import org.openscience.cdk.knime.type.CDKCell;
 
 /**
@@ -44,10 +46,9 @@ public class SketcherNodeModel extends NodeModel {
 
 	static final String CFG_STRUCTURE = "structure";
 
-	private String sdf;
+	private String smiles;
 
 	public SketcherNodeModel() {
-
 		super(0, 1);
 	}
 
@@ -75,7 +76,9 @@ public class SketcherNodeModel extends NodeModel {
 
 		BufferedDataContainer c = exec.createDataContainer(generateSpec());
 
-		DataCell cell = CDKCell.newInstance(sdf);
+		IAtomContainer mol = CDKNodeUtils.getFullMolecule(smiles);
+		mol = CDKNodeUtils.calculateCoordinates(mol, false);
+		DataCell cell = CDKCell.createCDKCell(mol);
 		c.addRowToTable(new DefaultRow(new RowKey("Structure"), cell));
 
 		c.close();
@@ -97,7 +100,7 @@ public class SketcherNodeModel extends NodeModel {
 	@Override
 	protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
 
-		sdf = settings.getString(CFG_STRUCTURE);
+		smiles = settings.getString(CFG_STRUCTURE);
 	}
 
 	/**
@@ -123,8 +126,8 @@ public class SketcherNodeModel extends NodeModel {
 	@Override
 	protected void saveSettingsTo(final NodeSettingsWO settings) {
 
-		if (sdf != null) {
-			settings.addString(CFG_STRUCTURE, sdf);
+		if (smiles != null) {
+			settings.addString(CFG_STRUCTURE, smiles);
 		}
 	}
 
@@ -134,13 +137,17 @@ public class SketcherNodeModel extends NodeModel {
 	@Override
 	protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
 
-		String sdf = settings.getString(CFG_STRUCTURE);
-		if (sdf == null || sdf.length() == 0) {
+		String smiles = settings.getString(CFG_STRUCTURE);
+		if (smiles == null || smiles.length() == 0) {
 			throw new InvalidSettingsException("No structures given.");
 		}
-		DataCell c = CDKCell.newInstance(sdf);
-		if (c.isMissing()) {
-			throw new InvalidSettingsException("Can't parse SDF string: " + sdf);
+		try {
+		IAtomContainer mol = CDKNodeUtils.getFullMolecule(smiles);
+		mol = CDKNodeUtils.calculateCoordinates(mol, false);
+		@SuppressWarnings("unused")
+		DataCell c = CDKCell.createCDKCell(mol);
+		} catch (Exception exception) {
+			throw new InvalidSettingsException("Can't parse SMILES string: " + smiles);
 		}
 	}
 }

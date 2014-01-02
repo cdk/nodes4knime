@@ -100,9 +100,9 @@ public class SSSearchNodeDialog extends NodeDialogPane {
 			// ignore it and use defaults
 		}
 
-		if (m_settings.getSdf() != null) {
+		if (m_settings.getSmiles() != null) {
 			try {
-				m_panel.loadStructures(m_settings.getSdf());
+				m_panel.loadStructures(m_settings.getSmiles());
 			} catch (Exception ex) {
 				LOGGER.error(ex.getMessage(), ex);
 				throw new NotConfigurableException(ex.getMessage());
@@ -120,10 +120,14 @@ public class SSSearchNodeDialog extends NodeDialogPane {
 	@Override
 	protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
 
-		if (m_panel.getSDF().length() == 0) {
-			m_settings.setSdf("");
-		} else {
-			m_settings.setSdf(m_panel.getSDF());
+		try {
+			if (m_panel.getSmiles().length() == 0) {
+				m_settings.setSmiles("");
+			} else {
+				m_settings.setSmiles(m_panel.getSmiles());
+			}
+		} catch (Exception exception) {
+			// ignore JChemPaint madness
 		}
 		m_settings.targetColumn(m_molColumnName.getSelectedColumn());
 		m_settings.setHighlight(highlightBox.isSelected());

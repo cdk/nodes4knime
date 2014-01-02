@@ -51,7 +51,7 @@ public class SSSearchWorker extends MultiThreadWorker<DataRow, DataRow> {
 	private final BufferedDataContainer[] bdcs;
 	private final IAtomContainer fragment;
 	private final UniversalIsomorphismTester isomorphismTester;
-	
+
 	private boolean highlight;
 
 	public SSSearchWorker(final int maxQueueSize, final int maxActiveInstanceSize, final int columnIndex,
@@ -67,7 +67,7 @@ public class SSSearchWorker extends MultiThreadWorker<DataRow, DataRow> {
 		matchedRows = new HashSet<Long>();
 		isomorphismTester = new UniversalIsomorphismTester();
 	}
-	
+
 	public void highlight(boolean highlight) {
 		this.highlight = highlight;
 	}

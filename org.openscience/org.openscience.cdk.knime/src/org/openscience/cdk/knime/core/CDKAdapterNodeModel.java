@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.knime.chem.types.InchiValue;
 import org.knime.chem.types.SdfValue;
 import org.knime.chem.types.SmilesValue;
 import org.knime.core.data.AdapterValue;
@@ -73,7 +74,7 @@ public abstract class CDKAdapterNodeModel extends NodeModel {
 	 * @param nrOutDataPorts the number of out-ports
 	 * @param settings an CDK settings instance
 	 */
-	protected CDKAdapterNodeModel(int nrInDataPorts, int nrOutDataPorts, CDKSettings settings) {
+	protected CDKAdapterNodeModel(final int nrInDataPorts, final int nrOutDataPorts, final CDKSettings settings) {
 		super(nrInDataPorts, nrOutDataPorts);
 		this.settings = settings;
 	}
@@ -227,14 +228,19 @@ public abstract class CDKAdapterNodeModel extends NodeModel {
 		DataType type = spec.getColumnSpec(columnIndex).getType();
 
 		if (type.isCompatible(AdapterValue.class)) {
-			if (type.isCompatible(CDKValue.class)) {
+			if (type.isAdaptable(CDKValue.class) || type.isCompatible(CDKValue.class)) {
 				return false;
 			} else if (type.isCompatible(RWAdapterValue.class) && type.isCompatible(StringValue.class)
-					&& type.isCompatible(SmilesValue.class) && type.isCompatible(SdfValue.class)) {
+					&& type.isCompatible(SmilesValue.class) && type.isCompatible(SdfValue.class) &&
+					type.isCompatible(InchiValue.class)) {
 				return true;
 			} else if (type.isAdaptable(SdfValue.class)) {
 				return true;
 			} else if (type.isAdaptable(SmilesValue.class)) {
+				return true;
+			} else if (type.isAdaptable(InchiValue.class)) {
+				return true;
+			} else if (type.isAdaptable(StringValue.class)) {
 				return true;
 			}
 		} else {
@@ -243,6 +249,10 @@ public abstract class CDKAdapterNodeModel extends NodeModel {
 			} else if (type.isCompatible(SdfValue.class)) {
 				return true;
 			} else if (type.isCompatible(SmilesValue.class)) {
+				return true;
+			} else if (type.isCompatible(InchiValue.class)) {
+				return true;
+			} else if (type.isCompatible(StringValue.class)) {
 				return true;
 			}
 		}
@@ -289,7 +299,7 @@ public abstract class CDKAdapterNodeModel extends NodeModel {
 	 * @param s the data column spec
 	 * @return if compatible
 	 */
-	private boolean isAdaptableToAny(DataColumnSpec s) {
+	private boolean isAdaptableToAny(final DataColumnSpec s) {
 
 		for (Class<? extends DataValue> cl : CDKNodeUtils.ACCEPTED_VALUE_CLASSES) {
 			if (cl == s.getType().getPreferredValueClass()) {
@@ -303,7 +313,7 @@ public abstract class CDKAdapterNodeModel extends NodeModel {
 	 * {@inheritDoc}
 	 */
 	@Override
-	protected void loadInternals(File nodeInternDir, ExecutionMonitor exec) throws IOException,
+	protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec) throws IOException,
 			CanceledExecutionException {
 		// nothing to do
 
@@ -313,7 +323,7 @@ public abstract class CDKAdapterNodeModel extends NodeModel {
 	 * {@inheritDoc}
 	 */
 	@Override
-	protected void saveInternals(File nodeInternDir, ExecutionMonitor exec) throws IOException,
+	protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec) throws IOException,
 			CanceledExecutionException {
 		// nothing to do
 	}
@@ -330,7 +340,7 @@ public abstract class CDKAdapterNodeModel extends NodeModel {
 	 * {@inheritDoc}
 	 */
 	@Override
-	protected void saveSettingsTo(NodeSettingsWO settings) {
+	protected void saveSettingsTo(final NodeSettingsWO settings) {
 		this.settings.saveSettings(settings);
 	}
 
@@ -338,7 +348,7 @@ public abstract class CDKAdapterNodeModel extends NodeModel {
 	 * {@inheritDoc}
 	 */
 	@Override
-	protected void loadValidatedSettingsFrom(NodeSettingsRO settings) throws InvalidSettingsException {
+	protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
 		this.settings.loadSettings(settings);
 	}
 
@@ -348,7 +358,7 @@ public abstract class CDKAdapterNodeModel extends NodeModel {
 	 * @param type the settings class
 	 * @return the settings object
 	 */
-	protected <T> T settings(Class<T> type) {
+	protected <T> T settings(final Class<T> type) {
 		return type.cast(settings);
 	}
 
@@ -367,6 +377,6 @@ public abstract class CDKAdapterNodeModel extends NodeModel {
 	 * @return the resulting output tables
 	 * @throws Exception if an error has occurred during execution
 	 */
-	protected abstract BufferedDataTable[] process(BufferedDataTable[] convertedTables, ExecutionContext exec)
+	protected abstract BufferedDataTable[] process(final BufferedDataTable[] convertedTables, final ExecutionContext exec)
 			throws Exception;
 }

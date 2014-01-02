@@ -30,7 +30,7 @@ import org.openscience.cdk.knime.core.CDKSettings;
  */
 public class SSSearchSettings implements CDKSettings {
 
-	private String sdf;
+	private String smiles;
 	private String m_molColumnName;
 	private boolean highlight = false;
 
@@ -38,20 +38,20 @@ public class SSSearchSettings implements CDKSettings {
 	/**
 	 * Gets the SDF string of the molecules.
 	 * 
-	 * @return the sdf the SDF string
+	 * @return the sdf the Smiles string
 	 */
-	public final String getSdf() {
-		return sdf;
+	public final String getSmiles() {
+		return smiles;
 	}
 
 	
 	/**
-	 * Sets the SDF string of the molecules.
+	 * Sets the SMILES string of the molecules.
 	 * 
-	 * @param sdf the sdf to set
+	 * @param sdf the smiles to set
 	 */
-	public final void setSdf(String sdf) {
-		this.sdf = sdf;
+	public final void setSmiles(String smiles) {
+		this.smiles = smiles;
 	}
 
 	/**
@@ -98,7 +98,7 @@ public class SSSearchSettings implements CDKSettings {
 	public void saveSettings(final NodeSettingsWO settings) {
 
 		settings.addString("molColumn", m_molColumnName);
-		settings.addString("fragments", sdf);
+		settings.addString("fragments", smiles);
 		settings.addBoolean("highlight", highlight);
 	}
 
@@ -111,7 +111,7 @@ public class SSSearchSettings implements CDKSettings {
 	public void loadSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
 
 		m_molColumnName = settings.getString("molColumn");
-		sdf = settings.getString("fragments");
+		smiles = settings.getString("fragments");
 		highlight = settings.getBoolean("highlight");
 	}
 }

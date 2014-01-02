@@ -21,6 +21,7 @@
 		<option name="Column with fingerprint">Select the column containing the molecular fingerprint</option>
 		<option name="Combo box with aggregation options">Select the aggregation method for the calculation</option>
 		<option name="Combo box with return types">Select the return type: String Cell or Collection Cell</option>
+		<option name="All against all">If maximum score aggregation, ignores 'self hits' that would give score 1. Only works on ''all against all'' cases where row identifiers match in the input and reference table.</option>
 	</fullDescription>
 
 	<ports>

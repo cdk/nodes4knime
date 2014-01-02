@@ -42,6 +42,7 @@ import org.openscience.cdk.interfaces.IAtomContainerSet;
 import org.openscience.cdk.knime.type.CDKCell;
 import org.openscience.cdk.knime.type.CDKValue;
 import org.openscience.cdk.modeling.builder3d.ModelBuilder3D;
+import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 
 /**
@@ -98,14 +99,14 @@ public class Coord3dWorker extends MultiThreadWorker<DataRow, DataRow> {
 								while (it.hasNext()) {
 									IAtomContainer fm = (IAtomContainer) it.next();
 									AtomContainerManipulator.convertImplicitToExplicitHydrogens(fm);
-									fm = ModelBuilder3D.getInstance().generate3DCoordinates(fm, false);
+									fm = ModelBuilder3D.getInstance(SilentChemObjectBuilder.getInstance()).generate3DCoordinates(fm, false);
 									col.add(fm);
 									pClone.set(col);
 								}
 							} else {
 								IAtomContainer mc = m;
 								AtomContainerManipulator.convertImplicitToExplicitHydrogens(mc);
-								mc = ModelBuilder3D.getInstance().generate3DCoordinates(mc, false);
+								mc = ModelBuilder3D.getInstance(SilentChemObjectBuilder.getInstance()).generate3DCoordinates(mc, false);
 								pClone.set(mc);
 							}
 						} catch (ThreadDeath d) {
