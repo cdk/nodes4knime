@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
       id="org.openscience.cdk.knime.feature"
-      label="KNIME CDK Integration (based on CDK 1.5.2)"
-      version="1.4.4.qualifier"
+      label="KNIME CDK (based on CDK 1.6.0)"
+      version="1.5.0.qualifier"
       provider-name="University Konstanz and EBI"
       plugin="org.openscience.cdk.knime">
 
@@ -16,7 +16,7 @@ KNIME.org update site.
    </description>
 
    <copyright>
-      Copyright, 2003 - 2013
+      Copyright, 2003 - 2014
 University of Konstanz, Germany
 KNIME GmbH, Konstanz, Germany
 EBI, Hinxton, UK
