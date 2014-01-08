@@ -24,7 +24,7 @@ import org.openscience.cdk.knime.nodes.descriptors.molprops.AbstractSingleProper
  */
 public class XLogPNodeFactory extends AbstractSinglePropertyNodeFactory {
 
-	private static final String XLOGP_DESCRIPTOR_CLASSNAME = "org.openscience.cdk.qsar.descriptors.molecular.XLogPDescriptor";
+	private static final String XLOGP_DESCRIPTOR_CLASSNAME = "org.openscience.cdk.qsar.descriptors.molecular.SmartXLogPDescriptor";
 
 	/** Instantiates super class with appropriate class description. */
 	public XLogPNodeFactory() {

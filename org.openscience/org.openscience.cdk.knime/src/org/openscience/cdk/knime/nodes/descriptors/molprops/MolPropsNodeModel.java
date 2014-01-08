@@ -20,8 +20,8 @@ package org.openscience.cdk.knime.nodes.descriptors.molprops;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -68,9 +68,7 @@ public class MolPropsNodeModel extends CDKNodeModel {
 	private static final NodeLogger LOGGER = NodeLogger.getLogger(MolPropsNodeModel.class);
 
 	/** NodeSettings file containing names. */
-	private static final String MOLPROPS_IDENTIFIER_FILE = MolPropsNodeModel.class.getPackage().getName()
-			.replace('.', '/')
-			+ "/molprops.set";
+	private static final URL MOLPROPS_IDENTIFIER_FILE = MolPropsNodeModel.class.getClassLoader().getResource("molprops.set");
 
 	private static final Map<DataColumnSpec, String> MOLPROPS_IDENTIFIER_MAP;
 
@@ -88,9 +86,7 @@ public class MolPropsNodeModel extends CDKNodeModel {
 		// available properties for this node
 		LinkedHashSet<String> descResultSet = new LinkedHashSet<String>();
 		try {
-			ClassLoader loader = MolPropsNodeModel.class.getClassLoader();
-			InputStream stream = loader.getResourceAsStream(MOLPROPS_IDENTIFIER_FILE);
-			BufferedReader in = new BufferedReader(new InputStreamReader(stream));
+			BufferedReader in = new BufferedReader(new InputStreamReader(MOLPROPS_IDENTIFIER_FILE.openStream()));
 			String line;
 			while ((line = in.readLine()) != null) {
 				line = line.trim();

@@ -83,8 +83,8 @@ public final class MolPropsLibrary {
 	 * Figure out what are the possible properties that this class can calculate.
 	 */
 	static {
-		// file in the cdk-qsar.jar that contains all available descriptors
-		String descriptorFileName = "qsar-descriptors.set";
+//		String descriptorFileName = "qsar-descriptors.set";
+		String descriptorFileName = "molprops.set";
 		URL descriptorURL = MolPropsLibrary.class.getClassLoader().getResource(descriptorFileName);
 		final List<String> classNames = new ArrayList<String>();
 		if (descriptorURL != null) {
@@ -220,7 +220,9 @@ public final class MolPropsLibrary {
 		try {
 			DescriptorValue val;
 			synchronized (engine) {
-				if (params.length > 0) engine.setParameters(params);
+				if (params.length > 0) {
+					engine.setParameters(params);
+				}
 				val = engine.calculate(mol);
 			}
 			IDescriptorResult d = val.getValue();

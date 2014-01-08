@@ -114,10 +114,7 @@ public class SinglePropertyNodeModel extends CDKNodeModel {
 
 				Object[] params = new Object[0];
 				if (m_descriptorClassName
-						.equalsIgnoreCase("org.openscience.cdk.qsar.descriptors.molecular.XLogPDescriptor")) {
-					params = new Object[] { new Boolean(false), new Boolean(false) };
-				} else if (m_descriptorClassName
-						.equalsIgnoreCase("org.openscience.cdk.qsar.descriptors.molecular.RuleOfFiveDescriptor")) {
+						.equalsIgnoreCase("org.openscience.cdk.qsar.descriptors.molecular.SmartXLogPDescriptor")) {
 					params = new Object[] { new Boolean(false) };
 				}
 				newCells[0] = MolPropsLibrary.getProperty(row.getKey().toString(), mol, m_descriptorClassName, params);

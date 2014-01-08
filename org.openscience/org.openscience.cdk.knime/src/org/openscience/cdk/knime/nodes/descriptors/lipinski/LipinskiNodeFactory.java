@@ -24,7 +24,7 @@ import org.openscience.cdk.knime.nodes.descriptors.molprops.AbstractSingleProper
  */
 public class LipinskiNodeFactory extends AbstractSinglePropertyNodeFactory {
 
-	private static final String LIPINSKI_DESCRIPTOR_CLASSNAME = "org.openscience.cdk.qsar.descriptors.molecular.RuleOfFiveDescriptor";
+	private static final String LIPINSKI_DESCRIPTOR_CLASSNAME = "org.openscience.cdk.qsar.descriptors.molecular.SmartRuleOfFiveDescriptor";
 
 	/** Instantiates super class with appropriate class description. */
 	public LipinskiNodeFactory() {
