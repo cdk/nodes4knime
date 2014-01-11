@@ -128,16 +128,16 @@ public class SmartRuleOfFiveDescriptor extends AbstractMolecularDescriptor imple
 				lipinskifailures += 1;
 			}
 			if (acceptors > 10) {
-				lipinskifailures += 2;
+				lipinskifailures += 1;
 			}
 			if (donors > 5) {
-				lipinskifailures += 3;
+				lipinskifailures += 1;
 			}
 			if (mwvalue > 500.0) {
-				lipinskifailures += 5;
+				lipinskifailures += 1;
 			}
 			if (rotatablebonds > 10.0) {
-				lipinskifailures += 7;
+				lipinskifailures += 1;
 			}
 		} catch (CDKException e) {
 			new DescriptorValue(getSpecification(), getParameterNames(), getParameters(), new IntegerResult(
