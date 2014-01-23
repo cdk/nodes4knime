@@ -227,20 +227,23 @@ public class SimilarityNodeModel extends CDKNodeModel {
 	private DataColumnSpec[] createSpec(final DataTableSpec oldSpec) {
 
 		DataColumnSpec[] outSpec = null;
+		String uniqueColName = DataTableSpec.getUniqueColumnName(oldSpec, "Tanimoto");
+		String uniqueColRefName = DataTableSpec.getUniqueColumnName(oldSpec, "Reference");
 		if (settings(SimilaritySettings.class).aggregationMethod() == AggregationMethod.Average) {
-			DataColumnSpec colSpec = new DataColumnSpecCreator("Tanimoto", DoubleCell.TYPE).createSpec();
+			DataColumnSpec colSpec = new DataColumnSpecCreator(uniqueColName, DoubleCell.TYPE).createSpec();
 			outSpec = new DataColumnSpec[] { colSpec };
+			
 		} else if (settings(SimilaritySettings.class).aggregationMethod() == AggregationMethod.Matrix) {
-			DataColumnSpec colSpec = new DataColumnSpecCreator("Tanimoto", ListCell.getCollectionType(DoubleCell.TYPE))
+			DataColumnSpec colSpec = new DataColumnSpecCreator(uniqueColName, ListCell.getCollectionType(DoubleCell.TYPE))
 					.createSpec();
 			outSpec = new DataColumnSpec[] { colSpec };
 		} else {
-			DataColumnSpec colSpec1 = new DataColumnSpecCreator("Tanimoto", DoubleCell.TYPE).createSpec();
+			DataColumnSpec colSpec1 = new DataColumnSpecCreator(uniqueColName, DoubleCell.TYPE).createSpec();
 			DataColumnSpec colSpec2 = null;
 			if (settings(SimilaritySettings.class).returnType().equals(ReturnType.String)) {
-				colSpec2 = new DataColumnSpecCreator("Reference", StringCell.TYPE).createSpec();
+				colSpec2 = new DataColumnSpecCreator(uniqueColRefName, StringCell.TYPE).createSpec();
 			} else if (settings(SimilaritySettings.class).returnType().equals(ReturnType.Collection)) {
-				colSpec2 = new DataColumnSpecCreator("Reference", ListCell.getCollectionType(StringCell.TYPE))
+				colSpec2 = new DataColumnSpecCreator(uniqueColRefName, ListCell.getCollectionType(StringCell.TYPE))
 						.createSpec();
 			}
 			outSpec = new DataColumnSpec[] { colSpec1, colSpec2 };
