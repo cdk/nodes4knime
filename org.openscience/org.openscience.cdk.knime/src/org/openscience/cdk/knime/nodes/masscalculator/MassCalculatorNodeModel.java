@@ -36,8 +36,8 @@ import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 /**
- * This is the model implementation of MassCalculator. This node calculates the molecular weight or molar mass of a sum
- * formula.
+ * This is the model implementation of MassCalculator. This node calculates the
+ * molecular weight or molar mass of a sum formula.
  * 
  * @author Stephan Beisken
  */
@@ -80,21 +80,22 @@ public class MassCalculatorNodeModel extends CDKNodeModel {
 		settings.addString(Setting.COLUMN_NAME.label(), columnName);
 		settings.addInt(Setting.MASS.label(), massOption == Mass.MOLECULAR_WEIGHT ? 0 : 1);
 	}
-	
+
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
 	protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
 
-		// auto-configures the settings for an available molecule column if none is set
+		// auto-configures the settings for an available molecule column if none
+		// is set
 		columnName = CDKNodeUtils.autoConfigure(inSpecs, columnName, StringValue.class);
 
-		// creates the column rearranger -- does the heavy lifting for adapter cells
+		// creates the column rearranger -- does the heavy lifting for adapter
+		// cells
 		ColumnRearranger arranger = createColumnRearranger(inSpecs[0]);
 		return new DataTableSpec[] { arranger.createSpec() };
 	}
-
 
 	/**
 	 * {@inheritDoc}
@@ -126,8 +127,8 @@ public class MassCalculatorNodeModel extends CDKNodeModel {
 
 		final int sumFormulaIndex = spec.findColumnIndex(columnName);
 
-		DataColumnSpec appendSpec = new DataColumnSpecCreator(massOption.name().toLowerCase(), DoubleCell.TYPE)
-				.createSpec();
+		DataColumnSpec appendSpec = new DataColumnSpecCreator(DataTableSpec.getUniqueColumnName(spec, massOption.name()
+				.toLowerCase()), DoubleCell.TYPE).createSpec();
 
 		SingleCellFactory cf = new SingleCellFactory(true, appendSpec) {
 

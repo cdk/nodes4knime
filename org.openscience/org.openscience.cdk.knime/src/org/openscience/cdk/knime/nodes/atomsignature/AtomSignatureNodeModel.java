@@ -115,6 +115,7 @@ public class AtomSignatureNodeModel extends CDKAdapterNodeModel {
 					name = DataTableSpec.getUniqueColumnName(inSpecs,
 							"HOSE " + (i - 1 + settings(AtomSignatureSettings.class).getMinHeight()));
 				}
+				name = DataTableSpec.getUniqueColumnName(inSpecs, name);
 			}
 			cs[i] = new DataColumnSpecCreator(name, StringCell.TYPE).createSpec();
 		}

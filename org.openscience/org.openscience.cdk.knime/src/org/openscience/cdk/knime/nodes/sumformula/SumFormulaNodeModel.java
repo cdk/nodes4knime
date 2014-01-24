@@ -71,9 +71,11 @@ public class SumFormulaNodeModel extends CDKNodeModel {
 	@Override
 	protected ColumnRearranger createColumnRearranger(final DataTableSpec spec) throws InvalidSettingsException {
 
-		DataColumnSpecCreator crea1 = new DataColumnSpecCreator("Sum Formula",
+		DataColumnSpecCreator crea1 = new DataColumnSpecCreator(
+				DataTableSpec.getUniqueColumnName(spec, "Sum Formula"),
 				ListCell.getCollectionType(StringCell.TYPE));
-		DataColumnSpecCreator crea2 = new DataColumnSpecCreator("Valid Sum",
+		DataColumnSpecCreator crea2 = new DataColumnSpecCreator(
+				DataTableSpec.getUniqueColumnName(spec, "Valid Sum"),
 				ListCell.getCollectionType(DoubleCell.TYPE));
 
 		DataColumnSpec[] appendSpec = new DataColumnSpec[] { crea1.createSpec(), crea2.createSpec() };

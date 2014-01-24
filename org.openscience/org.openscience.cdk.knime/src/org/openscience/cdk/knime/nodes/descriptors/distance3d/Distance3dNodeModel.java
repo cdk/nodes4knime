@@ -42,8 +42,9 @@ import org.openscience.cdk.similarity.DistanceMoment;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 
 /**
- * This is the model implementation of Distance3d. Node to evaluate the 3D similarity between two specified molecules as
- * well as generate the 12 descriptors used to characterize the 3D structure.
+ * This is the model implementation of Distance3d. Node to evaluate the 3D
+ * similarity between two specified molecules as well as generate the 12
+ * descriptors used to characterize the 3D structure.
  * 
  * @author Stephan Beisken, European Bioinformatics Institute
  */
@@ -52,8 +53,19 @@ public class Distance3dNodeModel extends CDKNodeModel {
 	/** Config key for column name. */
 	static final String CFG_COLNAME = "colName";
 
-	static final String[] colHeaders = new String[] { "Ctd-Mean", "Ctd-Sigma", "Ctd-Skewness", "Cst-Mean", "Cst-Sigma",
-			"Cst-Skewness", "Fct-Mean", "Fct-Sigma", "Fct-Skewness", "Ftf-Mean", "Ftf-Sigma", "Ftf-Skewness" };
+	static final String[] colHeaders = new String[] {
+			"Ctd-Mean",
+			"Ctd-Sigma",
+			"Ctd-Skewness",
+			"Cst-Mean",
+			"Cst-Sigma",
+			"Cst-Skewness",
+			"Fct-Mean",
+			"Fct-Sigma",
+			"Fct-Skewness",
+			"Ftf-Mean",
+			"Ftf-Sigma",
+			"Ftf-Skewness" };
 
 	private String colName;
 
@@ -72,7 +84,7 @@ public class Distance3dNodeModel extends CDKNodeModel {
 
 		columnIndex = spec.findColumnIndex(colName);
 
-		AbstractCellFactory cf = new AbstractCellFactory(true, createOutputTableSpecification()) {
+		AbstractCellFactory cf = new AbstractCellFactory(true, createOutputTableSpecification(spec)) {
 
 			/**
 			 * {@inheritDoc}
@@ -120,13 +132,13 @@ public class Distance3dNodeModel extends CDKNodeModel {
 	/**
 	 * Creates the table output specification.
 	 */
-	private DataColumnSpec[] createOutputTableSpecification() {
+	private DataColumnSpec[] createOutputTableSpecification(DataTableSpec spec) {
 
 		DataColumnSpec[] dataColumnSpecs = new DataColumnSpec[12];
 
 		int i = 0;
 		for (String header : colHeaders) {
-			createColumnSpec(dataColumnSpecs, header, i);
+			createColumnSpec(dataColumnSpecs, DataTableSpec.getUniqueColumnName(spec, header), i);
 			i++;
 		}
 

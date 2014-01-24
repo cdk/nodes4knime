@@ -65,7 +65,7 @@ public class Whim3dNodeModel extends CDKNodeModel {
 	protected ColumnRearranger createColumnRearranger(final DataTableSpec spec) throws InvalidSettingsException {
 
 		final List<Whim3dSchemes> weightingSchemes = new ArrayList<Whim3dSchemes>();
-		final DataColumnSpec[] dataColSpec = createSpec();
+		final DataColumnSpec[] dataColSpec = createSpec(spec);
 
 		if (settings(Whim3dSettings.class).isSchemeUnitWeights())
 			weightingSchemes.add(Whim3dSchemes.UNITY_WEIGHTS);
@@ -152,26 +152,47 @@ public class Whim3dNodeModel extends CDKNodeModel {
 		return arranger;
 	}
 
-	private DataColumnSpec[] createSpec() {
+	private DataColumnSpec[] createSpec(DataTableSpec spec) {
 
 		List<DataColumnSpec> dataColumnSpecs = new ArrayList<DataColumnSpec>();
 
 		if (settings(Whim3dSettings.class).isSchemeUnitWeights())
-			createSchemeList(dataColumnSpecs, Whim3dSchemes.UNITY_WEIGHTS.getTitle());
+			createSchemeList(dataColumnSpecs,
+					DataTableSpec.getUniqueColumnName(spec, Whim3dSchemes.UNITY_WEIGHTS.getTitle()));
 		if (settings(Whim3dSettings.class).isSchemeAtomicMasses())
-			createSchemeList(dataColumnSpecs, Whim3dSchemes.ATOMIC_MASSES.getTitle());
+			createSchemeList(dataColumnSpecs,
+					DataTableSpec.getUniqueColumnName(spec, Whim3dSchemes.ATOMIC_MASSES.getTitle()));
 		if (settings(Whim3dSettings.class).isSchemeAtomicPolariz())
-			createSchemeList(dataColumnSpecs, Whim3dSchemes.ATOMIC_POLARIZABILITIES.getTitle());
+			createSchemeList(dataColumnSpecs,
+					DataTableSpec.getUniqueColumnName(spec, Whim3dSchemes.ATOMIC_POLARIZABILITIES.getTitle()));
 		if (settings(Whim3dSettings.class).isSchemeVdWVolumes())
-			createSchemeList(dataColumnSpecs, Whim3dSchemes.VdW_VOLUMES.getTitle());
+			createSchemeList(dataColumnSpecs,
+					DataTableSpec.getUniqueColumnName(spec, Whim3dSchemes.VdW_VOLUMES.getTitle()));
 		if (settings(Whim3dSettings.class).isSchemeAtomicElectronneg())
-			createSchemeList(dataColumnSpecs, Whim3dSchemes.ATOMIC_ELECTRONEGATIVITIES.getTitle());
+			createSchemeList(dataColumnSpecs,
+					DataTableSpec.getUniqueColumnName(spec, Whim3dSchemes.ATOMIC_ELECTRONEGATIVITIES.getTitle()));
 
 		return dataColumnSpecs.toArray(new DataColumnSpec[] {});
 	}
 
-	private String[] values = { "Wlambda1", "Wlambda2", "wlambda3", "Wnu1", "Wnu2", "Wgamma1", "Wgamma2", "Wgamma3",
-			"Weta1", "Weta2", "Weta3", "WT", "WA", "WV", "WK", "WG", "WD" };
+	private String[] values = {
+			"Wlambda1",
+			"Wlambda2",
+			"wlambda3",
+			"Wnu1",
+			"Wnu2",
+			"Wgamma1",
+			"Wgamma2",
+			"Wgamma3",
+			"Weta1",
+			"Weta2",
+			"Weta3",
+			"WT",
+			"WA",
+			"WV",
+			"WK",
+			"WG",
+			"WD" };
 
 	private void createSchemeList(List<DataColumnSpec> dataColumnSpecs, String scheme) {
 

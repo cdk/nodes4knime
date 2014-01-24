@@ -41,7 +41,8 @@ import org.knime.core.node.NodeSettingsWO;
 import org.openscience.cdk.knime.type.CDKCell;
 
 /**
- * This is the model implementation of OpsinNameConverter. Converts IUPAC names into chemical structures.
+ * This is the model implementation of OpsinNameConverter. Converts IUPAC names
+ * into chemical structures.
  * 
  * @author Stephan Beisken, European Bioinformatics Institute
  */
@@ -76,29 +77,33 @@ public class OpsinNameConverterNodeModel extends NodeModel {
 		List<DataColumnSpec> dataColumnSpecs = new ArrayList<DataColumnSpec>();
 		List<String> urlSuffix = new ArrayList<String>();
 		if (settings.isAddCdk()) {
-			DataColumnSpec colSpec = new DataColumnSpecCreator("CDK", CDKCell.TYPE).createSpec();
+			DataColumnSpec colSpec = new DataColumnSpecCreator(DataTableSpec.getUniqueColumnName(spec, "CDK"),
+					CDKCell.TYPE).createSpec();
 			dataColumnSpecs.add(colSpec);
 			urlSuffix.add("cdk");
 		}
 		if (settings.isAddCml()) {
-			DataColumnSpec colSpec = new DataColumnSpecCreator("CML", XMLCell.TYPE).createSpec();
+			DataColumnSpec colSpec = new DataColumnSpecCreator(DataTableSpec.getUniqueColumnName(spec, "CML"),
+					XMLCell.TYPE).createSpec();
 			dataColumnSpecs.add(colSpec);
 			urlSuffix.add("cml");
 		}
 		if (settings.isAddInChI()) {
-			DataColumnSpec colSpec = new DataColumnSpecCreator("InChI", StringCell.TYPE).createSpec();
+			DataColumnSpec colSpec = new DataColumnSpecCreator(DataTableSpec.getUniqueColumnName(spec, "InChI"),
+					StringCell.TYPE).createSpec();
 			dataColumnSpecs.add(colSpec);
 			urlSuffix.add("inchi");
 		}
 		if (settings.isAddPng()) {
-			DataColumnSpec colSpec = new DataColumnSpecCreator("Png", DataType.getType(PNGImageCell.class))
-					.createSpec();
+			DataColumnSpec colSpec = new DataColumnSpecCreator(DataTableSpec.getUniqueColumnName(spec, "Png"),
+					DataType.getType(PNGImageCell.class)).createSpec();
 			dataColumnSpecs.add(colSpec);
 			urlSuffix.add("png");
 		}
 		if (settings.isAddSmiles()) {
 			SmilesTypeHelper smilesTypeHelper = SmilesTypeHelper.INSTANCE;
-			DataColumnSpec colSpec = new DataColumnSpecCreator("SMILES", smilesTypeHelper.getSmilesType()).createSpec();
+			DataColumnSpec colSpec = new DataColumnSpecCreator(DataTableSpec.getUniqueColumnName(spec, "SMILES"),
+					smilesTypeHelper.getSmilesType()).createSpec();
 			dataColumnSpecs.add(colSpec);
 			urlSuffix.add("smi");
 		}

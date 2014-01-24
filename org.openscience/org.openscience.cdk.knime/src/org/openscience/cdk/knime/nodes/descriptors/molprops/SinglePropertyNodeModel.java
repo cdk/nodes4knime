@@ -69,16 +69,11 @@ public class SinglePropertyNodeModel extends CDKNodeModel {
 	private DataColumnSpec[] generateOutputColSpec(final DataTableSpec spec) throws InvalidSettingsException {
 
 		DataColumnSpec appendSpec = MolPropsLibrary.getColumnSpec(m_descriptorClassName);
-		String colName = appendSpec.getName();
-		int uniquifier = 1;
-		while (spec.containsName(colName)) {
-			colName = appendSpec.getName() + " #" + uniquifier++;
-		}
-		if (uniquifier > 1) {
-			DataColumnSpecCreator c = new DataColumnSpecCreator(appendSpec);
-			c.setName(colName);
-			appendSpec = c.createSpec();
-		}
+		String colName = DataTableSpec.getUniqueColumnName(spec, appendSpec.getName());
+		DataColumnSpecCreator c = new DataColumnSpecCreator(appendSpec);
+		c.setName(colName);
+		appendSpec = c.createSpec();
+
 		return new DataColumnSpec[] { appendSpec };
 	}
 

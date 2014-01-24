@@ -68,7 +68,8 @@ public class MolPropsNodeModel extends CDKNodeModel {
 	private static final NodeLogger LOGGER = NodeLogger.getLogger(MolPropsNodeModel.class);
 
 	/** NodeSettings file containing names. */
-	private static final URL MOLPROPS_IDENTIFIER_FILE = MolPropsNodeModel.class.getClassLoader().getResource("molprops.set");
+	private static final URL MOLPROPS_IDENTIFIER_FILE = MolPropsNodeModel.class.getClassLoader().getResource(
+			"molprops.set");
 
 	private static final Map<DataColumnSpec, String> MOLPROPS_IDENTIFIER_MAP;
 
@@ -263,7 +264,8 @@ public class MolPropsNodeModel extends CDKNodeModel {
 
 		m_cdkColumn = CDKNodeUtils.autoConfigure(inSpecs, m_cdkColumn);
 
-		// creates the column rearranger -- does the heavy lifting for adapter cells
+		// creates the column rearranger -- does the heavy lifting for adapter
+		// cells
 		ColumnRearranger arranger = createColumnRearranger(inSpecs[0]);
 		return new DataTableSpec[] { arranger.createSpec() };
 	}
@@ -282,22 +284,16 @@ public class MolPropsNodeModel extends CDKNodeModel {
 			throw new InvalidSettingsException("Some properties are unknown: " + Arrays.toString(hash.toArray()));
 		}
 		assert index == propsClassNames.length;
-		// MolPropsGenerator needs the column specs of the new columns, we need to generate that
+		// MolPropsGenerator needs the column specs of the new columns, we need
+		// to generate that
 		propsSpec = new DataColumnSpec[propsClassNames.length];
 		for (int i = 0; i < propsClassNames.length; i++) {
 			String s = propsClassNames[i];
 			DataColumnSpec colSpec = MolPropsLibrary.getColumnSpec(s);
-			if (spec.containsName(colSpec.getName())) {
-				int uniquifier = 1;
-				String name;
-				do {
-					name = colSpec.getName() + " #" + uniquifier;
-					uniquifier++;
-				} while (spec.containsName(name));
-				DataColumnSpecCreator c = new DataColumnSpecCreator(colSpec);
-				c.setName(name);
-				colSpec = c.createSpec();
-			}
+			String name = DataTableSpec.getUniqueColumnName(spec, colSpec.getName());
+			DataColumnSpecCreator c = new DataColumnSpecCreator(colSpec);
+			c.setName(name);
+			colSpec = c.createSpec();
 			propsSpec[i] = colSpec;
 		}
 		return propsSpec;
