@@ -50,7 +50,7 @@ import org.openscience.cdk.layout.StructureDiagramGenerator;
 import org.openscience.cdk.silent.AtomContainer;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.smiles.FixBondOrdersTool;
-import org.openscience.cdk.smiles.NonCanonicalSmilesGenerator;
+import org.openscience.cdk.smiles.SmilesGenerator;
 import org.openscience.cdk.smiles.SmilesParser;
 import org.openscience.cdk.tools.CDKHydrogenAdder;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
@@ -65,7 +65,7 @@ public class CDKNodeUtils {
 	private static final NodeLogger LOGGER = NodeLogger.getLogger(CDKNodeUtils.class);
 	private static final CDKHydrogenAdder HADDER = CDKHydrogenAdder.getInstance(SilentChemObjectBuilder.getInstance());
 	private static final Aromaticity AROMATICITY = new Aromaticity(ElectronDonation.daylight(), Cycles.all());
-	private static final NonCanonicalSmilesGenerator SG = new NonCanonicalSmilesGenerator();
+	private static final SmilesGenerator SG = SmilesGenerator.isomeric().aromatic();
 	private static final SmilesParser SR = new SmilesParser(SilentChemObjectBuilder.getInstance());
 	private static final FixBondOrdersTool BONDFIXTOOL = new FixBondOrdersTool();
 
@@ -220,7 +220,11 @@ public class CDKNodeUtils {
 				InChIGenerator igg = ig.getInChIGenerator(molecule);
 				molecule.setProperty(CDKConstants.INCHI, igg.getInchi());
 			} catch (CDKException e) {
-				molecule.setProperty(CDKConstants.INCHI, SG.createSMILES(molecule));
+				try {
+					molecule.setProperty(CDKConstants.INCHI, SG.create(molecule));
+				} catch (CDKException e1) {
+					molecule.setProperty(CDKConstants.INCHI, "");
+				}
 			}
 		}
 	}
@@ -236,7 +240,11 @@ public class CDKNodeUtils {
 		
 		String smiles = molecule.getProperty(CDKConstants.SMILES);
 		if (override || smiles == null) {
-			smiles = SG.createSMILES(molecule, sequence);
+			try {
+				smiles = SG.create(molecule, sequence);
+			} catch (CDKException e) {
+				smiles = "";
+			}
 		}
 
 		return smiles;

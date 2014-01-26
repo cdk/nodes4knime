@@ -143,6 +143,10 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 		int[] seq = new int[atomContainer.getAtomCount()];
 
 		smiles = CDKNodeUtils.calculateSmiles(atomContainer, seq);
+//		if (smiles == null) {
+//			smiles = "";
+//			System.out.println("STOP" + smiles);
+//		}
 
 		int[] aux = new int[seq.length];
 		for (int v = 0; v < seq.length; v++) {

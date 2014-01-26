@@ -5,16 +5,18 @@
     <shortDescription>Filters molecules based on a fragment</shortDescription>
     <fullDescription>
         <intro>
-            This node allows you to draw a fragment in the dialog. Upon execution
+            This node allows to draw a fragment in the dialog. Upon execution
             the molecules from the input table are divided into two sets, one with
             all molecules that contain the fragments, the other with all molecules
             that do not contain it.<br/><br/>
+            The substructure search matches stereochemistry if defined. The total number of matched substructures is limited to five.<br/><br/>
             The fragments are passed between JChemPaint and the CDK in SMILES format. Hence, 
             if the fragment string is provided as flow variable, the input must be in SMILES format as well.         
         </intro>
         <option name="Sketcher">Use the control options to assemble a structure. If a previously
         drawn molecule does not show up when opening the dialog, you may need to scroll down the editor pane.</option>
         <option name="Column with molecules">Select the column that contains the molecules.</option>
+        <option name="Match charges">Matches charges.</option>
         <option name="Highlight substructure">Highlights all found substructures in the molecules.</option>
     </fullDescription>
     <ports>

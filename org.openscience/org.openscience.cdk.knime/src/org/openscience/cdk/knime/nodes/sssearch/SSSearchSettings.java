@@ -33,8 +33,8 @@ public class SSSearchSettings implements CDKSettings {
 	private String smiles;
 	private String m_molColumnName;
 	private boolean highlight = false;
+	private boolean charge = false;
 
-	
 	/**
 	 * Gets the SDF string of the molecules.
 	 * 
@@ -44,7 +44,6 @@ public class SSSearchSettings implements CDKSettings {
 		return smiles;
 	}
 
-	
 	/**
 	 * Sets the SMILES string of the molecules.
 	 * 
@@ -71,7 +70,7 @@ public class SSSearchSettings implements CDKSettings {
 	public void targetColumn(final String colName) {
 		m_molColumnName = colName;
 	}
-	
+
 	/**
 	 * Returns if the substructure should be highlighted.
 	 * 
@@ -80,7 +79,7 @@ public class SSSearchSettings implements CDKSettings {
 	public final boolean isHighlight() {
 		return highlight;
 	}
-	
+
 	/**
 	 * Sets if the substructure should be highlighted.
 	 * 
@@ -88,6 +87,24 @@ public class SSSearchSettings implements CDKSettings {
 	 */
 	public final void setHighlight(boolean highlight) {
 		this.highlight = highlight;
+	}
+
+	/**
+	 * Returns if charge should be matched.
+	 * 
+	 * @return if charge to be matched
+	 */
+	public final boolean isCharge() {
+		return charge;
+	}
+
+	/**
+	 * Sets charge should be matched.
+	 * 
+	 * @param charge if charge to be considered
+	 */
+	public final void setCharge(boolean charge) {
+		this.charge = charge;
 	}
 
 	/**
@@ -100,18 +117,21 @@ public class SSSearchSettings implements CDKSettings {
 		settings.addString("molColumn", m_molColumnName);
 		settings.addString("fragments", smiles);
 		settings.addBoolean("highlight", highlight);
+		settings.addBoolean("charge", charge);
 	}
 
 	/**
 	 * Loads the settings from the given node settings object.
 	 * 
 	 * @param settings a node settings object
-	 * @throws InvalidSettingsException if not all required settings are available
+	 * @throws InvalidSettingsException if not all required settings are
+	 *         available
 	 */
 	public void loadSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
 
 		m_molColumnName = settings.getString("molColumn");
 		smiles = settings.getString("fragments");
 		highlight = settings.getBoolean("highlight");
+		charge = settings.getBoolean("charge");
 	}
 }

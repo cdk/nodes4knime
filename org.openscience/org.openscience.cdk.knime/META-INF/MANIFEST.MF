@@ -5,7 +5,7 @@ Bundle-SymbolicName: org.openscience.cdk.knime;singleton:=true
 Bundle-Version: 1.5.0.qualifier
 Bundle-Vendor: KNIME GmbH, Konstanz and EMBL-EBI, Cambridge
 Bundle-ClassPath: knime-cdk.jar,
- lib/cdk-1.5.4.jar,
+ lib/cdk-1.5.5.jar,
  lib/jmol-10.jar,
  lib/jchempaint-hotfix-3.4.jar
 Require-Bundle: org.knime.base;bundle-version="[2.5.4,3.0.0)",

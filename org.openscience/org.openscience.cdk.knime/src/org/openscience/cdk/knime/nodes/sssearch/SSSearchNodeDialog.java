@@ -49,6 +49,7 @@ public class SSSearchNodeDialog extends NodeDialogPane {
 
 	private final JMolSketcherPanel m_panel = new JMolSketcherPanel();
 	private final JCheckBox highlightBox = new JCheckBox();
+	private final JCheckBox chargeBox = new JCheckBox();
 
 	@SuppressWarnings("unchecked")
 	private final ColumnSelectionComboxBox m_molColumnName = new ColumnSelectionComboxBox((Border) null,
@@ -83,6 +84,13 @@ public class SSSearchNodeDialog extends NodeDialogPane {
 		p.add(new JLabel("         Highlight substructures   "), c);
 		c.gridx = 3;
 		p.add(highlightBox, c);
+		
+		c.gridy++;
+		c.gridx = 2;
+		c.anchor = GridBagConstraints.NORTHWEST;
+		p.add(new JLabel("         Match atom charges   "), c);
+		c.gridx = 3;
+		p.add(chargeBox, c);
 
 		addTab("JChemPaint", p);
 	}
@@ -112,6 +120,7 @@ public class SSSearchNodeDialog extends NodeDialogPane {
 		m_molColumnName.update(specs[0], m_settings.targetColumn());
 
 		highlightBox.setSelected(m_settings.isHighlight());
+		chargeBox.setSelected(m_settings.isCharge());
 	}
 
 	/**
@@ -131,6 +140,7 @@ public class SSSearchNodeDialog extends NodeDialogPane {
 		}
 		m_settings.targetColumn(m_molColumnName.getSelectedColumn());
 		m_settings.setHighlight(highlightBox.isSelected());
+		m_settings.setCharge(chargeBox.isSelected());
 		m_settings.saveSettings(settings);
 	}
 }

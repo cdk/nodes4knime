@@ -18,7 +18,7 @@ package org.openscience.cdk.knime.nodes.sssearch;
 
 import java.awt.Color;
 import java.util.HashSet;
-import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
@@ -31,9 +31,12 @@ import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.util.MultiThreadWorker;
 import org.openscience.cdk.CDKConstants;
+import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
-import org.openscience.cdk.isomorphism.UniversalIsomorphismTester;
-import org.openscience.cdk.isomorphism.mcss.RMap;
+import org.openscience.cdk.interfaces.IBond;
+import org.openscience.cdk.isomorphism.Mappings;
+import org.openscience.cdk.isomorphism.Pattern;
+import org.openscience.cdk.isomorphism.VentoFoggia;
 import org.openscience.cdk.knime.commons.CDKNodeUtils;
 import org.openscience.cdk.knime.type.CDKCell;
 import org.openscience.cdk.knime.type.CDKValue;
@@ -49,10 +52,13 @@ public class SSSearchWorker extends MultiThreadWorker<DataRow, DataRow> {
 	private final int columnIndex;
 	private final Set<Long> matchedRows;
 	private final BufferedDataContainer[] bdcs;
-	private final IAtomContainer fragment;
-	private final UniversalIsomorphismTester isomorphismTester;
+
+	private final Pattern pattern;
 
 	private boolean highlight;
+	private boolean charge;
+
+	private static final int MAX_MATCHES = 5;
 
 	public SSSearchWorker(final int maxQueueSize, final int maxActiveInstanceSize, final int columnIndex,
 			final ExecutionContext exec, final IAtomContainer fragment, final BufferedDataContainer... bdcs) {
@@ -61,15 +67,19 @@ public class SSSearchWorker extends MultiThreadWorker<DataRow, DataRow> {
 		this.exec = exec;
 		this.columnIndex = columnIndex;
 		this.bdcs = bdcs;
-		this.fragment = fragment;
+		this.pattern = VentoFoggia.findSubstructure(fragment);
 
 		highlight = false;
+		charge = false;
 		matchedRows = new HashSet<Long>();
-		isomorphismTester = new UniversalIsomorphismTester();
 	}
 
 	public void highlight(boolean highlight) {
 		this.highlight = highlight;
+	}
+	
+	public void charge(boolean charge) {
+		this.charge = charge;
 	}
 
 	@Override
@@ -77,41 +87,71 @@ public class SSSearchWorker extends MultiThreadWorker<DataRow, DataRow> {
 
 		if (row.getCell(columnIndex).isMissing()
 				|| (((AdapterValue) row.getCell(columnIndex)).getAdapterError(CDKValue.class) != null)) {
-			// fall through
-		} else {
-			CDKValue cdkCell = ((AdapterValue) row.getCell(columnIndex)).getAdapter(CDKValue.class);
-			IAtomContainer mol = cdkCell.getAtomContainer();
+			return row;
+		}
 
-			if (isomorphismTester.isSubgraph(mol, fragment)) {
+		CDKValue cdkCell = ((AdapterValue) row.getCell(columnIndex)).getAdapter(CDKValue.class);
+		IAtomContainer mol = cdkCell.getAtomContainer();
 
-				if (highlight) {
-					List<List<RMap>> atomMaps = isomorphismTester.getSubgraphAtomsMaps(mol, fragment);
-					Color[] color = CDKNodeUtils.generateColors(atomMaps.size());
-					int i = 0;
-					for (List<RMap> atomMap : atomMaps) {
-						for (RMap map : atomMap) {
-							mol.getAtom(map.getId1()).setProperty(CDKConstants.ANNOTATIONS, color[i].getRGB());
+		if (pattern.match(mol).length > 0) {
+
+			Set<Integer> excluded = null;
+			
+			if (charge) {
+
+				int i = 0;
+				int j = 0;
+				excluded = new HashSet<Integer>();
+				Mappings mappings = pattern.matchAll(mol).limit(MAX_MATCHES).stereochemistry().uniqueAtoms();
+				for (Map<IAtom, IAtom> map : mappings.toAtomMap()) {
+					for (Map.Entry<IAtom, IAtom> e : map.entrySet()) {
+						if (e.getKey().getFormalCharge() != e.getValue().getFormalCharge()) {
+							excluded.add(j);
+							i++;
+							break;
 						}
-						i++;
 					}
-
-					List<List<RMap>> bondMaps = isomorphismTester.getSubgraphMaps(mol, fragment);
-					i = 0;
-					for (List<RMap> bondMap : bondMaps) {
-						for (RMap map : bondMap) {
-							mol.getBond(map.getId1()).setProperty(CDKConstants.ANNOTATIONS, color[i].getRGB());
-						}
-						i++;
-					}
-
-					row = new ReplacedColumnsDataRow(row, CDKCell.createCDKCell(mol), columnIndex);
-					matchedRows.add(index);
-				} else {
-					matchedRows.add(index);
+					j++;
 				}
-			} else if (highlight) {
+				if (i == j) {
+					return row;
+				}
+			}
+			
+			matchedRows.add(index);
+
+			if (highlight) {
+
+				int i = 0;
+				Color[] color = CDKNodeUtils.generateColors(MAX_MATCHES);
+
+				Mappings mappings = pattern.matchAll(mol).limit(MAX_MATCHES).stereochemistry().uniqueAtoms();
+				for (Map<IAtom, IAtom> map : mappings.toAtomMap()) {
+					if (excluded != null && excluded.contains(i)) {
+						continue;
+					}
+					for (Map.Entry<IAtom, IAtom> e : map.entrySet()) {
+						e.getValue().setProperty(CDKConstants.ANNOTATIONS, color[i].getRGB());
+					}
+					i++;
+				}
+
+				int j = 0;
+				for (Map<IBond, IBond> map : mappings.toBondMap()) {
+					if (excluded != null && excluded.contains(i)) {
+						continue;
+					}
+					for (Map.Entry<IBond, IBond> e : map.entrySet()) {
+						e.getValue().setProperty(CDKConstants.ANNOTATIONS, color[j].getRGB());
+					}
+					j++;
+				}
+
 				row = new ReplacedColumnsDataRow(row, CDKCell.createCDKCell(mol), columnIndex);
 			}
+			// } else if (highlight) {
+			// row = new ReplacedColumnsDataRow(row, CDKCell.createCDKCell(mol),
+			// columnIndex);
 		}
 
 		return row;

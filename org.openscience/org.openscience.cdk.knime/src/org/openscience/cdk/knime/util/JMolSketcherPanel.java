@@ -46,7 +46,6 @@ public class JMolSketcherPanel extends JChemPaintPanel {
 	public JMolSketcherPanel() {
 
 		super(getModel());
-
 		setIsNewChemModel(true);
 	}
 
@@ -68,7 +67,6 @@ public class JMolSketcherPanel extends JChemPaintPanel {
 	public void loadStructures(String stringNotation) throws Exception {
 
 		IChemModel chemModel = getChemModel();
-
 		chemModel.setMoleculeSet(JMolSketcherPanel.readStringNotation(stringNotation));
 	}
 

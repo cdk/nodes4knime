@@ -41,6 +41,7 @@ import org.openscience.cdk.interfaces.IAtomContainerSet;
 import org.openscience.cdk.knime.CDKNodePlugin;
 import org.openscience.cdk.knime.preferences.CDKPreferencePage.AROMATICITY;
 import org.openscience.cdk.knime.preferences.CDKPreferencePage.NUMBERING;
+import org.openscience.cdk.layout.LayoutHelper;
 import org.openscience.cdk.renderer.AtomContainerRenderer;
 import org.openscience.cdk.renderer.RendererModel;
 import org.openscience.cdk.renderer.font.AWTFontManager;
@@ -201,6 +202,7 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 	 */
 	protected void setAtomContainer(final IAtomContainer con) {
 		m_mol = con;
+		LayoutHelper.adjustStereo(m_mol);
 	}
 
 	/**
@@ -292,22 +294,22 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 		if (!ConnectivityChecker.isConnected(m_mol)) {
 			double cumX = 0;
 			IAtomContainerSet molSet = ConnectivityChecker.partitionIntoMolecules(m_mol);
-			
+
 			molSet.sortAtomContainers(new Comparator<IAtomContainer>() {
-				
+
 				@Override
 				public int compare(IAtomContainer o1, IAtomContainer o2) {
-					
+
 					if (o1.getBondCount() < o2.getBondCount()) {
 						return 1;
 					} else if (o1.getBondCount() > o2.getBondCount()) {
 						return -1;
 					}
-					
+
 					return 0;
 				}
 			});
-			
+
 			Dimension dim = GeometryTools.get2DDimension(molSet.getAtomContainer(0));
 			cont.add(molSet.getAtomContainer(0));
 
