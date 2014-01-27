@@ -93,7 +93,7 @@ public class SSSearchWorker extends MultiThreadWorker<DataRow, DataRow> {
 		CDKValue cdkCell = ((AdapterValue) row.getCell(columnIndex)).getAdapter(CDKValue.class);
 		IAtomContainer mol = cdkCell.getAtomContainer();
 
-		if (pattern.match(mol).length > 0) {
+		if (pattern.matches(mol)) {
 
 			Set<Integer> excluded = null;
 			
@@ -102,7 +102,7 @@ public class SSSearchWorker extends MultiThreadWorker<DataRow, DataRow> {
 				int i = 0;
 				int j = 0;
 				excluded = new HashSet<Integer>();
-				Mappings mappings = pattern.matchAll(mol).limit(MAX_MATCHES).stereochemistry().uniqueAtoms();
+				Mappings mappings = pattern.matchAll(mol).stereochemistry().uniqueAtoms().limit(MAX_MATCHES);
 				for (Map<IAtom, IAtom> map : mappings.toAtomMap()) {
 					for (Map.Entry<IAtom, IAtom> e : map.entrySet()) {
 						if (e.getKey().getFormalCharge() != e.getValue().getFormalCharge()) {
