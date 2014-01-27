@@ -4,7 +4,7 @@
     <name>Hydrogen Manipulator</name>
     <shortDescription>Manipulates hydrogens of CDK molecules</shortDescription>
     <fullDescription>
-        <intro>This node adds missing hydrogens to CDK molecules and forces all hydrogens to be implicit.</intro>
+        <intro>This node adds missing hydrogens to CDK molecules and forces all hydrogens to be implicit. Stereochemistry is converted onto non-terminal bonds.</intro>
         <option name="Column with molecules">Select the column containing the molecular structure.</option>
         <option name="Exclude 'stereo hydrogens'">Whether stereo-relevant hydrogens should be kept.</option>
         <option name="Append Column">Appends a new molecule column (with the name as specified in the text field) if checked, replaces the original column otherwise.</option>

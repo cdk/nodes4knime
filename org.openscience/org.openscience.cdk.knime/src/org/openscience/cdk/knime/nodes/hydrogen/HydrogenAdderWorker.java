@@ -34,6 +34,7 @@ import org.openscience.cdk.knime.commons.CDKNodeUtils;
 import org.openscience.cdk.knime.type.CDKCell;
 import org.openscience.cdk.knime.type.CDKValue;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
+import org.openscience.cdk.tools.manipulator.SmartAtomContainerManipulator;
 
 /**
  * Multi threaded worker implementation for the Hydrogen Adder Node.
@@ -70,9 +71,9 @@ public class HydrogenAdderWorker extends MultiThreadWorker<DataRow, DataRow> {
 				IAtomContainer mol = cdkCell.getAtomContainer();
 
 				if (settings.excludeStereo()) {
-					mol = AtomContainerManipulator.removeNonChiralHydrogens(mol);
+					mol = SmartAtomContainerManipulator.suppressNonChiralHydrogens(mol);
 				} else {
-					mol = AtomContainerManipulator.removeHydrogens(mol);
+					mol = AtomContainerManipulator.suppressHydrogens(mol);
 				}
 
 				CDKNodeUtils.getFullMolecule(mol);

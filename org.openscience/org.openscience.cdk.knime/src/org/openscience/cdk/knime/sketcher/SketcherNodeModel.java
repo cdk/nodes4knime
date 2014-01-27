@@ -89,26 +89,17 @@ public class SketcherNodeModel extends NodeModel {
 	 * {@inheritDoc}
 	 */
 	@Override
+	protected void reset() {
+		// nothing to do
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
 	protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec) throws IOException,
 			CanceledExecutionException {
-
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-
-		smiles = settings.getString(CFG_STRUCTURE);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	protected void reset() {
-
+		// nothing to do
 	}
 
 	/**
@@ -117,7 +108,7 @@ public class SketcherNodeModel extends NodeModel {
 	@Override
 	protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec) throws IOException,
 			CanceledExecutionException {
-
+		// nothing to do
 	}
 
 	/**
@@ -135,17 +126,26 @@ public class SketcherNodeModel extends NodeModel {
 	 * {@inheritDoc}
 	 */
 	@Override
+	protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
+
+		smiles = settings.getString(CFG_STRUCTURE, (String) null);
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
 	protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
 
-		String smiles = settings.getString(CFG_STRUCTURE);
+		String smiles = settings.getString(CFG_STRUCTURE, "");
 		if (smiles == null || smiles.length() == 0) {
-			throw new InvalidSettingsException("No structures given.");
+			// ignore
 		}
 		try {
-		IAtomContainer mol = CDKNodeUtils.getFullMolecule(smiles);
-		mol = CDKNodeUtils.calculateCoordinates(mol, false);
-		@SuppressWarnings("unused")
-		DataCell c = CDKCell.createCDKCell(mol);
+			IAtomContainer mol = CDKNodeUtils.getFullMolecule(smiles);
+			mol = CDKNodeUtils.calculateCoordinates(mol, false);
+			@SuppressWarnings("unused")
+			DataCell c = CDKCell.createCDKCell(mol);
 		} catch (Exception exception) {
 			throw new InvalidSettingsException("Can't parse SMILES string: " + smiles);
 		}
