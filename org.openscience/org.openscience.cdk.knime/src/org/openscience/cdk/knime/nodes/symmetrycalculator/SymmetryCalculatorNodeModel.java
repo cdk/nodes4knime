@@ -100,7 +100,7 @@ public class SymmetryCalculatorNodeModel extends CDKAdapterNodeModel {
 	@Override
 	protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
 
-		colName = CDKNodeUtils.autoConfigure(inSpecs, colName);
+		colName = CDKNodeUtils.autoConfigure(inSpecs[0], colName);
 		DataTableSpec outSpec = convertTables(inSpecs)[0];
 		DataTableSpec appendSpec = appendSpec(outSpec);
 

@@ -322,7 +322,7 @@ public class SimilarityNodeModel extends CDKNodeModel {
 	@Override
 	protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
 
-		settings.targetColumn(CDKNodeUtils.autoConfigure(inSpecs, settings.targetColumn(), BitVectorValue.class));
+		settings.targetColumn(CDKNodeUtils.autoConfigure(inSpecs[0], settings.targetColumn(), BitVectorValue.class));
 
 		if (settings.targetColumn() == null || (inSpecs[1].findColumnIndex(settings.targetColumn())) == -1) {
 			String name = null;

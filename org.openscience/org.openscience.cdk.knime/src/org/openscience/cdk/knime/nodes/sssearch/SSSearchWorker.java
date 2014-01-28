@@ -50,6 +50,7 @@ public class SSSearchWorker extends MultiThreadWorker<DataRow, DataRow> {
 
 	private final ExecutionContext exec;
 	private final int columnIndex;
+	private final double max;
 	private final Set<Long> matchedRows;
 	private final BufferedDataContainer[] bdcs;
 
@@ -61,10 +62,11 @@ public class SSSearchWorker extends MultiThreadWorker<DataRow, DataRow> {
 	private static final int MAX_MATCHES = 5;
 
 	public SSSearchWorker(final int maxQueueSize, final int maxActiveInstanceSize, final int columnIndex,
-			final ExecutionContext exec, final IAtomContainer fragment, final BufferedDataContainer... bdcs) {
+			final int max, final ExecutionContext exec, final IAtomContainer fragment, final BufferedDataContainer... bdcs) {
 
 		super(maxQueueSize, maxActiveInstanceSize);
 		this.exec = exec;
+		this.max = max;
 		this.columnIndex = columnIndex;
 		this.bdcs = bdcs;
 		this.pattern = VentoFoggia.findSubstructure(fragment);
@@ -77,7 +79,7 @@ public class SSSearchWorker extends MultiThreadWorker<DataRow, DataRow> {
 	public void highlight(boolean highlight) {
 		this.highlight = highlight;
 	}
-	
+
 	public void charge(boolean charge) {
 		this.charge = charge;
 	}
@@ -93,65 +95,70 @@ public class SSSearchWorker extends MultiThreadWorker<DataRow, DataRow> {
 		CDKValue cdkCell = ((AdapterValue) row.getCell(columnIndex)).getAdapter(CDKValue.class);
 		IAtomContainer mol = cdkCell.getAtomContainer();
 
-		if (pattern.matches(mol)) {
+		try {
+			if (pattern.matches(mol)) {
 
-			Set<Integer> excluded = null;
-			
-			if (charge) {
+				Set<Integer> excluded = null;
 
-				int i = 0;
-				int j = 0;
-				excluded = new HashSet<Integer>();
-				Mappings mappings = pattern.matchAll(mol).stereochemistry().uniqueAtoms().limit(MAX_MATCHES);
-				for (Map<IAtom, IAtom> map : mappings.toAtomMap()) {
-					for (Map.Entry<IAtom, IAtom> e : map.entrySet()) {
-						if (e.getKey().getFormalCharge() != e.getValue().getFormalCharge()) {
-							excluded.add(j);
-							i++;
-							break;
+				if (charge) {
+
+					int i = 0;
+					int j = 0;
+					excluded = new HashSet<Integer>();
+					Mappings mappings = pattern.matchAll(mol).stereochemistry().uniqueAtoms().limit(MAX_MATCHES);
+					for (Map<IAtom, IAtom> map : mappings.toAtomMap()) {
+						for (Map.Entry<IAtom, IAtom> e : map.entrySet()) {
+							if (e.getKey().getFormalCharge() != e.getValue().getFormalCharge()) {
+								excluded.add(j);
+								i++;
+								break;
+							}
 						}
+						j++;
 					}
-					j++;
+					if (i == j) {
+						return row;
+					}
 				}
-				if (i == j) {
-					return row;
+
+				matchedRows.add(index);
+
+				if (highlight) {
+
+					int i = 0;
+					Color[] color = CDKNodeUtils.generateColors(MAX_MATCHES);
+
+					Mappings mappings = pattern.matchAll(mol).limit(MAX_MATCHES).stereochemistry().uniqueAtoms();
+					for (Map<IAtom, IAtom> map : mappings.toAtomMap()) {
+						if (excluded != null && excluded.contains(i)) {
+							continue;
+						}
+						for (Map.Entry<IAtom, IAtom> e : map.entrySet()) {
+							e.getValue().setProperty(CDKConstants.ANNOTATIONS, color[i].getRGB());
+						}
+						i++;
+					}
+
+					int j = 0;
+					for (Map<IBond, IBond> map : mappings.toBondMap()) {
+						if (excluded != null && excluded.contains(i)) {
+							continue;
+						}
+						for (Map.Entry<IBond, IBond> e : map.entrySet()) {
+							e.getValue().setProperty(CDKConstants.ANNOTATIONS, color[j].getRGB());
+						}
+						j++;
+					}
+
+					row = new ReplacedColumnsDataRow(row, CDKCell.createCDKCell(mol), columnIndex);
 				}
+				// } else if (highlight) {
+				// row = new ReplacedColumnsDataRow(row,
+				// CDKCell.createCDKCell(mol),
+				// columnIndex);
 			}
-			
-			matchedRows.add(index);
-
-			if (highlight) {
-
-				int i = 0;
-				Color[] color = CDKNodeUtils.generateColors(MAX_MATCHES);
-
-				Mappings mappings = pattern.matchAll(mol).limit(MAX_MATCHES).stereochemistry().uniqueAtoms();
-				for (Map<IAtom, IAtom> map : mappings.toAtomMap()) {
-					if (excluded != null && excluded.contains(i)) {
-						continue;
-					}
-					for (Map.Entry<IAtom, IAtom> e : map.entrySet()) {
-						e.getValue().setProperty(CDKConstants.ANNOTATIONS, color[i].getRGB());
-					}
-					i++;
-				}
-
-				int j = 0;
-				for (Map<IBond, IBond> map : mappings.toBondMap()) {
-					if (excluded != null && excluded.contains(i)) {
-						continue;
-					}
-					for (Map.Entry<IBond, IBond> e : map.entrySet()) {
-						e.getValue().setProperty(CDKConstants.ANNOTATIONS, color[j].getRGB());
-					}
-					j++;
-				}
-
-				row = new ReplacedColumnsDataRow(row, CDKCell.createCDKCell(mol), columnIndex);
-			}
-			// } else if (highlight) {
-			// row = new ReplacedColumnsDataRow(row, CDKCell.createCDKCell(mol),
-			// columnIndex);
+		} catch (InternalError error) {
+			// fall through
 		}
 
 		return row;
@@ -168,6 +175,11 @@ public class SSSearchWorker extends MultiThreadWorker<DataRow, DataRow> {
 		} else {
 			bdcs[1].addRowToTable(replace);
 		}
+		
+		exec.setProgress(
+				this.getFinishedCount() / max,
+				this.getFinishedCount() + " (active/submitted: " + this.getActiveCount() + "/"
+						+ (this.getSubmittedCount() - this.getFinishedCount()) + ")");
 
 		try {
 			exec.checkCanceled();

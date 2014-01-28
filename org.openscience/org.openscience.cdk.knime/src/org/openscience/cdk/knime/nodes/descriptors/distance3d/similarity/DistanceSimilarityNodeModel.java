@@ -138,8 +138,8 @@ public class DistanceSimilarityNodeModel extends CDKNodeModel {
 	@Override
 	protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
 
-		queName = CDKNodeUtils.autoConfigure(inSpecs, queName);
-		tarName = CDKNodeUtils.autoConfigure(inSpecs, tarName);
+		queName = CDKNodeUtils.autoConfigure(inSpecs[0], queName);
+		tarName = CDKNodeUtils.autoConfigure(inSpecs[0], tarName);
 
 		ColumnRearranger arranger = createColumnRearranger(inSpecs[0]);
 		return new DataTableSpec[] { arranger.createSpec() };

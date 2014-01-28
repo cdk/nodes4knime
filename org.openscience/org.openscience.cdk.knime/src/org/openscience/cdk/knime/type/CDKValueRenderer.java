@@ -202,7 +202,9 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 	 */
 	protected void setAtomContainer(final IAtomContainer con) {
 		m_mol = con;
-		LayoutHelper.adjustStereo(m_mol);
+		if (m_mol != null) {
+			LayoutHelper.adjustStereo(m_mol);
+		}
 	}
 
 	/**

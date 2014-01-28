@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./smarts.png" type="Manipulator">
+    <name>SMARTS Query</name>
+    <shortDescription>Filters molecules based on a SMARTS search</shortDescription>
+    <fullDescription>
+        <intro>
+            Matches a list of molecules against a list of SMARTS patterns. Molecules that match at least one SMARTS 
+            pattern are included in the first output table. Molecules that match no SMARTS pattern are directed to the 
+            second output table. Stereochemistry is supported by default.
+        </intro>
+        <option name="Column with molecules">Select the column that contains the molecules.</option>
+        <option name="Column with SMARTS">Select the column that contains the SMARTS strings (SMARTSCell type).</option>
+    </fullDescription>
+    <ports>
+        <inPort index="0" name="Molecules">Table that contains at least one column with CDK molecules.</inPort>
+        <inPort index="1" name="SMARTS">Table that contains at least one column with SMARTS queries.</inPort>
+        <outPort index="0" name="Matching molecules">Table with molecules that match at least one query.</outPort>
+        <outPort index="1" name="Non-matching molecules">Table with molecules that do not match any of the queries.</outPort>
+    </ports>
+</knimeNode>

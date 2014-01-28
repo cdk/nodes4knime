@@ -64,7 +64,7 @@ public class CDKNodeUtils {
 
 	private static final NodeLogger LOGGER = NodeLogger.getLogger(CDKNodeUtils.class);
 	private static final CDKHydrogenAdder HADDER = CDKHydrogenAdder.getInstance(SilentChemObjectBuilder.getInstance());
-	private static final Aromaticity AROMATICITY = new Aromaticity(ElectronDonation.daylight(), Cycles.all());
+	private static final Aromaticity AROMATICITY = new Aromaticity(ElectronDonation.daylight(), Cycles.allOrVertexShort());
 	private static final SmilesGenerator SG = SmilesGenerator.isomeric().aromatic();
 	private static final SmilesParser SR = new SmilesParser(SilentChemObjectBuilder.getInstance());
 	private static final FixBondOrdersTool BONDFIXTOOL = new FixBondOrdersTool();
@@ -103,10 +103,10 @@ public class CDKNodeUtils {
 			for (IAtom atom : molecule.atoms()) {
 				if (atom instanceof IPseudoAtom) {
 					atom.setAtomicNumber(0);
-					if (atom.getImplicitHydrogenCount() == null) {
+					if (atom.getImplicitHydrogenCount() == null || atom.getImplicitHydrogenCount() < 0) {
 						atom.setImplicitHydrogenCount(0);
 					}
-				} else if (atom.getImplicitHydrogenCount() == null) {
+				} else if (atom.getImplicitHydrogenCount() == null || atom.getImplicitHydrogenCount() < 0) {
 					HADDER.addImplicitHydrogens(molecule, atom);
 				}
 			}
@@ -242,7 +242,7 @@ public class CDKNodeUtils {
 		if (override || smiles == null) {
 			try {
 				smiles = SG.create(molecule, sequence);
-			} catch (CDKException e) {
+			} catch (Exception e) {
 				smiles = "";
 			}
 		}
@@ -333,12 +333,13 @@ public class CDKNodeUtils {
 	 * @throws InvalidSettingsException if the input specification is not
 	 *         compatible
 	 */
-	public static String autoConfigure(final DataTableSpec[] inSpecs, String moleculeColumn)
+	public static String autoConfigure(final DataTableSpec inSpec, String moleculeColumn)
 			throws InvalidSettingsException {
 
-		if (moleculeColumn == null) {
+		int columnIndex = inSpec.findColumnIndex(moleculeColumn);
+		if (columnIndex == -1) {
 			String name = null;
-			for (DataColumnSpec s : inSpecs[0]) {
+			for (DataColumnSpec s : inSpec) {
 				if (s.getType().isAdaptable(CDKValue.class)) { // prefer CDK
 																// column, use
 																// other as
@@ -383,13 +384,13 @@ public class CDKNodeUtils {
 	 * @throws InvalidSettingsException if the input specification is not
 	 *         compatible
 	 */
-	public static String autoConfigure(final DataTableSpec[] inSpecs, String column,
+	public static String autoConfigure(final DataTableSpec inSpecs, String column,
 			Class<? extends DataValue> columnClass) throws InvalidSettingsException {
 
-		int columnIndex = inSpecs[0].findColumnIndex(column);
+		int columnIndex = inSpecs.findColumnIndex(column);
 		if (columnIndex == -1) {
 			int i = 0;
-			for (DataColumnSpec spec : inSpecs[0]) {
+			for (DataColumnSpec spec : inSpecs) {
 				if (spec.getType().isCompatible(columnClass)) {
 					columnIndex = i;
 					column = spec.getName();
@@ -401,7 +402,7 @@ public class CDKNodeUtils {
 				throw new InvalidSettingsException("Column '" + column + "' does not exist.");
 		}
 
-		if (!inSpecs[0].getColumnSpec(columnIndex).getType().isCompatible(columnClass))
+		if (!inSpecs.getColumnSpec(columnIndex).getType().isCompatible(columnClass))
 			throw new InvalidSettingsException("Column '" + column + "' does not contain " + columnClass.getName()
 					+ " cells");
 

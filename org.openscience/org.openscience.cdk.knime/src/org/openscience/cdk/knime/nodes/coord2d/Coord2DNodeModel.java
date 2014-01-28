@@ -45,7 +45,6 @@ public class Coord2DNodeModel extends CDKAdapterNodeModel {
 
 	/** Config key for column name. */
 	static final String CFG_COLNAME = "colName";
-
 	static final String FORCE = "force";
 
 	private String m_colName;
@@ -64,7 +63,7 @@ public class Coord2DNodeModel extends CDKAdapterNodeModel {
 	@Override
 	protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
 
-		m_colName = CDKNodeUtils.autoConfigure(inSpecs, m_colName);
+		m_colName = CDKNodeUtils.autoConfigure(inSpecs[0], m_colName);
 		columnIndex = inSpecs[0].findColumnIndex(m_colName);
 		DataTableSpec outSpec = convertTables(inSpecs)[0];
 		return new DataTableSpec[] { appendSpec(outSpec) };

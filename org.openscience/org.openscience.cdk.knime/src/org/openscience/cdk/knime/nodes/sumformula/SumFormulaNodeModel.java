@@ -157,7 +157,7 @@ public class SumFormulaNodeModel extends CDKNodeModel {
 	@Override
 	protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
 
-		settings.targetColumn(CDKNodeUtils.autoConfigure(inSpecs, settings.targetColumn(), DoubleValue.class));
+		settings.targetColumn(CDKNodeUtils.autoConfigure(inSpecs[0], settings.targetColumn(), DoubleValue.class));
 
 		ColumnRearranger arranger = createColumnRearranger(inSpecs[0]);
 		return new DataTableSpec[] { arranger.createSpec() };

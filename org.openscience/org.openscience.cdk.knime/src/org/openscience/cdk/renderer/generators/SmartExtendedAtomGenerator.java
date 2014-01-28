@@ -31,6 +31,8 @@ import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IPseudoAtom;
 import org.openscience.cdk.renderer.RendererModel;
+import org.openscience.cdk.renderer.color.IAtomColorer;
+import org.openscience.cdk.renderer.color.SmartCPKAtomColors;
 import org.openscience.cdk.renderer.elements.IRenderingElement;
 import org.openscience.cdk.renderer.elements.SmartTextGroupElement;
 import org.openscience.cdk.renderer.elements.SmartTextGroupElement.Position;
@@ -38,6 +40,8 @@ import org.openscience.cdk.renderer.generators.SmartAtomNumberGenerator.WillDraw
 import org.openscience.cdk.renderer.generators.parameter.AbstractGeneratorParameter;
 
 public class SmartExtendedAtomGenerator extends BasicAtomGenerator {
+	
+	private final IAtomColorer colorer = new SmartCPKAtomColors();
 
 	/** Boolean that indicates if implicit hydrogens should be depicted. */
 	public static class ShowImplicitHydrogens extends AbstractGeneratorParameter<Boolean> {
@@ -119,7 +123,10 @@ public class SmartExtendedAtomGenerator extends BasicAtomGenerator {
 				}
 			}
 			Point2d point = atom.getPoint2d();
-			Color ccolor = getAtomColor(atom, model);
+			
+			// override default behaviour
+			// Color ccolor = getAtomColor(atom, model);
+			Color ccolor = colorer.getAtomColor(atom);
 
 			// if invisible carbon
 			if (text == null || text.isEmpty())

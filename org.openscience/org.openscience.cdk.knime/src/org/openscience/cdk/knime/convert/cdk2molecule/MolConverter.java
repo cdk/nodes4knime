@@ -44,7 +44,7 @@ import org.openscience.cdk.io.MDLV2000Writer;
 import org.openscience.cdk.io.Mol2Writer;
 import org.openscience.cdk.knime.convert.cdk2molecule.CDK2MoleculeSettings.Format;
 import org.openscience.cdk.knime.type.CDKValue;
-import org.openscience.cdk.smiles.NonCanonicalSmilesGenerator;
+import org.openscience.cdk.smiles.SmilesGenerator;
 
 /**
  * Helper class for converting CDK molecules into strings representations.
@@ -104,7 +104,7 @@ class MolConverter implements ExtendedCellFactory {
 
 	private class SmilesConv implements Conv {
 
-		private final NonCanonicalSmilesGenerator SG = new NonCanonicalSmilesGenerator();
+		private final SmilesGenerator SG = SmilesGenerator.isomeric().aromatic();
 		
 		/**
 		 * {@inheritDoc}
@@ -112,7 +112,7 @@ class MolConverter implements ExtendedCellFactory {
 		@Override
 		public DataCell conv(final IAtomContainer mol) throws Exception {
 			
-			String smiles = SG.createSMILES(mol);
+			String smiles = SG.create(mol);
 			if (smiles == null || smiles.isEmpty()) {
 				throw new CDKException("Smiles generation failed.");
 			}

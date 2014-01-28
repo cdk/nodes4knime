@@ -89,7 +89,7 @@ public class MassCalculatorNodeModel extends CDKNodeModel {
 
 		// auto-configures the settings for an available molecule column if none
 		// is set
-		columnName = CDKNodeUtils.autoConfigure(inSpecs, columnName, StringValue.class);
+		columnName = CDKNodeUtils.autoConfigure(inSpecs[0], columnName, StringValue.class);
 
 		// creates the column rearranger -- does the heavy lifting for adapter
 		// cells

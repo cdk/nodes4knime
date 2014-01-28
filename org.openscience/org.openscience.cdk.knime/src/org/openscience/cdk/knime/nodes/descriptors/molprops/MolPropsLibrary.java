@@ -180,6 +180,9 @@ public final class MolPropsLibrary {
 		} else if (descriptorClassName.equals("molecularformula")) {
 			DataColumnSpec mfSpec = new DataColumnSpecCreator("Molecular Formula", StringCell.TYPE).createSpec();
 			return mfSpec;
+		} else if (descriptorClassName.equals("formalcharge")) {
+			DataColumnSpec fcSpec = new DataColumnSpecCreator("Formal Charge", IntCell.TYPE).createSpec();
+			return fcSpec;
 		} else if (descriptorClassName.equals("heavyatoms")) {
 			DataColumnSpec haSpec = new DataColumnSpecCreator("Heavy Atoms Count", IntCell.TYPE).createSpec();
 			return haSpec;

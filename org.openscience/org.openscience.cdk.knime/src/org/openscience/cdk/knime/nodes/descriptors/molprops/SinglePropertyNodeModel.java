@@ -129,7 +129,7 @@ public class SinglePropertyNodeModel extends CDKNodeModel {
 	@Override
 	protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
 
-		m_cdkColSelModel.setStringValue(CDKNodeUtils.autoConfigure(inSpecs, m_cdkColSelModel.getStringValue()));
+		m_cdkColSelModel.setStringValue(CDKNodeUtils.autoConfigure(inSpecs[0], m_cdkColSelModel.getStringValue()));
 
 		ColumnRearranger arranger = createColumnRearranger(inSpecs[0]);
 		return new DataTableSpec[] { arranger.createSpec() };

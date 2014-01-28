@@ -110,10 +110,12 @@ public class MolPropsNodeModel extends CDKNodeModel {
 		// #########################
 		// custom "non-qsar" methods
 		DataColumnSpec mfSpec = new DataColumnSpecCreator("Molecular Formula", StringCell.TYPE).createSpec();
+		DataColumnSpec fcSpec = new DataColumnSpecCreator("Formal Charge", IntCell.TYPE).createSpec();
 		DataColumnSpec haSpec = new DataColumnSpecCreator("No. of Heavy Atoms", IntCell.TYPE).createSpec();
 		DataColumnSpec mmSpec = new DataColumnSpecCreator("Molar Mass", DoubleCell.TYPE).createSpec();
 		DataColumnSpec spSpec = new DataColumnSpecCreator("SP3 Character", DoubleCell.TYPE).createSpec();
 		specStringMap.put(mfSpec, "molecularformula");
+		specStringMap.put(fcSpec, "formalcharge");
 		specStringMap.put(haSpec, "heavyatoms");
 		specStringMap.put(mmSpec, "molarmass");
 		specStringMap.put(spSpec, "spthreechar");
@@ -199,6 +201,8 @@ public class MolPropsNodeModel extends CDKNodeModel {
 					if (prop.equals("molecularformula")) {
 						IMolecularFormula formula = MolecularFormulaManipulator.getMolecularFormula(mol);
 						newCells[i] = new StringCell(MolecularFormulaManipulator.getString(formula));
+					} else if (prop.equals("formalcharge")) {
+						newCells[i] = new IntCell(AtomContainerManipulator.getTotalFormalCharge(mol));
 					} else if (prop.equals("heavyatoms")) {
 						newCells[i] = new IntCell(AtomContainerManipulator.getHeavyAtoms(mol).size());
 					} else if (prop.equals("molarmass")) {
@@ -262,7 +266,7 @@ public class MolPropsNodeModel extends CDKNodeModel {
 	@Override
 	protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
 
-		m_cdkColumn = CDKNodeUtils.autoConfigure(inSpecs, m_cdkColumn);
+		m_cdkColumn = CDKNodeUtils.autoConfigure(inSpecs[0], m_cdkColumn);
 
 		// creates the column rearranger -- does the heavy lifting for adapter
 		// cells

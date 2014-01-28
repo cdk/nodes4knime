@@ -23,6 +23,7 @@ import java.util.Map;
 
 import org.knime.chem.types.InchiValue;
 import org.knime.chem.types.SdfValue;
+import org.knime.chem.types.SmartsCell;
 import org.knime.chem.types.SmilesValue;
 import org.knime.core.data.AdapterValue;
 import org.knime.core.data.DataCell;
@@ -252,7 +253,7 @@ public abstract class CDKAdapterNodeModel extends NodeModel {
 				return true;
 			} else if (type.isCompatible(InchiValue.class)) {
 				return true;
-			} else if (type.isCompatible(StringValue.class)) {
+			} else if (type.isCompatible(StringValue.class) && !type.equals(SmartsCell.TYPE) ) {
 				return true;
 			}
 		}

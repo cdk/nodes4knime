@@ -60,7 +60,7 @@ public class Coord3dNodeModel extends CDKAdapterNodeModel {
 	@Override
 	protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
 
-		m_colName = CDKNodeUtils.autoConfigure(inSpecs, m_colName);
+		m_colName = CDKNodeUtils.autoConfigure(inSpecs[0], m_colName);
 		columnIndex = inSpecs[0].findColumnIndex(m_colName);
 		DataTableSpec outSpec = convertTables(inSpecs)[0];
 		return new DataTableSpec[] { appendSpec(outSpec) };

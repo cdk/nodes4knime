@@ -35,8 +35,9 @@ import org.openscience.cdk.knime.type.CDKCell;
 import org.openscience.cdk.knime.util.JMolSketcherPanel;
 
 /**
- * This is the model for the substructure search node. It divides the input table into two output tables. One with all
- * molecules that contain a certain substucture and the the other with the molecules that don't.
+ * This is the model for the substructure search node. It divides the input
+ * table into two output tables. One with all molecules that contain a certain
+ * substucture and the the other with the molecules that don't.
  * 
  * @author Thorsten Meinl, University of Konstanz
  */
@@ -62,8 +63,8 @@ public class SSSearchNodeModel extends CDKAdapterNodeModel {
 		BufferedDataContainer outputTableMissed = exec.createDataContainer(appendSpec(convertedTables[0]
 				.getDataTableSpec()));
 
-		SSSearchWorker worker = new SSSearchWorker(maxQueueSize, maxParallelWorkers, columnIndex, exec, m_fragment,
-				outputTableMatched, outputTableMissed);
+		SSSearchWorker worker = new SSSearchWorker(maxQueueSize, maxParallelWorkers, columnIndex,
+				convertedTables[0].getRowCount(), exec, m_fragment, outputTableMatched, outputTableMissed);
 		worker.highlight(settings(SSSearchSettings.class).isHighlight());
 		worker.charge(settings(SSSearchSettings.class).isCharge());
 

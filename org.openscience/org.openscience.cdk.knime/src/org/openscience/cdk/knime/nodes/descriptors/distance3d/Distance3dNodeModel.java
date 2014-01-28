@@ -160,7 +160,7 @@ public class Distance3dNodeModel extends CDKNodeModel {
 	@Override
 	protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
 
-		colName = CDKNodeUtils.autoConfigure(inSpecs, colName);
+		colName = CDKNodeUtils.autoConfigure(inSpecs[0], colName);
 
 		ColumnRearranger arranger = createColumnRearranger(inSpecs[0]);
 		return new DataTableSpec[] { arranger.createSpec() };
