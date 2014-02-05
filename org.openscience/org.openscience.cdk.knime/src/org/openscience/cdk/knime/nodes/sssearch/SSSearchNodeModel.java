@@ -67,6 +67,7 @@ public class SSSearchNodeModel extends CDKAdapterNodeModel {
 				convertedTables[0].getRowCount(), exec, m_fragment, outputTableMatched, outputTableMissed);
 		worker.highlight(settings(SSSearchSettings.class).isHighlight());
 		worker.charge(settings(SSSearchSettings.class).isCharge());
+		worker.exactMatch(settings(SSSearchSettings.class).isExactMatch());
 
 		try {
 			worker.run(convertedTables[0]);

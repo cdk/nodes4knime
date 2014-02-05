@@ -213,24 +213,24 @@ public class MolPropsNodeModel extends CDKNodeModel {
 						newCells[i] = character == -1 ? DataType.getMissingCell() : new DoubleCell(character);
 					} else {
 						Object[] params = new Object[0];
-						if (prop.equalsIgnoreCase("org.openscience.cdk.qsar.descriptors.molecular.XLogPDescriptor")) {
-							params = new Object[] { new Boolean(false), new Boolean(false) };
-						} else if (prop
-								.equalsIgnoreCase("org.openscience.cdk.qsar.descriptors.molecular.RuleOfFiveDescriptor")) {
+						if (prop.equalsIgnoreCase("org.openscience.cdk.qsar.descriptors.molecular.SmartXLogPDescriptor")) {
 							params = new Object[] { new Boolean(false) };
+//						} else if (prop
+//								.equalsIgnoreCase("org.openscience.cdk.qsar.descriptors.molecular.SmartRuleOfFiveDescriptor")) {
+//							params = new Object[] { new Boolean(false) };
 						} else if (prop
 								.equalsIgnoreCase("org.openscience.cdk.qsar.descriptors.molecular.BCUTDescriptor")) {
 							int heavyAtomCount = AtomContainerManipulator.getHeavyAtoms(mol).size();
 							params = new Object[] { heavyAtomCount, 0, new Boolean(false) };
-						} else if (prop
-								.equalsIgnoreCase("org.openscience.cdk.qsar.descriptors.molecular.HBondAcceptorCountDescriptor")) {
-							params = new Object[] { new Boolean(false) };
+//						} else if (prop
+//								.equalsIgnoreCase("org.openscience.cdk.qsar.descriptors.molecular.SmartHBondAcceptorCountDescriptor")) {
+//							params = new Object[] { new Boolean(false) };
 						} else if (prop
 								.equalsIgnoreCase("org.openscience.cdk.qsar.descriptors.molecular.HBondDonorCountDescriptor")) {
 							params = new Object[] { new Boolean(false) };
 						} else if (prop
 								.equalsIgnoreCase("org.openscience.cdk.qsar.descriptors.molecular.RotatableBondsCountDescriptor")) {
-							params = new Object[] { new Boolean(true) };
+							params = new Object[] { new Boolean(true), new Boolean(false) };
 						}
 						newCells[i] = MolPropsLibrary.getProperty(row.getKey().toString(), mol, prop, params);
 					}

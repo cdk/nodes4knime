@@ -5,9 +5,13 @@ Bundle-SymbolicName: org.openscience.cdk.knime;singleton:=true
 Bundle-Version: 1.5.1.qualifier
 Bundle-Vendor: KNIME GmbH, Konstanz and EMBL-EBI, Cambridge
 Bundle-ClassPath: knime-cdk.jar,
- lib/cdk-1.5.5.jar,
+ lib/cdk-1.5.6.jar,
  lib/jmol-10.jar,
- lib/jchempaint-hotfix-3.4.jar
+ lib/jchempaint-hotfix-3.4.jar,
+ lib/ambit2-base-2.5.4-SNAPSHOT.jar,
+ lib/ambit2-core-2.5.4-SNAPSHOT.jar,
+ lib/ambit2-smarts-2.5.4-SNAPSHOT.jar,
+ lib/ambit2-tautomers-2.5.4-SNAPSHOT.jar
 Require-Bundle: org.knime.base;bundle-version="[2.5.4,3.0.0)",
  org.eclipse.ui;bundle-version="3.6.1",
  org.knime.workbench.repository;bundle-version="[2.5.4,3.0.0)",
@@ -93,6 +97,7 @@ Export-Package: javax.vecmath,
  org.openscience.cdk.knime.nodes.masscalculator,
  org.openscience.cdk.knime.nodes.opsin,
  org.openscience.cdk.knime.nodes.rmsdcalculator,
+ org.openscience.cdk.knime.nodes.smarts,
  org.openscience.cdk.knime.nodes.sssearch,
  org.openscience.cdk.knime.nodes.sugarremover,
  org.openscience.cdk.knime.nodes.sumformula,

@@ -64,6 +64,7 @@ public class CDKNodeUtils {
 
 	private static final NodeLogger LOGGER = NodeLogger.getLogger(CDKNodeUtils.class);
 	private static final CDKHydrogenAdder HADDER = CDKHydrogenAdder.getInstance(SilentChemObjectBuilder.getInstance());
+	@SuppressWarnings("deprecation")
 	private static final Aromaticity AROMATICITY = new Aromaticity(ElectronDonation.daylight(), Cycles.allOrVertexShort());
 	private static final SmilesGenerator SG = SmilesGenerator.isomeric().aromatic();
 	private static final SmilesParser SR = new SmilesParser(SilentChemObjectBuilder.getInstance());
@@ -296,7 +297,7 @@ public class CDKNodeUtils {
 		try {
 			hash = GENERATOR_FULL.generate(molecule);
 		} catch (Exception exception) {
-
+			// fall through
 		}
 
 		return hash;

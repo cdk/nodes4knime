@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./ambit.png" type="Manipulator">
+    <name>Tautomer Generator</name>
+    <shortDescription>Tautomer generator for CDK molecules.</shortDescription>
+    <fullDescription>
+        <intro>
+            AMBIT's tautomer generator to enumerate viable tautomers for CDK molecules. 
+            Either the single most viable tautomer or all possible tautomers can be generated.
+            <br/>
+            <br/>
+            Ambit-Tautomer: An Open Source Tool for Tautomer Generation. DOI: 10.1002/minf.201200133
+        </intro>
+        <option name="Column with molecules">Select the column that contains molecules.</option>
+        <option name="Mode">Whether all tautomers or just the best should be generated.</option>
+    </fullDescription>
+    <ports>
+        <inPort index="0" name="Molecules">Table with CDK molecules.</inPort>
+        <outPort index="1" name="Tautomers">Table with CDK tautomers.</outPort>
+    </ports>
+</knimeNode>

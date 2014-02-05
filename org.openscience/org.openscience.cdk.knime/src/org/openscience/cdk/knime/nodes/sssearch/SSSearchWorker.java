@@ -17,7 +17,9 @@
 package org.openscience.cdk.knime.nodes.sssearch;
 
 import java.awt.Color;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CancellationException;
@@ -34,12 +36,17 @@ import org.openscience.cdk.CDKConstants;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IBond;
+import org.openscience.cdk.interfaces.IStereoElement;
+import org.openscience.cdk.interfaces.ITetrahedralChirality;
+import org.openscience.cdk.interfaces.ITetrahedralChirality.Stereo;
 import org.openscience.cdk.isomorphism.Mappings;
 import org.openscience.cdk.isomorphism.Pattern;
 import org.openscience.cdk.isomorphism.VentoFoggia;
 import org.openscience.cdk.knime.commons.CDKNodeUtils;
 import org.openscience.cdk.knime.type.CDKCell;
 import org.openscience.cdk.knime.type.CDKValue;
+
+import com.google.common.base.Predicate;
 
 /**
  * Multi threaded worker implementation for the Substructure Search Node.
@@ -55,24 +62,29 @@ public class SSSearchWorker extends MultiThreadWorker<DataRow, DataRow> {
 	private final BufferedDataContainer[] bdcs;
 
 	private final Pattern pattern;
+	private final IAtomContainer query;
 
 	private boolean highlight;
 	private boolean charge;
+	private boolean exactMatch;
 
 	private static final int MAX_MATCHES = 5;
 
 	public SSSearchWorker(final int maxQueueSize, final int maxActiveInstanceSize, final int columnIndex,
-			final int max, final ExecutionContext exec, final IAtomContainer fragment, final BufferedDataContainer... bdcs) {
+			final int max, final ExecutionContext exec, final IAtomContainer fragment,
+			final BufferedDataContainer... bdcs) {
 
 		super(maxQueueSize, maxActiveInstanceSize);
 		this.exec = exec;
 		this.max = max;
 		this.columnIndex = columnIndex;
 		this.bdcs = bdcs;
+		this.query = fragment;
 		this.pattern = VentoFoggia.findSubstructure(fragment);
 
 		highlight = false;
 		charge = false;
+		exactMatch = false;
 		matchedRows = new HashSet<Long>();
 	}
 
@@ -82,6 +94,10 @@ public class SSSearchWorker extends MultiThreadWorker<DataRow, DataRow> {
 
 	public void charge(boolean charge) {
 		this.charge = charge;
+	}
+	
+	public void exactMatch(boolean exactMatch) {
+		this.exactMatch = exactMatch;
 	}
 
 	@Override
@@ -95,31 +111,23 @@ public class SSSearchWorker extends MultiThreadWorker<DataRow, DataRow> {
 		CDKValue cdkCell = ((AdapterValue) row.getCell(columnIndex)).getAdapter(CDKValue.class);
 		IAtomContainer mol = cdkCell.getAtomContainer();
 
-		try {
-			if (pattern.matches(mol)) {
+		if (pattern.matches(mol)) {
 
-				Set<Integer> excluded = null;
+			List<Predicate<int[]>> predicates = new ArrayList<Predicate<int[]>>();
+			if (charge) {
+				predicates.add(new ChargePredicate(query, mol));
+			}
+			if (exactMatch) {
+				predicates.add(new ExactStereoPredicate(query, mol));
+			}
 
-				if (charge) {
+			Mappings mappings = pattern.matchAll(mol).stereochemistry().uniqueAtoms();
+			for (Predicate<int[]> predicate : predicates) {
+				mappings = mappings.filter(predicate);
+			}
+			mappings = mappings.limit(MAX_MATCHES);
 
-					int i = 0;
-					int j = 0;
-					excluded = new HashSet<Integer>();
-					Mappings mappings = pattern.matchAll(mol).stereochemistry().uniqueAtoms().limit(MAX_MATCHES);
-					for (Map<IAtom, IAtom> map : mappings.toAtomMap()) {
-						for (Map.Entry<IAtom, IAtom> e : map.entrySet()) {
-							if (e.getKey().getFormalCharge() != e.getValue().getFormalCharge()) {
-								excluded.add(j);
-								i++;
-								break;
-							}
-						}
-						j++;
-					}
-					if (i == j) {
-						return row;
-					}
-				}
+			if (mappings.atLeast(1)) {
 
 				matchedRows.add(index);
 
@@ -128,11 +136,7 @@ public class SSSearchWorker extends MultiThreadWorker<DataRow, DataRow> {
 					int i = 0;
 					Color[] color = CDKNodeUtils.generateColors(MAX_MATCHES);
 
-					Mappings mappings = pattern.matchAll(mol).limit(MAX_MATCHES).stereochemistry().uniqueAtoms();
 					for (Map<IAtom, IAtom> map : mappings.toAtomMap()) {
-						if (excluded != null && excluded.contains(i)) {
-							continue;
-						}
 						for (Map.Entry<IAtom, IAtom> e : map.entrySet()) {
 							e.getValue().setProperty(CDKConstants.ANNOTATIONS, color[i].getRGB());
 						}
@@ -141,9 +145,6 @@ public class SSSearchWorker extends MultiThreadWorker<DataRow, DataRow> {
 
 					int j = 0;
 					for (Map<IBond, IBond> map : mappings.toBondMap()) {
-						if (excluded != null && excluded.contains(i)) {
-							continue;
-						}
 						for (Map.Entry<IBond, IBond> e : map.entrySet()) {
 							e.getValue().setProperty(CDKConstants.ANNOTATIONS, color[j].getRGB());
 						}
@@ -152,13 +153,7 @@ public class SSSearchWorker extends MultiThreadWorker<DataRow, DataRow> {
 
 					row = new ReplacedColumnsDataRow(row, CDKCell.createCDKCell(mol), columnIndex);
 				}
-				// } else if (highlight) {
-				// row = new ReplacedColumnsDataRow(row,
-				// CDKCell.createCDKCell(mol),
-				// columnIndex);
 			}
-		} catch (InternalError error) {
-			// fall through
 		}
 
 		return row;
@@ -175,7 +170,7 @@ public class SSSearchWorker extends MultiThreadWorker<DataRow, DataRow> {
 		} else {
 			bdcs[1].addRowToTable(replace);
 		}
-		
+
 		exec.setProgress(
 				this.getFinishedCount() / max,
 				this.getFinishedCount() + " (active/submitted: " + this.getActiveCount() + "/"
@@ -185,6 +180,64 @@ public class SSSearchWorker extends MultiThreadWorker<DataRow, DataRow> {
 			exec.checkCanceled();
 		} catch (CanceledExecutionException cee) {
 			throw new CancellationException();
+		}
+	}
+
+	class ChargePredicate implements Predicate<int[]> {
+
+		private final IAtomContainer query;
+		private final IAtomContainer target;
+
+		public ChargePredicate(IAtomContainer query, IAtomContainer target) {
+
+			this.query = query;
+			this.target = target;
+		}
+
+		@Override
+		public boolean apply(int[] m) {
+			// mapping: query to target
+			for (int n = 0; n < m.length; n++) {
+				if (query.getAtom(n).getFormalCharge() != target.getAtom(m[n]).getFormalCharge()) {
+					return false;
+				}
+			}
+			return true;
+		}
+	}
+
+	class ExactStereoPredicate implements Predicate<int[]> {
+
+		private final Stereo[] query;
+		private final Stereo[] target;
+
+		public ExactStereoPredicate(IAtomContainer query, IAtomContainer target) {
+
+			this.query = init(query);
+			this.target = init(target);
+		}
+		
+		private Stereo[] init(IAtomContainer molecule) {
+			
+			Stereo[] stereo = new Stereo[molecule.getAtomCount()];
+			for (IStereoElement stereoElement : molecule.stereoElements()) {
+				if (stereoElement instanceof ITetrahedralChirality) {
+					ITetrahedralChirality chirality = (ITetrahedralChirality) stereoElement;
+					stereo[molecule.getAtomNumber(chirality.getChiralAtom())] = chirality.getStereo();
+				}
+			}
+			return stereo;
+		}
+		
+		@Override
+		public boolean apply(int[] m) {
+			// mapping: query to target
+			for (int n = 0; n < m.length; n++) {
+				if (query[n] == null && target[m[n]] != null) {
+					return false;
+				}
+			}
+			return true;
 		}
 	}
 }

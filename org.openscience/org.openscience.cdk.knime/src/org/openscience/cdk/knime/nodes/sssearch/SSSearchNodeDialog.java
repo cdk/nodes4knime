@@ -50,6 +50,7 @@ public class SSSearchNodeDialog extends NodeDialogPane {
 	private final JMolSketcherPanel m_panel = new JMolSketcherPanel();
 	private final JCheckBox highlightBox = new JCheckBox();
 	private final JCheckBox chargeBox = new JCheckBox();
+	private final JCheckBox stereoBox = new JCheckBox();
 
 	@SuppressWarnings("unchecked")
 	private final ColumnSelectionComboxBox m_molColumnName = new ColumnSelectionComboxBox((Border) null,
@@ -91,6 +92,13 @@ public class SSSearchNodeDialog extends NodeDialogPane {
 		p.add(new JLabel("         Match atom charges   "), c);
 		c.gridx = 3;
 		p.add(chargeBox, c);
+		
+		c.gridy++;
+		c.gridx = 2;
+		c.anchor = GridBagConstraints.NORTHWEST;
+		p.add(new JLabel("         Exact stereo match   "), c);
+		c.gridx = 3;
+		p.add(stereoBox, c);
 
 		addTab("JChemPaint", p);
 	}
@@ -121,6 +129,7 @@ public class SSSearchNodeDialog extends NodeDialogPane {
 
 		highlightBox.setSelected(m_settings.isHighlight());
 		chargeBox.setSelected(m_settings.isCharge());
+		stereoBox.setSelected(m_settings.isExactMatch());
 	}
 
 	/**
@@ -141,6 +150,7 @@ public class SSSearchNodeDialog extends NodeDialogPane {
 		m_settings.targetColumn(m_molColumnName.getSelectedColumn());
 		m_settings.setHighlight(highlightBox.isSelected());
 		m_settings.setCharge(chargeBox.isSelected());
+		m_settings.setExactMatch(stereoBox.isSelected());
 		m_settings.saveSettings(settings);
 	}
 }

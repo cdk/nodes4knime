@@ -26,16 +26,16 @@
 	  <node category-path="/community/cdk/3d" expert-flag="false" factory-class="org.openscience.cdk.knime.nodes.coord3d.Coord3dNodeFactory" id="org.openscience.cdk.knime.coord3d.Coord3dNodeFactory"/>
 	  <node category-path="/community/cdk/3d" expert-flag="false" factory-class="org.openscience.cdk.knime.nodes.descriptors.distance3d.Distance3dNodeFactory" id="org.openscience.cdk.knime.distance3d.Distance3dNodeFactory"/>
 	  <node category-path="/community/cdk/3d" expert-flag="false" factory-class="org.openscience.cdk.knime.nodes.descriptors.distance3d.similarity.DistanceSimilarityNodeFactory" id="org.openscience.cdk.knime.distance3d.similarity.DistanceSimilarityNodeFactory"/>
-   <node category-path="/community/cdk" expert-flag="false" factory-class="org.openscience.cdk.knime.nodes.symmetrycalculator.SymmetryCalculatorNodeFactory" id="org.openscience.cdk.knime.symmetrycalculator.SymmetryCalculatorNodeFactory">
-   </node>
-	<node category-path="/community/cdk" factory-class="org.openscience.cdk.knime.nodes.masscalculator.MassCalculatorNodeFactory" id="org.openscience.cdk.knime.masscalculator.MassCalculatorNodeFactory"/>
+   	  <node category-path="/community/cdk" expert-flag="false" factory-class="org.openscience.cdk.knime.nodes.symmetrycalculator.SymmetryCalculatorNodeFactory" id="org.openscience.cdk.knime.symmetrycalculator.SymmetryCalculatorNodeFactory"/>
+      <node category-path="/community/cdk/ambit" expert-flag="false" factory-class="ambit2.knime.tautomers.TautomerFactory" id="ambit2.knime.tautomers.TautomerFactory"/>
+	  <node category-path="/community/cdk" factory-class="org.openscience.cdk.knime.nodes.masscalculator.MassCalculatorNodeFactory" id="org.openscience.cdk.knime.masscalculator.MassCalculatorNodeFactory"/>
 </extension>
    	<extension point="org.knime.workbench.repository.categories">
        <category after="" description="Nodes using the Chemistry Development Kit (CDK)" icon="icons/cdk.png" level-id="cdk" name="CDK" path="/community"/>
        <category description="Nodes for CDK molecule conversion" icon="icons/category_translator.png" level-id="translators" name="Translators" path="/community/cdk"/>
        <category description="Nodes for CDK molecule conversion" icon="icons/category_io.png" level-id="io" name="I/O" path="/community/cdk"/>
-       <category description="Nodes for 3D CDK molecules" icon="icons/category_3d.png" level-id="3d" name="3D" path="/community/cdk">
-       </category>
+       <category description="Nodes for 3D CDK molecules" icon="icons/category_3d.png" level-id="3d" name="3D" path="/community/cdk"/>
+       <category description="AMBIT" icon="icons/category_ambit.png" level-id="ambit" name="AMBIT" path="/community/cdk"/>
    </extension>
    <extension point="org.eclipse.equinox.preferences.preferences">
       <initializer class="org.openscience.cdk.knime.preferences.CDKPreferenceInitializer"/>

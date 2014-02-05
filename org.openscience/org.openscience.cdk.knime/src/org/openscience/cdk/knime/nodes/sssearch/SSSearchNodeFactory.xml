@@ -17,6 +17,7 @@
         drawn molecule does not show up when opening the dialog, you may need to scroll down the editor pane.</option>
         <option name="Column with molecules">Select the column that contains the molecules.</option>
         <option name="Match charges">Matches charges.</option>
+        <option name="Exact match">Exact stereochemistry match: Undefined chiral centers in the query molecule must also be undefined in the target molecule.</option>
         <option name="Highlight substructure">Highlights all found substructures in the molecules.</option>
     </fullDescription>
     <ports>

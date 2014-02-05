@@ -34,6 +34,7 @@ public class SSSearchSettings implements CDKSettings {
 	private String m_molColumnName;
 	private boolean highlight = false;
 	private boolean charge = false;
+	private boolean exactMatch = false;
 
 	/**
 	 * Gets the SDF string of the molecules.
@@ -99,6 +100,24 @@ public class SSSearchSettings implements CDKSettings {
 	}
 
 	/**
+	 * Sets if stereo should be matched exactly.
+	 * 
+	 * @param exactMatch if stereo should be matched exactly
+	 */
+	public final void setExactMatch(boolean exactMatch) {
+		this.exactMatch = exactMatch;
+	}
+	
+	/**
+	 * Returns if stereo should be matched exactly.
+	 * 
+	 * @return if stereo should be matched exactly
+	 */
+	public final boolean isExactMatch() {
+		return exactMatch;
+	}
+
+	/**
 	 * Sets charge should be matched.
 	 * 
 	 * @param charge if charge to be considered
@@ -118,6 +137,7 @@ public class SSSearchSettings implements CDKSettings {
 		settings.addString("fragments", smiles);
 		settings.addBoolean("highlight", highlight);
 		settings.addBoolean("charge", charge);
+		settings.addBoolean("stereo", exactMatch);
 	}
 
 	/**
@@ -133,5 +153,6 @@ public class SSSearchSettings implements CDKSettings {
 		smiles = settings.getString("fragments");
 		highlight = settings.getBoolean("highlight");
 		charge = settings.getBoolean("charge");
+		exactMatch = settings.getBoolean("stereo");
 	}
 }

@@ -52,7 +52,6 @@ public class SmartSMARTSQueryTool {
 		}
 	}
 
-	@SuppressWarnings("deprecation")
 	public boolean matches(IAtomContainer atomContainer) throws CDKException {
 
 		SmartsMatchers.prepare(atomContainer, RING_QUERY);

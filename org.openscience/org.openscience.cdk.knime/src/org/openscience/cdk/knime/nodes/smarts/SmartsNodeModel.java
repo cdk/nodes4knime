@@ -45,7 +45,7 @@ public class SmartsNodeModel extends CDKAdapterNodeModel {
 	private int smartsIndex = 0;
 
 	/**
-	 * Creates a new model for 2D coordinate generation.
+	 * Creates a new model for SMARTS queries.
 	 */
 	public SmartsNodeModel() {
 		super(2, 2, null);

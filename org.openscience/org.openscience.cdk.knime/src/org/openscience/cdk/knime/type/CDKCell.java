@@ -142,24 +142,20 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 
 		int[] seq = new int[atomContainer.getAtomCount()];
 
-//		String s = "";
-//		try {
-//			s = CDKNodeUtils.calculateSmiles(atomContainer, seq);
-//		} catch (Throwable t) {
-//			System.out.println("ID: " + atomContainer.getID());
-//			t.printStackTrace();
-//		}
-//		smiles = s;
-		
 		smiles = CDKNodeUtils.calculateSmiles(atomContainer, seq);
 
-		int[] aux = new int[seq.length];
-		for (int v = 0; v < seq.length; v++) {
-			aux[seq[v]] = v;
-		}
+		if (smiles.length() == 0) { // should never happen
+			hash = -1;
+			auxBytes = new byte[0];
+		} else {
+			int[] aux = new int[seq.length];
+			for (int v = 0; v < seq.length; v++) {
+				aux[seq[v]] = v;
+			}
 
-		hash = CDKNodeUtils.calculateSimpleHash(atomContainer);
-		auxBytes = toByte(atomContainer, aux);
+			hash = CDKNodeUtils.calculateSimpleHash(atomContainer);
+			auxBytes = toByte(atomContainer, aux);
+		}
 	}
 
 	private byte[] toByte(final IAtomContainer atomContainer, int[] seq) {
@@ -315,7 +311,7 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 		if (auxBytes.length == 0) {
 			return molecule;
 		}
-		
+
 		int f = (auxBytes[0] == 0) ? 2 : 3;
 
 		double[] coords = new double[nAtoms * f];
@@ -340,7 +336,7 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 			int col = toInt(new byte[] { auxBytes[i + 4], auxBytes[i + 5], auxBytes[i + 6], auxBytes[i + 7] });
 			cols[pos] = col;
 		}
-		
+
 		if (f == 2) {
 			for (int v = 0, k = 0; v < nAtoms; v++, k += 2) {
 				molecule.getAtom(v).setID("" + v);
@@ -368,12 +364,13 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 			} else {
 				for (IAtomContainer mol : ConnectivityChecker.partitionIntoMolecules(molecule).atomContainers()) {
 					IAtom atom = mol.getAtom(0);
-					visited[Integer.parseInt(atom.getID())] = atom.getProperty(CDKConstants.ANNOTATIONS) == null ? 1 : 2;
+					visited[Integer.parseInt(atom.getID())] = atom.getProperty(CDKConstants.ANNOTATIONS) == null ? 1
+							: 2;
 					colorDfs(mol, atom, cols, visited);
 				}
 			}
 		}
-		
+
 		return molecule;
 	}
 
@@ -416,14 +413,19 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 	 */
 	@Override
 	protected boolean equalsDataCell(final DataCell dc) {
-		int hashRef = ((CDKCell) dc).hashCode();
-
-		if (this.hashCode() == hashRef) {
-			Long fullHash = CDKNodeUtils.calculateFullHash(((CDKValue) dc).getAtomContainer());
-			return this.hashCode() == fullHash.hashCode();
-		} else {
-			return false;
+		
+		if (this == dc) {
+			return true;
 		}
+		
+		int hashCodeDc = ((CDKCell) dc).hashCode();
+		if (dc instanceof CDKValue && this.hashCode() == hashCodeDc) {
+			Long fullHashCode = CDKNodeUtils.calculateFullHash(this.getAtomContainer());
+			Long fullHashCodeDc = CDKNodeUtils.calculateFullHash(((CDKCell) dc).getAtomContainer());
+			return fullHashCode.hashCode() == fullHashCodeDc.hashCode();
+		}
+		
+		return false;
 	}
 
 	/**

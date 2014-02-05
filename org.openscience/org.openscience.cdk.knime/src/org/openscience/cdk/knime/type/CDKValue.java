@@ -54,7 +54,7 @@ public interface CDKValue extends DataValue {
 	 * @return the corresponding atom container
 	 */
 	IAtomContainer getAtomContainer();
-	
+
 	/** Implementations of the meta information of this value class. */
 	public static class CDKUtilityFactory extends UtilityFactory {
 
@@ -66,9 +66,11 @@ public interface CDKValue extends DataValue {
 			@Override
 			protected int compareDataValues(final DataValue v1, final DataValue v2) {
 
-				int hash1 = ((CDKValue) v1).hashCode();
-				int hash2 = ((CDKValue) v2).hashCode();
-				return hash1 - hash2;
+				final int BEFORE = -1;
+				final int EQUAL = 0;
+				final int AFTER = 1;
+
+				return v1.hashCode() < v2.hashCode() ? BEFORE : (v1.hashCode() == v2.hashCode() ? EQUAL : AFTER);
 			}
 		};
 
