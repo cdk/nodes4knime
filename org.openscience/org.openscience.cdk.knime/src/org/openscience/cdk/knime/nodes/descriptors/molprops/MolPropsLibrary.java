@@ -270,6 +270,7 @@ public final class MolPropsLibrary {
 			LOGGER.warn("Unable to get property \"" + descriptorClassName + "\" for molecule in row \"" + rowKey
 					+ "\": " + "Return value is not a double; assigning missing", cce);
 		} catch (Exception e) {
+			e.printStackTrace();
 			LOGGER.warn("Exception (" + e.getClass().getSimpleName() + ") while computing descriptor \""
 					+ descriptorClassName + "\" for molecule in row \"" + rowKey + "\": " + e.getMessage(), e);
 		}

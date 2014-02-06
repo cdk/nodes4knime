@@ -874,6 +874,12 @@ public class SmartXLogPDescriptor extends AbstractMolecularDescriptor implements
 		atom3.setSymbol("O");
 		SymbolQueryAtom atom4 = new SymbolQueryAtom(ac.getBuilder());
 		atom4.setSymbol("O");
+		
+		orthopair.addAtom(atom1);
+		orthopair.addAtom(atom2);
+		orthopair.addAtom(atom3);
+		orthopair.addAtom(atom4);
+		
 		orthopair.addBond(new AromaticQueryBond(atom1, atom2, IBond.Order.SINGLE, ac.getBuilder()));
 		orthopair.addBond(new OrderQueryBond(atom1, atom3, IBond.Order.SINGLE, ac.getBuilder()));
 		orthopair.addBond(new OrderQueryBond(atom2, atom4, IBond.Order.SINGLE, ac.getBuilder()));
