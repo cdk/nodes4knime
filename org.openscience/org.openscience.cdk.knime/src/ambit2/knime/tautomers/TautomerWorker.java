@@ -161,7 +161,7 @@ public class TautomerWorker extends MultiThreadWorker<DataRow, DataRow[]> {
 				DataRow[] outRows = new DataRow[resultTautomers.size()];
 				int rowCounter = 0;
 
-				// sort the tautomer vector in decreasing order of the tautomers' score
+				// sort the tautomer vector in increasing order of the tautomers' score
 				Collections.sort(resultTautomers, new ScoreComparator());
 				for (IAtomContainer tautomer : resultTautomers) {
 					Object rank_property = tautomer.getProperty("TAUTOMER_RANK");
@@ -294,7 +294,7 @@ public class TautomerWorker extends MultiThreadWorker<DataRow, DataRow[]> {
 	/**
 	 * Comparator based on an atom container's tautomer rank as assigned by the tautomer generator.
 	 * 
-	 * Tautomers are sorted in decreasing order.
+	 * Tautomers are sorted in increasing order.
 	 * 
 	 * @author Stephan Beisken
 	 */
@@ -319,7 +319,7 @@ public class TautomerWorker extends MultiThreadWorker<DataRow, DataRow[]> {
 			double rankO1 = Double.parseDouble(rankPropertyO1.toString());
 			double rankO2 = Double.parseDouble(rankPropertyO2.toString());
 
-			return rankO1 < rankO2 ? 1 : (rankO1 == rankO2 ? 0 : -1);
+			return rankO1 < rankO2 ? -1 : (rankO1 == rankO2 ? 0 : 1);
 		}
 
 	}

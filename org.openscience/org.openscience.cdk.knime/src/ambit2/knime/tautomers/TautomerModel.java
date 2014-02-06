@@ -99,7 +99,7 @@ public class TautomerModel extends CDKAdapterNodeModel {
 		if (settings(TautomerSettings.class).mode() != Mode.BEST_REPLACE) {
 			String tautomerName = DataTableSpec.getUniqueColumnName(inSpec, "Tautomer");
 			DataColumnSpec tautomerSpec = new DataColumnSpecCreator(tautomerName, CDKCell.TYPE).createSpec();
-			String score = DataTableSpec.getUniqueColumnName(inSpec, "Score");
+			String score = DataTableSpec.getUniqueColumnName(inSpec, "Score [eV]");
 			DataColumnSpec rankSpec = new DataColumnSpecCreator(score, DoubleCell.TYPE).createSpec();
 			outSpec = new DataTableSpec(inSpec, new DataTableSpec(tautomerSpec, rankSpec));
 		}

@@ -10,6 +10,9 @@
             <br/>
             <br/>
             Ambit-Tautomer: An Open Source Tool for Tautomer Generation. DOI: 10.1002/minf.201200133
+            <br/>
+            <br/>
+            AMBIT RESTful web services: an implementation of the OpenTox application programming interface. DOI: 10.1186/1758-2946-3-18
         </intro>
         <option name="Column with molecules">Select the column that contains molecules.</option>
         <option name="Mode">Whether all tautomers or just the best should be generated.</option>
