@@ -18,103 +18,108 @@
 package org.openscience.cdk.knime.view3d;
 
 import java.awt.Dimension;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 import javax.swing.JMenuBar;
 import javax.swing.JSplitPane;
-import javax.swing.ListSelectionModel;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 
-import org.knime.chem.types.SdfValue;
 import org.knime.core.data.DataCell;
 import org.knime.core.node.NodeView;
 import org.knime.core.node.tableview.TableView;
+import org.openscience.cdk.interfaces.IAtomContainer;
+import org.openscience.cdk.interfaces.IAtomContainerSet;
 import org.openscience.cdk.knime.type.CDKValue;
+import org.openscience.cdk.silent.AtomContainerSet;
+import org.openscience.cdk.silent.SilentChemObjectBuilder;
 
 /**
  * View that shows a table on top and the off structure at the bottom.
- *
+ * 
  * @author wiswedel, University of Konstanz
+ * @author Stephan Beisken, EMBL-EBI
  */
 public class JmolViewerNodeView extends NodeView<JmolViewerNodeModel> {
-	private final TableView m_tableView;
-	private final JmolViewerPanel m_panel;
+
+	private final TableView tableView;
+	private final JmolViewerPanel panel;
+	
+	private final static IAtomContainer FAIL_STRUCTURE = SilentChemObjectBuilder.getInstance().newInstance(
+			IAtomContainer.class);
 
 	/**
 	 * Inits view.
-	 *
+	 * 
 	 * @param model To get data from.
 	 */
 	public JmolViewerNodeView(final JmolViewerNodeModel model) {
 		super(model);
 
-		m_panel = new JmolViewerPanel();
-		m_panel.setMinimumSize(new Dimension(200, 200));
-		m_tableView = new TableView(model.getContentModel());
-		ListSelectionModel selModel = m_tableView.getContentTable().getSelectionModel();
-		selModel.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		selModel.addListSelectionListener(new ListSelectionListener() {
+		panel = new JmolViewerPanel();
+		panel.setMinimumSize(new Dimension(300, 300));
+		tableView = new TableView(model.getContentModel());
+		tableView.getContentTable().addMouseListener(new MouseAdapter() {
 
-			@Override
-			public void valueChanged(final ListSelectionEvent e) {
+			public void mouseReleased(MouseEvent e) {
 
-				ListSelectionModel sModel = (ListSelectionModel) e.getSource();
-				int index = sModel.getMinSelectionIndex();
-				setSelectedIndex(index);
+				int[] indices = tableView.getContentTable().getSelectedRows();
+				setIndices(indices);
 			}
 		});
+
 		JSplitPane panel = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
-		panel.add(m_tableView);
-		panel.add(m_panel);
+		panel.add(this.panel);
+		panel.add(tableView);
+		panel.setResizeWeight(0.8);
+		panel.setDividerLocation(200);
+		
 		JMenuBar menuBar = getJMenuBar();
-		menuBar.add(m_tableView.createHiLiteMenu());
-		menuBar.add(m_tableView.createViewMenu());
+		menuBar.add(tableView.createHiLiteMenu());
+		menuBar.add(tableView.createViewMenu());
 		setComponent(panel);
 	}
 
 	@Override
 	protected JmolViewerNodeModel getNodeModel() {
-
 		return super.getNodeModel();
 	}
 
 	@Override
 	protected void modelChanged() {
-
 		// nothing to do
 	}
 
 	@Override
 	protected void onClose() {
-
 		// nothing to do
 	}
 
 	@Override
 	protected void onOpen() {
-
 		// nothing to do
 	}
 
-	private void setSelectedIndex(final int index) {
+	private void setIndices(final int[] indices) {
 
-		if (index < 0) {
-			m_panel.setCDKValue(null);
-		} else {
+		IAtomContainerSet molecules = new AtomContainerSet();
+		
+		if (indices.length > 0) {
 			JmolViewerNodeModel model = getNodeModel();
 
 			String columnName = model.getSettings().molColumnName();
-	        int column = model.getContentModel().getDataTable().getDataTableSpec().findColumnIndex(columnName);
+			int column = model.getContentModel().getDataTable().getDataTableSpec().findColumnIndex(columnName);
 
 			assert column >= 0;
 
-			DataCell cell = model.getContentModel().getValueAt(index, column);
-			// CDK method in JMolPanel broken: Does not display bonds and atom types
-			if (cell instanceof SdfValue) {
-				m_panel.setSDFValue(cell.isMissing() ? null : (SdfValue) cell);
-			} else if (cell instanceof CDKValue) {
-				m_panel.setCDKValue(cell.isMissing() ? null : (CDKValue) cell);
+			for (int index : indices) {
+				DataCell cell = model.getContentModel().getValueAt(index, column);
+
+				if (cell instanceof CDKValue) {
+					molecules.addAtomContainer(cell.isMissing() ? FAIL_STRUCTURE : ((CDKValue) cell).getAtomContainer());
+				}
 			}
 		}
+		
+		panel.setMolecules(molecules);
 	}
 }

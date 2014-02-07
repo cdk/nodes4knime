@@ -27,36 +27,28 @@ import org.jmol.api.JmolAdapter;
 import org.jmol.api.JmolViewer;
 import org.jmol.viewer.JMolViewerKNIMEUtils;
 import org.jmol.viewer.Viewer;
-import org.knime.chem.types.SdfValue;
-import org.openscience.cdk.AtomContainerSet;
 import org.openscience.cdk.ChemFile;
 import org.openscience.cdk.ChemModel;
 import org.openscience.cdk.ChemSequence;
-import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IAtomContainerSet;
-import org.openscience.cdk.knime.type.CDKValue;
-import org.openscience.cdk.silent.SilentChemObjectBuilder;
 
 /**
  * @author wiswedel, University of Konstanz
  */
 public class JmolViewerPanel extends JPanel {
 
-	private final JmolViewer m_viewer;
-	private final JmolAdapter m_adapter;
-	private int m_lastZoomFactorInt = 50;
-
-	private final static IAtomContainer FAIL_STRUCTURE = SilentChemObjectBuilder.getInstance().newInstance(
-			IAtomContainer.class);
+	private final JmolViewer viewer;
+	private final JmolAdapter adapter;
+	private int lastZoomFactorInt = 1;
 
 	public JmolViewerPanel() {
 
-		m_adapter = new CdkJmolAdapter();
-		m_viewer = Viewer.allocateViewer(this, m_adapter);
+		adapter = new CdkJmolAdapter();
+		viewer = Viewer.allocateViewer(this, adapter);
 	}
 
-	private final Dimension m_currentSize = new Dimension();
-	private final Rectangle m_rectClip = new Rectangle();
+	private final Dimension currentSize = new Dimension();
+	private final Rectangle rectClip = new Rectangle();
 
 	/**
 	 * {@inheritDoc}
@@ -65,53 +57,32 @@ public class JmolViewerPanel extends JPanel {
 	public void paintComponent(final Graphics g) {
 
 		super.paintComponent(g);
-		getSize(m_currentSize);
-		g.getClipBounds(m_rectClip);
-		m_viewer.renderScreenImage(g, m_currentSize, m_rectClip);
-		m_lastZoomFactorInt = m_viewer.getZoomPercent();
+		getSize(currentSize);
+		g.getClipBounds(rectClip);
+		viewer.renderScreenImage(g, currentSize, rectClip);
+		lastZoomFactorInt = viewer.getZoomPercent();
 	}
 
 	/**
-	 * Set a new cell being displayed.
+	 * Set new molecules for display.
 	 * 
-	 * @param value The cell to show. If missing or wrong type, nothing is shown.
+	 * @param value The molecules to show. If missing or wrong type, nothing is shown.
 	 */
-	public void setCDKValue(final CDKValue value) {
-
-		if (value == null) {
-			setMol(FAIL_STRUCTURE);
-		} else {
-			setMol(value.getAtomContainer());
-		}
-		repaint();
-	}
-
-	public void setSDFValue(final SdfValue value) {
-
-		if (value == null) {
-			setMol(FAIL_STRUCTURE);
-		} else {
-			synchronized (m_viewer) {
-				m_viewer.openStringInline(value.getSdfValue());
-				JMolViewerKNIMEUtils.zoomToPercent(m_viewer, m_lastZoomFactorInt);
-			}
-		}
-	}
-
-	private void setMol(final IAtomContainer mol) {
-
-		IAtomContainerSet moleculeSet = new AtomContainerSet();
-		moleculeSet.addAtomContainer(mol);
+	public void setMolecules(final IAtomContainerSet molecules) {
+		
 		ChemModel model = new ChemModel();
-		model.setMoleculeSet(moleculeSet);
+		model.setMoleculeSet(molecules);
 		ChemSequence sequence = new ChemSequence();
 		sequence.addChemModel(model);
 		ChemFile chemFile = new ChemFile();
 		chemFile.addChemSequence(sequence);
 
-		synchronized (m_viewer) {
-			m_viewer.openClientFile("", "", chemFile);
+		synchronized (viewer) {
+			viewer.openClientFile("", "", chemFile);
 		}
-		JMolViewerKNIMEUtils.zoomToPercent(m_viewer, m_lastZoomFactorInt);
+		
+		JMolViewerKNIMEUtils.zoomToPercent(viewer, lastZoomFactorInt);
+		
+		repaint();
 	}
 }
