@@ -17,37 +17,28 @@
  */
 package org.openscience.cdk.knime.view3d;
 
-import java.io.File;
-import java.io.IOException;
-
-import org.knime.chem.types.SdfValue;
-import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.BufferedDataTableHolder;
-import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
-import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.tableview.TableContentModel;
-import org.openscience.cdk.knime.type.CDKValue;
+import org.openscience.cdk.knime.core.CDKAdapterNodeModel;
 
 /**
  * @author Wiswedel, University of Konstanz
  * @author Stephan Beisken, European Bioinformatics Institute
  */
-public class JmolViewerNodeModel extends NodeModel implements BufferedDataTableHolder {
+public class JmolViewerNodeModel extends CDKAdapterNodeModel implements BufferedDataTableHolder {
 
-	private final JmolViewerSettings settings = new JmolViewerSettings();
 	private final TableContentModel m_contentModel;
 
 	/** Public constructor */
 	public JmolViewerNodeModel() {
 
-		super(1, 0);
+		super(1, 0, new JmolViewerSettings());
 		m_contentModel = new TableContentModel();
 	}
 
@@ -57,7 +48,6 @@ public class JmolViewerNodeModel extends NodeModel implements BufferedDataTableH
 	 * @return The table model to be displayed on top.
 	 */
 	TableContentModel getContentModel() {
-
 		return m_contentModel;
 	}
 
@@ -67,8 +57,7 @@ public class JmolViewerNodeModel extends NodeModel implements BufferedDataTableH
 	 * @return the settings object
 	 */
 	public JmolViewerSettings getSettings() {
-
-		return settings;
+		return settings(JmolViewerSettings.class);
 	}
 
 	/**
@@ -76,7 +65,6 @@ public class JmolViewerNodeModel extends NodeModel implements BufferedDataTableH
 	 */
 	@Override
 	protected void saveSettingsTo(NodeSettingsWO settings) {
-
 		this.settings.saveSettings(settings);
 	}
 
@@ -88,8 +76,8 @@ public class JmolViewerNodeModel extends NodeModel implements BufferedDataTableH
 
 		JmolViewerSettings s = new JmolViewerSettings();
 		s.loadSettings(settings);
-		if ((s.molColumnName() == null) || (s.molColumnName().length() == 0)) {
-			throw new InvalidSettingsException("No molecule column chosen");
+		if ((s.targetColumn() == null) || (s.targetColumn().length() < 1)) {
+			throw new InvalidSettingsException("No column choosen");
 		}
 	}
 
@@ -98,7 +86,6 @@ public class JmolViewerNodeModel extends NodeModel implements BufferedDataTableH
 	 */
 	@Override
 	protected void loadValidatedSettingsFrom(NodeSettingsRO settings) throws InvalidSettingsException {
-
 		this.settings.loadSettings(settings);
 	}
 
@@ -106,9 +93,9 @@ public class JmolViewerNodeModel extends NodeModel implements BufferedDataTableH
 	 * {@inheritDoc}
 	 */
 	@Override
-	protected BufferedDataTable[] execute(BufferedDataTable[] inData, ExecutionContext exec) throws Exception {
+	protected BufferedDataTable[] process(BufferedDataTable[] convertedTables, ExecutionContext exec) throws Exception {
 
-		setInternalTables(inData);
+		setInternalTables(convertedTables);
 		return new BufferedDataTable[0];
 	}
 
@@ -128,36 +115,13 @@ public class JmolViewerNodeModel extends NodeModel implements BufferedDataTableH
 	@Override
 	protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
 
-		int molCol = inSpecs[0].findColumnIndex(settings.molColumnName());
-		String name = "";
-
-		if (molCol == -1) {
-			int i = 0;
-			for (DataColumnSpec dcs : inSpecs[0]) {
-				if (dcs.getType().isCompatible(CDKValue.class) || dcs.getType().isCompatible(SdfValue.class)) {
-					molCol = i;
-				}
-				i++;
-			}
-
-			if (molCol != -1) {
-				name = inSpecs[0].getColumnSpec(molCol).getName();
-				settings.molColumnName(name);
-			}
-		}
-
-		if (inSpecs[0].getColumnSpec(molCol).getType().isCompatible(CDKValue.class)
-				|| inSpecs[0].getColumnSpec(molCol).getType().isCompatible(SdfValue.class)) {
-			return null;
-		} else {
-			throw new InvalidSettingsException("Target cell column " + settings.molColumnName() + " not found");
-		}
+		autoConfigure(inSpecs);
+		return null;
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public BufferedDataTable[] getInternalTables() {
-
 		return new BufferedDataTable[] { (BufferedDataTable) m_contentModel.getDataTable() };
 	}
 
@@ -167,25 +131,5 @@ public class JmolViewerNodeModel extends NodeModel implements BufferedDataTableH
 
 		m_contentModel.setDataTable(tables[0]);
 		m_contentModel.setHiLiteHandler(getInHiLiteHandler(0));
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec) throws IOException,
-			CanceledExecutionException {
-
-		// nothing to do
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec) throws IOException,
-			CanceledExecutionException {
-
-		// nothing to do
 	}
 }

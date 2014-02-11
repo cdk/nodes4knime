@@ -20,6 +20,8 @@ package org.openscience.cdk.knime.view3d;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.openscience.cdk.knime.commons.CDKNodeUtils;
+import org.openscience.cdk.knime.core.CDKDialog;
 
 /**
  * @author wiswedel, University of Konstanz
@@ -31,7 +33,6 @@ public class JmolViewerNodeFactory extends NodeFactory<JmolViewerNodeModel> {
 	 */
 	@Override
 	public JmolViewerNodeModel createNodeModel() {
-
 		return new JmolViewerNodeModel();
 	}
 
@@ -40,7 +41,6 @@ public class JmolViewerNodeFactory extends NodeFactory<JmolViewerNodeModel> {
 	 */
 	@Override
 	public int getNrNodeViews() {
-
 		return 1;
 	}
 
@@ -49,7 +49,6 @@ public class JmolViewerNodeFactory extends NodeFactory<JmolViewerNodeModel> {
 	 */
 	@Override
 	public boolean hasDialog() {
-
 		return true;
 	}
 
@@ -58,8 +57,11 @@ public class JmolViewerNodeFactory extends NodeFactory<JmolViewerNodeModel> {
 	 */
 	@Override
 	public NodeDialogPane createNodeDialogPane() {
-
-		return new JmolViewerNodeDialog();
+		
+		CDKDialog dialog = new CDKDialog();
+		dialog.addColumnSelection("Molecule", CDKNodeUtils.ACCEPTED_VALUE_CLASSES);
+		
+		return dialog.build();
 	}
 
 	/**

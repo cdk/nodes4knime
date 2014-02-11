@@ -18,11 +18,11 @@
 package org.openscience.cdk.knime.view3d;
 
 import java.awt.Dimension;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 
 import javax.swing.JMenuBar;
 import javax.swing.JSplitPane;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.node.NodeView;
@@ -58,9 +58,9 @@ public class JmolViewerNodeView extends NodeView<JmolViewerNodeModel> {
 		panel = new JmolViewerPanel();
 		panel.setMinimumSize(new Dimension(300, 300));
 		tableView = new TableView(model.getContentModel());
-		tableView.getContentTable().addMouseListener(new MouseAdapter() {
+		tableView.getContentTable().getSelectionModel().addListSelectionListener(new ListSelectionListener() {
 
-			public void mouseReleased(MouseEvent e) {
+			public void valueChanged(ListSelectionEvent e) {
 
 				int[] indices = tableView.getContentTable().getSelectedRows();
 				setIndices(indices);
@@ -106,7 +106,7 @@ public class JmolViewerNodeView extends NodeView<JmolViewerNodeModel> {
 		if (indices.length > 0) {
 			JmolViewerNodeModel model = getNodeModel();
 
-			String columnName = model.getSettings().molColumnName();
+			String columnName = model.getSettings().targetColumn();
 			int column = model.getContentModel().getDataTable().getDataTableSpec().findColumnIndex(columnName);
 
 			assert column >= 0;

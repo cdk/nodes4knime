@@ -278,8 +278,10 @@ public class CdkJmolAdapter extends JmolAdapter {
 					}
 					icontainer = 0;
 				}
-				// FIXME: catch ArrayIndexOutOfBoundsException for next line
 				try {
+					if (containers.size() == 0) {
+						return false;
+					}
 					atomCount = ((IAtomContainer) containers.get(icontainer)).getAtomCount();
 				} catch (ArrayIndexOutOfBoundsException e) {
 					return false;

@@ -19,8 +19,9 @@ package org.openscience.cdk.knime.view3d;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.openscience.cdk.knime.core.CDKSettings;
 
-public class JmolViewerSettings {
+public class JmolViewerSettings implements CDKSettings {
 
 	private String molColumnName;
 
@@ -29,7 +30,7 @@ public class JmolViewerSettings {
 	 * 
 	 * @return the molecules' column name
 	 */
-	public String molColumnName() {
+	public String targetColumn() {
 
 		return molColumnName;
 	}
@@ -39,7 +40,7 @@ public class JmolViewerSettings {
 	 * 
 	 * @param colName the molecules' column name
 	 */
-	public void molColumnName(final String colName) {
+	public void targetColumn(final String colName) {
 
 		molColumnName = colName;
 	}
@@ -51,7 +52,7 @@ public class JmolViewerSettings {
 	 */
 	public void saveSettings(final NodeSettingsWO settings) {
 
-		settings.addString("molColumn", molColumnName);
+		settings.addString("Molecule", molColumnName);
 	}
 
 	/**
@@ -62,6 +63,6 @@ public class JmolViewerSettings {
 	 */
 	public void loadSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
 
-		molColumnName = settings.getString("molColumn");
+		molColumnName = settings.getString("Molecule");
 	}
 }
