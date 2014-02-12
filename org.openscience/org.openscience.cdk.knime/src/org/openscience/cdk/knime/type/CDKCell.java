@@ -17,8 +17,10 @@
  */
 package org.openscience.cdk.knime.type;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.util.zip.GZIPInputStream;
 
 import javax.vecmath.Point2d;
 import javax.vecmath.Point3d;
@@ -41,8 +43,16 @@ import org.openscience.cdk.geometry.GeometryTools;
 import org.openscience.cdk.graph.ConnectivityChecker;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
+import org.openscience.cdk.interfaces.IChemFile;
+import org.openscience.cdk.interfaces.IStereoElement;
+import org.openscience.cdk.io.CMLReader;
 import org.openscience.cdk.io.SDFWriter;
+import org.openscience.cdk.knime.cml.CmlKnimeCore;
 import org.openscience.cdk.knime.commons.CDKNodeUtils;
+import org.openscience.cdk.silent.ChemFile;
+import org.openscience.cdk.silent.SilentChemObjectBuilder;
+import org.openscience.cdk.stereo.StereoElementFactory;
+import org.openscience.cdk.tools.manipulator.ChemFileManipulator;
 
 /**
  * Smiles {@link DataCell} holding a string as internal representation.
@@ -413,18 +423,18 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 	 */
 	@Override
 	protected boolean equalsDataCell(final DataCell dc) {
-		
+
 		if (this == dc) {
 			return true;
 		}
-		
+
 		int hashCodeDc = ((CDKCell) dc).hashCode();
 		if (dc instanceof CDKValue && this.hashCode() == hashCodeDc) {
 			Long fullHashCode = CDKNodeUtils.calculateFullHash(this.getAtomContainer());
 			Long fullHashCodeDc = CDKNodeUtils.calculateFullHash(((CDKCell) dc).getAtomContainer());
 			return fullHashCode.hashCode() == fullHashCodeDc.hashCode();
 		}
-		
+
 		return false;
 	}
 
@@ -480,12 +490,66 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 		@Override
 		public CDKCell deserialize(final DataCellDataInput input) throws IOException {
 
-			String smiles = input.readUTF();
-			long hash64 = input.readLong();
-			byte[] coords = new byte[input.readInt()];
-			input.readFully(coords);
+			String blob = input.readUTF(); // either SMILES or CML
+			byte[] bytes = blob.getBytes("ISO-8859-1");
+			
+			if (((bytes)[0] == (byte) (GZIPInputStream.GZIP_MAGIC)) && (bytes[1] == (byte) (GZIPInputStream.GZIP_MAGIC >> 8))) { // legacy CML cell
+				String cml = blob;
+				IAtomContainer mol = readCML(cml); // reads and uncompresses CML
 
-			return new CDKCell(smiles, hash64, coords);
+				return new CDKCell(mol); // create new CDK cell
+			} else { // current SMILES cell
+				String smiles = blob;
+				long hash64 = input.readLong();
+				byte[] coords = new byte[input.readInt()];
+				input.readFully(coords);
+
+				return new CDKCell(smiles, hash64, coords);
+			}
 		}
+	}
+
+	/**
+	 * Reads legacy compressed CML from KNIME-CDK versions 2.8 and 2.9.
+	 * 
+	 * @param compressedCml the compressed CML string
+	 * @return an updated and fully configured CDK atom container
+	 */
+	private static IAtomContainer readCML(final String compressedCml) {
+
+		IAtomContainer mol = SilentChemObjectBuilder.getInstance().newInstance(IAtomContainer.class);
+
+		if (compressedCml == null || compressedCml.length() == 0) {
+			return mol;
+		}
+
+		try {
+			GZIPInputStream gis = new GZIPInputStream(new ByteArrayInputStream(compressedCml.getBytes("ISO-8859-1")));
+			CMLReader reader = new CMLReader(gis);
+			reader.registerConvention(CmlKnimeCore.CONVENTION, new CmlKnimeCore());
+
+			IChemFile chemFile = (ChemFile) reader.read(new ChemFile());
+			mol = ChemFileManipulator.getAllAtomContainers(chemFile).get(0);
+			mol = CDKNodeUtils.getFullMolecule(mol); // 'update' to new CDK molecules
+			if (GeometryTools.has2DCoordinates(mol)) {
+				StereoElementFactory stereoFactory = StereoElementFactory.using2DCoordinates(mol);
+				for (IStereoElement stereoEleemnt : stereoFactory.createAll()) {
+					mol.addStereoElement(stereoEleemnt);
+				}
+			} else if (GeometryTools.has3DCoordinates(mol)) {
+				StereoElementFactory stereoFactory = StereoElementFactory.using3DCoordinates(mol);
+				for (IStereoElement stereoEleemnt : stereoFactory.createAll()) {
+					mol.addStereoElement(stereoEleemnt);
+				}
+			}
+			
+			gis = null;
+			reader = null;
+			chemFile = null;
+		} catch (Exception exception) {
+			LOGGER.warn("Deserialization of legacy CML failed.", exception);
+		}
+
+		return mol;
 	}
 }

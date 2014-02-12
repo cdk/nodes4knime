@@ -135,7 +135,7 @@ public class CDKAdapterCell extends AdapterCell implements CDKValue, SmilesValue
 	public String getSmilesValue() {
 		return ((SmilesValue) lookupFromAdapterMap(SmilesValue.class)).getSmilesValue();
 	}
-	
+
 	/**
 	 * {@inheritDoc}
 	 */
@@ -157,7 +157,12 @@ public class CDKAdapterCell extends AdapterCell implements CDKValue, SmilesValue
 	 */
 	@Override
 	public String toString() {
-		return ((CDKValue) lookupFromAdapterMap(CDKValue.class)).toString();
+		
+		if (lookupFromAdapterMap(CDKValue.class) instanceof CDKValue) {
+			return ((CDKValue) lookupFromAdapterMap(CDKValue.class)).toString();
+		} else {
+			return DataType.getMissingCell().toString();
+		}
 	}
 
 	/**
@@ -166,14 +171,19 @@ public class CDKAdapterCell extends AdapterCell implements CDKValue, SmilesValue
 	@Override
 	protected boolean equalsDataCell(final DataCell dc) {
 
-		int hashRef = ((AdapterValue) dc).getAdapter(CDKValue.class).hashCode();
-		if (this.hashCode() == hashRef) {
-			Long fullHash = CDKNodeUtils.calculateFullHash(((AdapterValue) dc).getAdapter(CDKValue.class)
-					.getAtomContainer());
-			return this.hashCode() == fullHash.hashCode();
-		} else {
-			return false;
+		if (this == dc) {
+			return true;
 		}
+
+		int hashCodeDc = ((AdapterValue) dc).getAdapter(CDKValue.class).hashCode();
+		if (dc instanceof CDKValue && this.hashCode() == hashCodeDc) {
+			Long fullHashCode = CDKNodeUtils.calculateFullHash(this.getAtomContainer());
+			Long fullHashCodeDc = CDKNodeUtils.calculateFullHash(((AdapterValue) dc).getAdapter(CDKValue.class)
+					.getAtomContainer());
+			return fullHashCode.hashCode() == fullHashCodeDc.hashCode();
+		}
+
+		return false;
 	}
 
 	/**

@@ -30,8 +30,11 @@ import org.xmlcml.cml.element.CMLBondStereo;
 /**
  * CML writer customizer to write out CDK atom type and bond stereo information.
  * 
+ * @deprecated legacy CML serialization has been replaced by SMILES line notation
+ * 
  * @author Stephan Beisken
  */
+@Deprecated
 public class CmlKnimeCustomizer implements ICMLCustomizer {
 
 	@Override
@@ -40,7 +43,7 @@ public class CmlKnimeCustomizer implements ICMLCustomizer {
 		if (atom.getAtomTypeName() != null) {
 			if (nodeToAdd instanceof Element) {
 				Element element = (Element) nodeToAdd;
-				
+
 				CMLAtomType atomType = new CMLAtomType();
 				atomType.setConvention(CmlKnimeCore.CONVENTION);
 				atomType.appendChild(atom.getAtomTypeName());

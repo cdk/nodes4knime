@@ -72,7 +72,13 @@ public class JMolSketcherPanel extends JChemPaintPanel {
 
 	public static IAtomContainerSet readStringNotation(String stringNotation) throws CDKException {
 
-		IAtomContainer mol = CDKNodeUtils.getFullMolecule(stringNotation);
+		IAtomContainer mol = null;
+		if (stringNotation.startsWith(System.getProperty("line.separator"))) {
+			mol = CDKNodeUtils.parseSDF(stringNotation);
+			mol = CDKNodeUtils.getFullMolecule(mol);
+		} else {
+			mol = CDKNodeUtils.getFullMolecule(stringNotation);
+		}
 		mol = CDKNodeUtils.calculateCoordinates(mol, false);
 		for (IAtom atom : mol.atoms()) {
 			atom.setValency(null);
