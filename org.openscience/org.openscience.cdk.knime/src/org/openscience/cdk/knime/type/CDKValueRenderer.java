@@ -30,7 +30,10 @@ import javax.vecmath.Point2d;
 import javax.vecmath.Point3d;
 
 import org.knime.core.data.AdapterValue;
+import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.renderer.AbstractDataValueRendererFactory;
 import org.knime.core.data.renderer.AbstractPainterDataValueRenderer;
+import org.knime.core.data.renderer.DataValueRenderer;
 import org.knime.core.node.NodeLogger;
 import org.openscience.cdk.AtomContainer;
 import org.openscience.cdk.geometry.GeometryTools;
@@ -65,6 +68,29 @@ import org.openscience.cdk.renderer.visitor.SmartAWTDrawVisitor;
  */
 public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 
+	 private static final String DESCRIPTION = "CDK";
+	
+	/**
+     * Factory for the {@link CDKValueRenderer}.
+     */
+    public static final class Factory extends AbstractDataValueRendererFactory {
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public String getDescription() {
+            return DESCRIPTION;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public DataValueRenderer createRenderer(final DataColumnSpec colSpec) {
+            return new CDKValueRenderer();
+        }
+    }
+	
 	public enum TYPE {
 		ALL_ATOMS(""), C_ATOMS("C"), H_ATOMS("H");
 

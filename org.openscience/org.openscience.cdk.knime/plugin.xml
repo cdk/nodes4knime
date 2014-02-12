@@ -44,7 +44,20 @@
       <page category="org.knime.chem.preferences" class="org.openscience.cdk.knime.preferences.CDKPreferencePage" id="org.knime.ext.chem.cdk.preferences" name="CDK"/>
    </extension>
    <extension point="org.knime.product.splashExtension">
-      <splashExtension icon="icons/cdk_splash.png" id="cdk" tooltip="CDK">
-      </splashExtension>
+		<splashExtension 
+			icon="icons/cdk_splash_48.png" 
+			icon24="icons/cdk_splash_24.png"
+			icon32="icons/cdk_splash_32.png"
+			id="cdk" 
+			tooltip="CDK">
+		</splashExtension>
    </extension>
+   <extension point="org.knime.core.DataValueRenderer"> 
+	 <dataValue valueClass="org.openscience.cdk.knime.type.CDKValue"> 
+		 <renderer 
+		 	rendererFactoryClass="org.openscience.cdk.knime.type.CDKValueRenderer$Factory" 
+		 	suggestAsDefault="false"> 
+		 </renderer> 
+	 </dataValue> 
+</extension>
 </plugin>
