@@ -40,7 +40,7 @@ import org.openscience.cdk.tools.manipulator.BondManipulator;
 
 
 public class SmartRotatableBondsCountDescriptor extends AbstractMolecularDescriptor implements IMolecularDescriptor {
-	private boolean includeTerminals = false;
+	private boolean includeTerminals = true;
 
 
 	/**

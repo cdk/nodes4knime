@@ -24,12 +24,13 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org._3pq.jgrapht.graph.SimpleGraph;
 import org.openscience.cdk.CDKConstants;
 import org.openscience.cdk.annotations.TestMethod;
 import org.openscience.cdk.exception.CDKException;
-import org.openscience.cdk.graph.BFSShortestPath;
-import org.openscience.cdk.graph.MoleculeGraphs;
+import org.openscience.cdk.graph.Cycles;
+import org.openscience.cdk.graph.GraphUtil;
+import org.openscience.cdk.graph.ShortestPaths;
+import org.openscience.cdk.graph.ShortestPathsGraph;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IAtomType.Hybridization;
@@ -37,7 +38,8 @@ import org.openscience.cdk.interfaces.IBond;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
 import org.openscience.cdk.interfaces.IRing;
 import org.openscience.cdk.interfaces.IRingSet;
-import org.openscience.cdk.isomorphism.UniversalIsomorphismTester;
+import org.openscience.cdk.isomorphism.Pattern;
+import org.openscience.cdk.isomorphism.VentoFoggia;
 import org.openscience.cdk.isomorphism.matchers.IQueryAtom;
 import org.openscience.cdk.isomorphism.matchers.OrderQueryBond;
 import org.openscience.cdk.isomorphism.matchers.QueryAtomContainer;
@@ -46,7 +48,6 @@ import org.openscience.cdk.isomorphism.matchers.SymbolQueryAtom;
 import org.openscience.cdk.isomorphism.matchers.smarts.AnyOrderQueryBond;
 import org.openscience.cdk.isomorphism.matchers.smarts.AromaticAtom;
 import org.openscience.cdk.isomorphism.matchers.smarts.AromaticQueryBond;
-import org.openscience.cdk.isomorphism.mcss.RMap;
 import org.openscience.cdk.qsar.AbstractMolecularDescriptor;
 import org.openscience.cdk.qsar.DescriptorSpecification;
 import org.openscience.cdk.qsar.DescriptorValue;
@@ -59,7 +60,6 @@ import org.openscience.cdk.tools.manipulator.RingSetManipulator;
 public class SmartXLogPDescriptor extends AbstractMolecularDescriptor implements IMolecularDescriptor {
 
 	private boolean salicylFlag = false;
-	private SSSRFinder ssrf = null;
 	private static final String[] names = { "XLogP" };
 
 	/**
@@ -114,11 +114,6 @@ public class SmartXLogPDescriptor extends AbstractMolecularDescriptor implements
 		return names;
 	}
 
-	private DescriptorValue getDummyDescriptorValue(Exception e) {
-		return new DescriptorValue(getSpecification(), getParameterNames(), getParameters(), new DoubleResult(
-				Double.NaN), getDescriptorNames(), e);
-	}
-
 	/**
 	 * Calculates the xlogP for an atom container.
 	 * 
@@ -159,8 +154,7 @@ public class SmartXLogPDescriptor extends AbstractMolecularDescriptor implements
 							.iterator();
 					atomRingSet = rs.getBuilder().newInstance(IRingSet.class);
 					while (containers.hasNext()) {
-						ssrf = new SSSRFinder((IAtomContainer) containers.next());
-						atomRingSet.add(ssrf.findEssentialRings());
+						atomRingSet.add(Cycles.mcb((IAtomContainer) containers.next()).toRingSet());
 					}
 					// logger.debug(" SSSRatomRingSet.size "+atomRingSet.size());
 				}
@@ -751,21 +745,21 @@ public class SmartXLogPDescriptor extends AbstractMolecularDescriptor implements
 			}
 		}
 		// logger.debug("XLOGP: Before Correction:"+xlogP);
-		@SuppressWarnings("rawtypes")
-		List path = null;
-		SimpleGraph moleculeGraph = null;
 		int[][] pairCheck = null;
 		// //logger.debug("Acceptors:"+hBondAcceptors.size()+" Donors:"+hBondDonors.size());
 		if (hBondAcceptors.size() > 0 && hBondDonors.size() > 0) {
-			moleculeGraph = MoleculeGraphs.getMoleculeGraph(ac);
+			// moleculeGraph = MoleculeGraphs.getMoleculeGraph(ac);
 			pairCheck = initializeHydrogenPairCheck(new int[atomCount][atomCount]);
 		}
+
+		int[][] graph = GraphUtil.toAdjList(ac);
+
 		for (int i = 0; i < hBondAcceptors.size(); i++) {
+			ShortestPaths path = ShortestPathsGraph.paths(graph, ac.getAtom(hBondAcceptors.get(i)), ac);
 			for (int j = 0; j < hBondDonors.size(); j++) {
 				if (checkRingLink(rs, ac, ac.getAtom(hBondAcceptors.get(i)))
 						|| checkRingLink(rs, ac, ac.getAtom(hBondDonors.get(j).intValue()))) {
-					path = BFSShortestPath.findPathBetween(moleculeGraph, ac.getAtom(hBondAcceptors.get(i)),
-							ac.getAtom((Integer) hBondDonors.get(j)));
+					int distance = path.distanceTo(ac.getAtom((Integer) hBondDonors.get(j)));
 					// //logger.debug(" Acc:"+checkRingLink(rs,ac,atoms[((Integer)hBondAcceptors.get(i)).intValue()])
 					// +" S:"+atoms[((Integer)hBondAcceptors.get(i)).intValue()].getSymbol()
 					// +" Nr:"+((Integer)hBondAcceptors.get(i)).intValue()
@@ -775,14 +769,14 @@ public class SmartXLogPDescriptor extends AbstractMolecularDescriptor implements
 					// +" i:"+i+" j:"+j+" path:"+path.size());
 					if (checkRingLink(rs, ac, ac.getAtom(hBondAcceptors.get(i)))
 							&& checkRingLink(rs, ac, ac.getAtom(hBondDonors.get(j).intValue()))) {
-						if (path.size() == 3 && pairCheck[hBondAcceptors.get(i)][hBondDonors.get(j)] == 0) {
+						if (distance == 3 && pairCheck[hBondAcceptors.get(i)][hBondDonors.get(j)] == 0) {
 							xlogP += 0.429;
 							pairCheck[hBondAcceptors.get(i)][hBondDonors.get(j)] = 1;
 							pairCheck[hBondDonors.get(j)][hBondAcceptors.get(i)] = 1;
 							// logger.debug("XLOGP: Internal HBonds 1-4	 0.429");
 						}
 					} else {
-						if (path.size() == 4 && pairCheck[hBondAcceptors.get(i)][hBondDonors.get(j)] == 0) {
+						if (distance == 4 && pairCheck[hBondAcceptors.get(i)][hBondDonors.get(j)] == 0) {
 							xlogP += 0.429;
 							pairCheck[hBondAcceptors.get(i)][hBondDonors.get(j)] = 1;
 							pairCheck[hBondDonors.get(j)][hBondAcceptors.get(i)] = 1;
@@ -793,7 +787,6 @@ public class SmartXLogPDescriptor extends AbstractMolecularDescriptor implements
 			}
 		}
 
-		UniversalIsomorphismTester universalIsomorphismTester = new UniversalIsomorphismTester();
 		if (checkAminoAcid > 1) {
 			// alpha amino acid
 			QueryAtomContainer aminoAcid = QueryAtomContainerCreator.createBasicQueryContainer(createAminoAcid(ac
@@ -817,49 +810,37 @@ public class SmartXLogPDescriptor extends AbstractMolecularDescriptor implements
 			}
 
 			// AtomContainer aminoacid = sp.parseSmiles("NCC(=O)O");
-			try {
-				if (universalIsomorphismTester.isSubgraph(ac, aminoAcid)) {
-					List<RMap> list = universalIsomorphismTester.getSubgraphAtomsMap(ac, aminoAcid);
-					RMap map = null;
-					IAtom atom1 = null;
-					for (int j = 0; j < list.size(); j++) {
-						map = (RMap) list.get(j);
-						atom1 = ac.getAtom(map.getId1());
-						if (atom1.getSymbol().equals("O") && ac.getMaximumBondOrder(atom1) == IBond.Order.SINGLE) {
-							if (ac.getConnectedBondsCount(atom1) == 2 && getHydrogenCount(ac, atom1) == 0) {} else {
-								xlogP -= 2.166;
-								// logger.debug("XLOGP: alpha amino acid	-2.166");
-								break;
-							}
+			Pattern aaPattern = VentoFoggia.findSubstructure(aminoAcid);
+			if (aaPattern.matches(ac)) {
+				int[] match = aaPattern.match(ac);
+				for (int j = 0; j < match.length; j++) {
+					IAtom atom1 = ac.getAtom(match[j]);
+					if (atom1.getSymbol().equals("O") && ac.getMaximumBondOrder(atom1) == IBond.Order.SINGLE) {
+						if (ac.getConnectedBondsCount(atom1) == 2 && getHydrogenCount(ac, atom1) == 0) {} else {
+							xlogP -= 2.166;
+							// logger.debug("XLOGP: alpha amino acid	-2.166");
+							break;
 						}
 					}
 				}
-			} catch (CDKException e) {
-				return getDummyDescriptorValue(e);
 			}
 		}
 
 		IAtomContainer paba = createPaba(ac.getBuilder());
 		// p-amino sulphonic acid
-		try {
-			if (universalIsomorphismTester.isSubgraph(ac, paba)) {
-				xlogP -= 0.501;
-				// logger.debug("XLOGP: p-amino sulphonic acid	-0.501");
-			}
-		} catch (CDKException e) {
-			return getDummyDescriptorValue(e);
+		Pattern paPattern = VentoFoggia.findSubstructure(paba);
+		if (paPattern.matches(ac)) {
+			xlogP -= 0.501;
+			// logger.debug("XLOGP: p-amino sulphonic acid	-0.501");
 		}
 
 		// salicylic acid
 		if (salicylFlag) {
 			IAtomContainer salicilic = createSalicylicAcid(ac.getBuilder());
-			try {
-				if (universalIsomorphismTester.isSubgraph(ac, salicilic)) {
-					xlogP += 0.554;
-					// logger.debug("XLOGP: salicylic acid	 0.554");
-				}
-			} catch (CDKException e) {
-				return getDummyDescriptorValue(e);
+			Pattern saPattern = VentoFoggia.findSubstructure(salicilic);
+			if (saPattern.matches(ac)) {
+				xlogP += 0.554;
+				// logger.debug("XLOGP: salicylic acid	 0.554");
 			}
 		}
 
@@ -874,23 +855,20 @@ public class SmartXLogPDescriptor extends AbstractMolecularDescriptor implements
 		atom3.setSymbol("O");
 		SymbolQueryAtom atom4 = new SymbolQueryAtom(ac.getBuilder());
 		atom4.setSymbol("O");
-		
+
 		orthopair.addAtom(atom1);
 		orthopair.addAtom(atom2);
 		orthopair.addAtom(atom3);
 		orthopair.addAtom(atom4);
-		
+
 		orthopair.addBond(new AromaticQueryBond(atom1, atom2, IBond.Order.SINGLE, ac.getBuilder()));
 		orthopair.addBond(new OrderQueryBond(atom1, atom3, IBond.Order.SINGLE, ac.getBuilder()));
 		orthopair.addBond(new OrderQueryBond(atom2, atom4, IBond.Order.SINGLE, ac.getBuilder()));
 
-		try {
-			if (universalIsomorphismTester.isSubgraph(ac, orthopair)) {
-				xlogP -= 0.268;
-				// logger.debug("XLOGP: Ortho oxygen pair	-0.268");
-			}
-		} catch (CDKException e) {
-			return getDummyDescriptorValue(e);
+		Pattern orPattern = VentoFoggia.findSubstructure(orthopair);
+		if (orPattern.matches(ac)) {
+			xlogP -= 0.268;
+			// logger.debug("XLOGP: Ortho oxygen pair	-0.268");
 		}
 
 		return new DescriptorValue(getSpecification(), getParameterNames(), getParameters(), new DoubleResult(xlogP),
@@ -900,19 +878,14 @@ public class SmartXLogPDescriptor extends AbstractMolecularDescriptor implements
 	/**
 	 * Returns the specific type of the DescriptorResult object.
 	 * <p/>
-	 * The return value from this method really indicates what type of result
-	 * will be obtained from the
-	 * {@link org.openscience.cdk.qsar.DescriptorValue} object. Note that the
-	 * same result can be achieved by interrogating the
-	 * {@link org.openscience.cdk.qsar.DescriptorValue} object; this method
-	 * allows you to do the same thing, without actually calculating the
-	 * descriptor.
+	 * The return value from this method really indicates what type of result will be obtained from the
+	 * {@link org.openscience.cdk.qsar.DescriptorValue} object. Note that the same result can be achieved by
+	 * interrogating the {@link org.openscience.cdk.qsar.DescriptorValue} object; this method allows you to do the same
+	 * thing, without actually calculating the descriptor.
 	 * 
-	 * @return an object that implements the
-	 *         {@link org.openscience.cdk.qsar.result.IDescriptorResult}
-	 *         interface indicating the actual type of values returned by the
-	 *         descriptor in the
-	 *         {@link org.openscience.cdk.qsar.DescriptorValue} object
+	 * @return an object that implements the {@link org.openscience.cdk.qsar.result.IDescriptorResult} interface
+	 *         indicating the actual type of values returned by the
+	 *         descriptor in the {@link org.openscience.cdk.qsar.DescriptorValue} object
 	 */
 	@TestMethod("testGetDescriptorResultType")
 	public IDescriptorResult getDescriptorResultType() {

@@ -216,6 +216,7 @@ public final class MolPropsLibrary {
 		}
 		IMolecularDescriptor engine = DESCRIPTOR_HASH.get(descriptorClassName);
 		boolean isInt = engine.getDescriptorResultType() instanceof IntegerResult;
+		boolean isIntType = engine.getDescriptorResultType() instanceof IntegerResultType;
 		boolean isDouble = engine.getDescriptorResultType() instanceof DoubleResult;
 		boolean isDoubleType = engine.getDescriptorResultType() instanceof DoubleResultType;
 		boolean isDoubleArray = engine.getDescriptorResultType() instanceof DoubleArrayResult;
@@ -229,7 +230,7 @@ public final class MolPropsLibrary {
 				val = engine.calculate(mol);
 			}
 			IDescriptorResult d = val.getValue();
-			if (isInt) {
+			if (isInt || isIntType) {
 				int i;
 				if (d instanceof IntegerResult) {
 					i = ((IntegerResult) d).intValue();
@@ -270,7 +271,6 @@ public final class MolPropsLibrary {
 			LOGGER.warn("Unable to get property \"" + descriptorClassName + "\" for molecule in row \"" + rowKey
 					+ "\": " + "Return value is not a double; assigning missing", cce);
 		} catch (Exception e) {
-			e.printStackTrace();
 			LOGGER.warn("Exception (" + e.getClass().getSimpleName() + ") while computing descriptor \""
 					+ descriptorClassName + "\" for molecule in row \"" + rowKey + "\": " + e.getMessage(), e);
 		}

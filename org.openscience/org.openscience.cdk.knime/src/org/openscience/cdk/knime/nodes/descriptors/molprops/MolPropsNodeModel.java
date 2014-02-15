@@ -215,9 +215,9 @@ public class MolPropsNodeModel extends CDKNodeModel {
 						Object[] params = new Object[0];
 						if (prop.equalsIgnoreCase("org.openscience.cdk.qsar.descriptors.molecular.SmartXLogPDescriptor")) {
 							params = new Object[] { new Boolean(false) };
-//						} else if (prop
-//								.equalsIgnoreCase("org.openscience.cdk.qsar.descriptors.molecular.SmartRuleOfFiveDescriptor")) {
-//							params = new Object[] { new Boolean(false) };
+						} else if (prop
+								.equalsIgnoreCase("org.openscience.cdk.qsar.descriptors.molecular.AcidicGroupCountDescriptor")) {
+							params = new Object[] { new Boolean(false) };
 						} else if (prop
 								.equalsIgnoreCase("org.openscience.cdk.qsar.descriptors.molecular.BCUTDescriptor")) {
 							int heavyAtomCount = AtomContainerManipulator.getHeavyAtoms(mol).size();
