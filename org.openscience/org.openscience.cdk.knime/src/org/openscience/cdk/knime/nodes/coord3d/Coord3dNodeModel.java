@@ -30,7 +30,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.openscience.cdk.knime.commons.CDKNodeUtils;
 import org.openscience.cdk.knime.core.CDKAdapterNodeModel;
-import org.openscience.cdk.knime.type.CDKCell;
+import org.openscience.cdk.knime.type.CDKCell2;
 
 /**
  * This is the model implementation of Coord3d. Integrates the CDK 3D Model Builder to calculate 3D coordinates for CDK
@@ -73,7 +73,7 @@ public class Coord3dNodeModel extends CDKAdapterNodeModel {
 		for (DataColumnSpec s : spec) {
 			if (i == columnIndex) {
 				String name = spec.getColumnNames()[columnIndex];
-				dcs[i] = new DataColumnSpecCreator(name, CDKCell.TYPE).createSpec();
+				dcs[i] = new DataColumnSpecCreator(name, CDKCell2.TYPE).createSpec();
 			} else {
 				dcs[i] = s;
 			}

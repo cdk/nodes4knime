@@ -33,7 +33,7 @@ import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.util.MultiThreadWorker;
 import org.openscience.cdk.interfaces.IAtomContainer;
-import org.openscience.cdk.knime.type.CDKCell;
+import org.openscience.cdk.knime.type.CDKCell2;
 import org.openscience.cdk.knime.type.CDKValue;
 import org.openscience.cdk.smiles.smarts.SmartSMARTSQueryTool;
 
@@ -83,7 +83,7 @@ public class SmartsWorker extends MultiThreadWorker<DataRow, DataRow> {
 				LOGGER.error(t.getMessage(), t);
 			}
 
-			outCell = CDKCell.createCDKCell(m);
+			outCell = CDKCell2.createCDKCell(m);
 		}
 
 		return new ReplacedColumnsDataRow(row, outCell, columnIndex);

@@ -45,7 +45,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.openscience.cdk.knime.commons.MolConverter;
 import org.openscience.cdk.knime.commons.MolConverter.FORMAT;
-import org.openscience.cdk.knime.type.CDKCell;
+import org.openscience.cdk.knime.type.CDKCell2;
 
 /**
  * This is the model for the Molecule->CDK node that converts molecules' string
@@ -81,13 +81,13 @@ public class Molecule2CDKNodeModel extends NodeModel {
 		
 		DataTableSpec outSpec;
 		if (settings.replaceColumn()) {
-			DataColumnSpecCreator crea = new DataColumnSpecCreator(settings.targetColumn(), CDKCell.TYPE);
+			DataColumnSpecCreator crea = new DataColumnSpecCreator(settings.targetColumn(), CDKCell2.TYPE);
 			outSpec = ReplacedColumnsTable.createTableSpec(inData[0].getDataTableSpec(), crea.createSpec(),
 					columnIndex);
 		} else {
 			DataColumnSpecCreator crea = new DataColumnSpecCreator(DataTableSpec.getUniqueColumnName(
 					inData[0].getDataTableSpec(), settings.newColumnName()),
-					CDKCell.TYPE);
+					CDKCell2.TYPE);
 			outSpec = AppendedColumnTable.getTableSpec(inData[0].getDataTableSpec(), crea.createSpec());
 		}
 		BufferedDataContainer outputTable = exec.createDataContainer(outSpec);
@@ -185,11 +185,11 @@ public class Molecule2CDKNodeModel extends NodeModel {
 
 		DataTableSpec outSpec;
 		if (settings.replaceColumn()) {
-			DataColumnSpecCreator crea = new DataColumnSpecCreator(settings.targetColumn(), CDKCell.TYPE);
+			DataColumnSpecCreator crea = new DataColumnSpecCreator(settings.targetColumn(), CDKCell2.TYPE);
 			outSpec = ReplacedColumnsTable.createTableSpec(inSpecs[0], crea.createSpec(), colIndex);
 		} else {
 			DataColumnSpecCreator crea = new DataColumnSpecCreator(DataTableSpec.getUniqueColumnName(inSpecs[0],
-					settings.newColumnName()), CDKCell.TYPE);
+					settings.newColumnName()), CDKCell2.TYPE);
 			outSpec = AppendedColumnTable.getTableSpec(inSpecs[0], crea.createSpec());
 		}
 

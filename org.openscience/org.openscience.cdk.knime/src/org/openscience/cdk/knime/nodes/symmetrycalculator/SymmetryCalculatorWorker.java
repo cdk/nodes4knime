@@ -45,7 +45,7 @@ import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.knime.CDKNodePlugin;
 import org.openscience.cdk.knime.commons.CDKNodeUtils;
 import org.openscience.cdk.knime.preferences.CDKPreferencePage.NUMBERING;
-import org.openscience.cdk.knime.type.CDKCell;
+import org.openscience.cdk.knime.type.CDKCell2;
 import org.openscience.cdk.knime.type.CDKValue;
 import org.openscience.cdk.normalize.SMSDNormalizer;
 
@@ -150,7 +150,7 @@ public class SymmetryCalculatorWorker extends MultiThreadWorker<DataRow, List<Da
 								colors[colorsUsed.get(partitions[i] - 1)].getRGB());
 					}
 				}
-				DataCell[] image = new DataCell[] { CDKCell.createCDKCell(m) };
+				DataCell[] image = new DataCell[] { CDKCell2.createCDKCell(m) };
 				outRows.add(new AppendedColumnRow(row, image));
 			}
 		}

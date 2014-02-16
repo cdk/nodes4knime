@@ -42,7 +42,7 @@ import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IChemFile;
 import org.openscience.cdk.io.CMLReader;
 import org.openscience.cdk.knime.commons.CDKNodeUtils;
-import org.openscience.cdk.knime.type.CDKCell;
+import org.openscience.cdk.knime.type.CDKCell2;
 import org.openscience.cdk.normalize.SMSDNormalizer;
 import org.openscience.cdk.tools.manipulator.ChemFileManipulator;
 
@@ -143,7 +143,7 @@ public class OpsinNameConverterGenerator implements CellFactory {
 					container = SMSDNormalizer.convertExplicitToImplicitHydrogens(container);
 					CDKNodeUtils.getFullMolecule(container);
 					container = CDKNodeUtils.calculateCoordinates(container, true, false);
-					newCells[i] = CDKCell.createCDKCell(container);
+					newCells[i] = CDKCell2.createCDKCell(container);
 					bais.close();
 				}
 				i++;

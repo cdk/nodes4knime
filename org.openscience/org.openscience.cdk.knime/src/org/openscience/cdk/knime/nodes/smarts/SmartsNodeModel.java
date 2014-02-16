@@ -35,7 +35,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.openscience.cdk.knime.commons.CDKNodeUtils;
 import org.openscience.cdk.knime.core.CDKAdapterNodeModel;
-import org.openscience.cdk.knime.type.CDKCell;
+import org.openscience.cdk.knime.type.CDKCell2;
 
 public class SmartsNodeModel extends CDKAdapterNodeModel {
 
@@ -120,7 +120,7 @@ public class SmartsNodeModel extends CDKAdapterNodeModel {
 		for (DataColumnSpec s : spec) {
 			if (i == columnIndex) {
 				String name = spec.getColumnNames()[columnIndex];
-				dcs[i] = new DataColumnSpecCreator(name, CDKCell.TYPE).createSpec();
+				dcs[i] = new DataColumnSpecCreator(name, CDKCell2.TYPE).createSpec();
 			} else {
 				dcs[i] = s;
 			}

@@ -123,7 +123,7 @@ public abstract class CDKTypeConverter extends DataCellTypeConverter {
 						String sdf = ((RWAdapterValue) source).getAdapter(SdfValue.class).getSdfValue();
 						IAtomContainer mol = conv.convert(sdf);
 
-						return ((RWAdapterValue) source).cloneAndAddAdapter(new CDKCell(mol), CDKValue.class);
+						return ((RWAdapterValue) source).cloneAndAddAdapter(new CDKCell2(mol), CDKValue.class);
 					}
 				};
 			} else if (type.isAdaptable(SdfValue.class)) {
@@ -142,7 +142,7 @@ public abstract class CDKTypeConverter extends DataCellTypeConverter {
 						String sdf = ((AdapterValue) source).getAdapter(SdfValue.class).getSdfValue();
 						IAtomContainer mol = conv.convert(sdf);
 
-						return CDKCell.createCDKCell(source, mol);
+						return CDKCell2.createCDKCell(source, mol);
 					}
 				};
 			} else if (type.isAdaptable(SmilesValue.class)) {
@@ -161,7 +161,7 @@ public abstract class CDKTypeConverter extends DataCellTypeConverter {
 						String smiles = ((AdapterValue) source).getAdapter(SmilesValue.class).getSmilesValue();
 						IAtomContainer mol = conv.convert(smiles);
 
-						return CDKCell.createCDKCell(source, mol);
+						return CDKCell2.createCDKCell(source, mol);
 					}
 				};
 			} else if (type.isAdaptable(InchiValue.class)) {
@@ -180,7 +180,7 @@ public abstract class CDKTypeConverter extends DataCellTypeConverter {
 						String smiles = ((AdapterValue) source).getAdapter(InchiValue.class).getInchiString();
 						IAtomContainer mol = conv.convert(smiles);
 
-						return CDKCell.createCDKCell(source, mol);
+						return CDKCell2.createCDKCell(source, mol);
 					}
 				};
 			}
@@ -222,7 +222,7 @@ public abstract class CDKTypeConverter extends DataCellTypeConverter {
 						String sdf = ((SdfValue) source).getSdfValue();
 						IAtomContainer mol = conv.convert(sdf);
 
-						return CDKCell.createCDKCell(mol);
+						return CDKCell2.createCDKCell(mol);
 					}
 				};
 			} else if (type.isCompatible(SmilesValue.class)) {
@@ -241,7 +241,7 @@ public abstract class CDKTypeConverter extends DataCellTypeConverter {
 						String smiles = ((SmilesValue) source).getSmilesValue();
 						IAtomContainer mol = conv.convert(smiles);
 
-						return CDKCell.createCDKCell(mol);
+						return CDKCell2.createCDKCell(mol);
 					}
 				};
 			} else if (type.isCompatible(InchiValue.class)) {
@@ -260,7 +260,7 @@ public abstract class CDKTypeConverter extends DataCellTypeConverter {
 						String smiles = ((InchiValue) source).getInchiString();
 						IAtomContainer mol = conv.convert(smiles);
 
-						return CDKCell.createCDKCell(mol);
+						return CDKCell2.createCDKCell(mol);
 					}
 				};
 			} else if (type.isCompatible(StringValue.class)) {
@@ -279,7 +279,7 @@ public abstract class CDKTypeConverter extends DataCellTypeConverter {
 						String smiles = ((StringValue) source).getStringValue();
 						IAtomContainer mol = conv.convert(smiles);
 
-						return CDKCell.createCDKCell(mol);
+						return CDKCell2.createCDKCell(mol);
 					}
 				};
 			}

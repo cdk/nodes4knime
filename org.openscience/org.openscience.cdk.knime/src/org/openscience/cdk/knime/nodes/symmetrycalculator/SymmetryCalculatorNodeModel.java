@@ -33,7 +33,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.openscience.cdk.knime.commons.CDKNodeUtils;
 import org.openscience.cdk.knime.core.CDKAdapterNodeModel;
-import org.openscience.cdk.knime.type.CDKCell;
+import org.openscience.cdk.knime.type.CDKCell2;
 
 /**
  * This is the model implementation of SymmetryCalculator.
@@ -115,7 +115,7 @@ public class SymmetryCalculatorNodeModel extends CDKAdapterNodeModel {
 
 		if (visual) {
 			String name = DataTableSpec.getUniqueColumnName(inSpecs, "Equivalent Class Rendering");
-			cs[0] = new DataColumnSpecCreator(name, CDKCell.TYPE).createSpec();
+			cs[0] = new DataColumnSpecCreator(name, CDKCell2.TYPE).createSpec();
 		} else {
 			String nameCol1 = DataTableSpec.getUniqueColumnName(inSpecs, "Atom ID");
 			cs[0] = new DataColumnSpecCreator(nameCol1, StringCell.TYPE).createSpec();

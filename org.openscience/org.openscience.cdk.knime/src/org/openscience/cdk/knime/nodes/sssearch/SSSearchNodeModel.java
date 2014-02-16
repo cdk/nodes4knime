@@ -31,7 +31,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.knime.commons.CDKNodeUtils;
 import org.openscience.cdk.knime.core.CDKAdapterNodeModel;
-import org.openscience.cdk.knime.type.CDKCell;
+import org.openscience.cdk.knime.type.CDKCell2;
 import org.openscience.cdk.knime.util.JMolSketcherPanel;
 
 /**
@@ -122,7 +122,7 @@ public class SSSearchNodeModel extends CDKAdapterNodeModel {
 			for (DataColumnSpec cSpec : spec) {
 				if (i == columnIndex) {
 					String name = outSpec.getColumnNames()[columnIndex];
-					outCSpec[i] = new DataColumnSpecCreator(name, CDKCell.TYPE).createSpec();
+					outCSpec[i] = new DataColumnSpecCreator(name, CDKCell2.TYPE).createSpec();
 				} else {
 					outCSpec[i] = cSpec;
 				}

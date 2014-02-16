@@ -36,7 +36,7 @@ import org.knime.core.util.MultiThreadWorker;
 import org.openscience.cdk.graph.ConnectivityChecker;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IAtomContainerSet;
-import org.openscience.cdk.knime.type.CDKCell;
+import org.openscience.cdk.knime.type.CDKCell2;
 import org.openscience.cdk.knime.type.CDKValue;
 
 /**
@@ -88,7 +88,7 @@ public class ConnectivityWorker extends MultiThreadWorker<DataRow, DataRow> {
 		CDKValue cdkCell = ((AdapterValue) inRow.getCell(columnIndex)).getAdapter(CDKValue.class);
 		IAtomContainer mol = cdkCell.getAtomContainer();
 		if (ConnectivityChecker.isConnected(mol)) {
-			return CDKCell.createCDKCell(mol);
+			return CDKCell2.createCDKCell(mol);
 		} else {
 			return DataType.getMissingCell();
 		}
@@ -107,9 +107,9 @@ public class ConnectivityWorker extends MultiThreadWorker<DataRow, DataRow> {
 					biggest = molSet.getAtomContainer(i);
 				}
 			}
-			return CDKCell.createCDKCell(biggest);
+			return CDKCell2.createCDKCell(biggest);
 		} else {
-			return CDKCell.createCDKCell(mol);
+			return CDKCell2.createCDKCell(mol);
 		}
 	}
 
@@ -125,11 +125,11 @@ public class ConnectivityWorker extends MultiThreadWorker<DataRow, DataRow> {
 			IAtomContainer singleMol;
 			for (int i = 0; i < molSet.getAtomContainerCount(); i++) {
 				singleMol = molSet.getAtomContainer(i);
-				cells.add(CDKCell.createCDKCell(singleMol));
+				cells.add(CDKCell2.createCDKCell(singleMol));
 			}
 			return CollectionCellFactory.createSetCell(cells);
 		} else {
-			return CollectionCellFactory.createSetCell(Collections.singleton(CDKCell.createCDKCell(mol)));
+			return CollectionCellFactory.createSetCell(Collections.singleton(CDKCell2.createCDKCell(mol)));
 		}
 	}
 

@@ -32,6 +32,7 @@ import org.knime.core.node.NodeSettingsWO;
 import org.openscience.cdk.knime.commons.CDKNodeUtils;
 import org.openscience.cdk.knime.core.CDKAdapterNodeModel;
 import org.openscience.cdk.knime.type.CDKCell;
+import org.openscience.cdk.knime.type.CDKCell2;
 
 /**
  * This class is the model for the CDK 2D-generation node. It takes the input molecules (if there are any), checks if
@@ -76,7 +77,7 @@ public class Coord2DNodeModel extends CDKAdapterNodeModel {
 		for (DataColumnSpec s : spec) {
 			if (i == columnIndex) {
 				String name = spec.getColumnNames()[columnIndex];
-				dcs[i] = new DataColumnSpecCreator(name, CDKCell.TYPE).createSpec();
+				dcs[i] = new DataColumnSpecCreator(name, CDKCell2.TYPE).createSpec();
 			} else {
 				dcs[i] = s;
 			}
