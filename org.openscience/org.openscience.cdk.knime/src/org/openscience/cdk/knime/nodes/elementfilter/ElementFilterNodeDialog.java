@@ -76,7 +76,7 @@ public class ElementFilterNodeDialog extends NodeDialogPane {
 		c.gridy++;
 		c.gridx = 0;
 
-		panel.add(new JLabel("Standard set "), c);
+		panel.add(new JLabel("Standard set (keep) "), c);
 		c.gridx++;
 		standardSetButton = new JRadioButton("(C,H,N,O,P,S)");
 		standardSetButton.setSelected(true);
@@ -84,7 +84,7 @@ public class ElementFilterNodeDialog extends NodeDialogPane {
 		c.gridy++;
 		c.gridx = 0;
 
-		panel.add(new JLabel("Custom set "), c);
+		panel.add(new JLabel("Custom set (remove) "), c);
 		c.gridx++;
 		customSetButton = new JRadioButton("(comma separated)");
 		customSetButton.addChangeListener(new ChangeListener() {

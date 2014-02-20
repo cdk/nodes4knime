@@ -30,7 +30,7 @@ import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.openscience.cdk.knime.core.CDKAdapterNodeModel;
-import org.openscience.cdk.knime.type.CDKCell2;
+import org.openscience.cdk.knime.type.CDKAdapterCell;
 
 /**
  * This is the model for the connectivity node that performs all computation by using CDK functionality.
@@ -96,7 +96,7 @@ public class ConnectivityNodeModel extends CDKAdapterNodeModel {
 		DataColumnSpec cs;
 		if (settings(ConnectivitySettings.class).addFragmentColumn()) {
 			String name = DataTableSpec.getUniqueColumnName(outSpec, "Fragments");
-			cs = new DataColumnSpecCreator(name, SetCell.getCollectionType(CDKCell2.TYPE)).createSpec();
+			cs = new DataColumnSpecCreator(name, SetCell.getCollectionType(CDKAdapterCell.RAW_TYPE)).createSpec();
 			return new DataTableSpec(outSpec, new DataTableSpec(cs));
 		} else {
 			DataColumnSpec[] dcs = new DataColumnSpec[outSpec.getNumColumns()];
@@ -104,7 +104,7 @@ public class ConnectivityNodeModel extends CDKAdapterNodeModel {
 			for (DataColumnSpec spec : outSpec) {
 				if (i == columnIndex) {
 					String name = outSpec.getColumnNames()[columnIndex];
-					dcs[i] = new DataColumnSpecCreator(name, CDKCell2.TYPE).createSpec();
+					dcs[i] = new DataColumnSpecCreator(name, CDKAdapterCell.RAW_TYPE).createSpec();
 				} else {
 					dcs[i] = spec;
 				}

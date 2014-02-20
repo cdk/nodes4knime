@@ -37,6 +37,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.knime.commons.CDKNodeUtils;
+import org.openscience.cdk.knime.type.CDKAdapterCell;
 import org.openscience.cdk.knime.type.CDKCell2;
 
 /**
@@ -63,7 +64,7 @@ public class SketcherNodeModel extends NodeModel {
 
 	private DataTableSpec generateSpec() {
 
-		DataColumnSpec s = new DataColumnSpecCreator("Structure", CDKCell2.TYPE).createSpec();
+		DataColumnSpec s = new DataColumnSpecCreator("Structure", CDKAdapterCell.RAW_TYPE).createSpec();
 		return new DataTableSpec("Structure Table", s);
 	}
 

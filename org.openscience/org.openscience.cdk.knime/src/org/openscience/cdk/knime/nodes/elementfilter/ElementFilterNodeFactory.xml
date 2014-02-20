@@ -12,12 +12,13 @@
 			Only molecules that contain defined elements are valid.</intro>
 
 		<option name="Column with molecules">Molecule column in input table.</option>
-		<option name="Filter set">The element set used for filtering. Custom sets
-			need to be comma-separated.</option>
+		<option name="Filter set">The element set used for filtering. Keep either molecules that only
+		have types C,H,N,O,P,S or define individual elements that trigger exclusion. The list needs to be comma-separated.</option>
 	</fullDescription>
 
 	<ports>
 		<inPort index="0" name="Molecule input">Table containing molecules.</inPort>
 		<outPort index="0" name="Filtered input">Filtered input table.</outPort>
+		<outPort index="1" name="Excluded input">Excluded input table.</outPort>
 	</ports>
 </knimeNode>

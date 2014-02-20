@@ -16,6 +16,7 @@
  */
 package org.openscience.cdk.knime.nodes.elementfilter;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -47,6 +48,8 @@ public class ElementFilterWorker extends MultiThreadWorker<DataRow, DataRow> {
 	private final BufferedDataContainer[] bdcs;
 	private final Set<String> elementSet;
 
+	private final Set<String> STANDARD_SET = new HashSet<String>(Arrays.asList("C", "H", "N", "O", "P", "S"));
+
 	public ElementFilterWorker(final int maxQueueSize, final int maxActiveInstanceSize, final int columnIndex,
 			final ExecutionContext exec, final ElementFilterSettings settings, final BufferedDataContainer... bdcs) {
 
@@ -76,15 +79,31 @@ public class ElementFilterWorker extends MultiThreadWorker<DataRow, DataRow> {
 			IAtomContainer mol = cdkCell.getAtomContainer();
 			IMolecularFormula formula = MolecularFormulaManipulator.getMolecularFormula(mol);
 			List<IElement> sumElements = MolecularFormulaManipulator.getHeavyElements(formula);
-			for (IElement element : sumElements) {
-				String symbol = element.getSymbol();
-				if (!elementSet.contains(symbol)) {
-					isValid = false;
-					break;
+			
+			// keep CHNOPS
+			if (elementSet.size() == 6 && elementSet.containsAll(STANDARD_SET)) {
+				for (IElement element : sumElements) {
+					String symbol = element.getSymbol();
+					if (!elementSet.contains(symbol)) {
+						isValid = false;
+						break;
+					}
 				}
-			}
-			if (isValid) {
-				matchedRows.add(index);
+				if (isValid) {
+					matchedRows.add(index);
+				}
+			// remove everything else
+			} else {
+				for (IElement element : sumElements) {
+					String symbol = element.getSymbol();
+					if (elementSet.contains(symbol)) {
+						isValid = false;
+						break;
+					}
+				}
+				if (isValid) {
+					matchedRows.add(index);
+				}
 			}
 		}
 

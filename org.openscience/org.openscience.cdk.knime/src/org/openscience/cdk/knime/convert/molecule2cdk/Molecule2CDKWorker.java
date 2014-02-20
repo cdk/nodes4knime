@@ -49,7 +49,6 @@ public class Molecule2CDKWorker extends MultiThreadWorker<DataRow, DataRow> {
 	@Override
 	protected DataRow compute(DataRow row, long index) throws Exception {
 
-		// try {
 		DataCell cell = row.getCell(columnIndex);
 		if (!cell.isMissing()) {
 			IAtomContainer mol = converter.convert(getNotation(cell));

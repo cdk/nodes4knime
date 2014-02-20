@@ -29,7 +29,7 @@ import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.openscience.cdk.knime.core.CDKAdapterNodeModel;
-import org.openscience.cdk.knime.type.CDKCell2;
+import org.openscience.cdk.knime.type.CDKAdapterCell;
 
 /**
  * This is the model for the hydrogen node that performs all computation by using CDK functionality.
@@ -101,7 +101,7 @@ public class HydrogenAdderNodeModel extends CDKAdapterNodeModel {
 			for (DataColumnSpec s : spec) {
 				if (i == columnIndex) {
 					String name = spec.getColumnNames()[columnIndex];
-					dcs[i] = new DataColumnSpecCreator(name, CDKCell2.TYPE).createSpec();
+					dcs[i] = new DataColumnSpecCreator(name, CDKAdapterCell.RAW_TYPE).createSpec();
 				} else {
 					dcs[i] = s;
 				}
@@ -111,7 +111,7 @@ public class HydrogenAdderNodeModel extends CDKAdapterNodeModel {
 		} else {
 			String name = DataTableSpec.getUniqueColumnName(spec, settings(HydrogenAdderSettings.class)
 					.appendColumnName());
-			cs = new DataColumnSpecCreator(name, CDKCell2.TYPE).createSpec();
+			cs = new DataColumnSpecCreator(name, CDKAdapterCell.RAW_TYPE).createSpec();
 			return new DataTableSpec(spec, new DataTableSpec(cs));
 		}
 	}
