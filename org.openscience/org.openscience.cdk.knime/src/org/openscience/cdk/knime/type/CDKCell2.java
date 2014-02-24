@@ -48,6 +48,7 @@ import org.openscience.cdk.io.CMLReader;
 import org.openscience.cdk.io.SDFWriter;
 import org.openscience.cdk.knime.cml.CmlKnimeCore;
 import org.openscience.cdk.knime.commons.CDKNodeUtils;
+import org.openscience.cdk.layout.LayoutHelper;
 import org.openscience.cdk.silent.ChemFile;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.stereo.StereoElementFactory;
@@ -286,6 +287,10 @@ public final class CDKCell2 extends DataCell implements CDKValue, SmilesValue, S
 		try {
 			stringWriter = new StringWriter();
 			sdfWriter = new SDFWriter(stringWriter);
+			
+			if (mol != null && GeometryTools.has2DCoordinates(mol)) {
+				LayoutHelper.adjustStereo(mol);
+			}
 			sdfWriter.write(mol);
 		} catch (CDKException exception) {
 			LOGGER.warn("SDfile conversion failed:", exception);

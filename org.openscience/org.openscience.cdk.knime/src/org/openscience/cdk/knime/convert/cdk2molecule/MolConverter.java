@@ -38,12 +38,14 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.node.NodeLogger;
 import org.openscience.cdk.exception.CDKException;
+import org.openscience.cdk.geometry.GeometryTools;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.io.CMLWriter;
 import org.openscience.cdk.io.MDLV2000Writer;
 import org.openscience.cdk.io.Mol2Writer;
 import org.openscience.cdk.knime.convert.cdk2molecule.CDK2MoleculeSettings.Format;
 import org.openscience.cdk.knime.type.CDKValue;
+import org.openscience.cdk.layout.LayoutHelper;
 import org.openscience.cdk.smiles.SmilesGenerator;
 
 /**
@@ -79,6 +81,9 @@ class MolConverter implements ExtendedCellFactory {
 			// removes configuration and valence annotation
 			StringWriter out = new StringWriter(1024);
 			MDLV2000Writer writer = new MDLV2000Writer(out);
+			if (mol != null && GeometryTools.has2DCoordinates(mol)) {
+				LayoutHelper.adjustStereo(mol);
+			}
 			writer.writeMolecule(mol);
 			writer.close();
 			out.append("$$$$");
