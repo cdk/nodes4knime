@@ -17,6 +17,7 @@
 package org.openscience.cdk.knime.nodes.elementfilter;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -64,7 +65,7 @@ public class ElementFilterWorker extends MultiThreadWorker<DataRow, DataRow> {
 		this.exec = exec;
 		this.bdcs = bdcs;
 		this.columnIndex = columnIndex;
-		this.matchedRows = new HashSet<Long>();
+		this.matchedRows = Collections.synchronizedSet(new HashSet<Long>());
 	}
 
 	@Override
@@ -74,7 +75,6 @@ public class ElementFilterWorker extends MultiThreadWorker<DataRow, DataRow> {
 				|| (((AdapterValue) row.getCell(columnIndex)).getAdapterError(CDKValue.class) != null)) {
 			// fall through
 		} else {
-			boolean isValid = true;
 			CDKValue cdkCell = ((AdapterValue) row.getCell(columnIndex)).getAdapter(CDKValue.class);
 			IAtomContainer mol = cdkCell.getAtomContainer();
 			IMolecularFormula formula = MolecularFormulaManipulator.getMolecularFormula(mol);
@@ -82,6 +82,7 @@ public class ElementFilterWorker extends MultiThreadWorker<DataRow, DataRow> {
 			
 			// keep CHNOPS
 			if (elementSet.size() == 6 && elementSet.containsAll(STANDARD_SET)) {
+				boolean isValid = true;
 				for (IElement element : sumElements) {
 					String symbol = element.getSymbol();
 					if (!elementSet.contains(symbol)) {
@@ -94,6 +95,7 @@ public class ElementFilterWorker extends MultiThreadWorker<DataRow, DataRow> {
 				}
 			// remove everything else
 			} else {
+				boolean isValid = true;
 				for (IElement element : sumElements) {
 					String symbol = element.getSymbol();
 					if (elementSet.contains(symbol)) {
@@ -106,7 +108,7 @@ public class ElementFilterWorker extends MultiThreadWorker<DataRow, DataRow> {
 				}
 			}
 		}
-
+		
 		return row;
 	}
 

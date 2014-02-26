@@ -18,6 +18,7 @@ package org.openscience.cdk.knime.nodes.sssearch;
 
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -85,7 +86,7 @@ public class SSSearchWorker extends MultiThreadWorker<DataRow, DataRow> {
 		highlight = false;
 		charge = false;
 		exactMatch = false;
-		matchedRows = new HashSet<Long>();
+		matchedRows = Collections.synchronizedSet(new HashSet<Long>());
 	}
 
 	public void highlight(boolean highlight) {

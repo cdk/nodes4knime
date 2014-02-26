@@ -16,6 +16,7 @@
  */
 package org.openscience.cdk.knime.nodes.smarts;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -58,7 +59,7 @@ public class SmartsWorker extends MultiThreadWorker<DataRow, DataRow> {
 		this.max = max;
 		this.smarts = new SmartSMARTSQueryTool(smarts);
 		this.columnIndex = columnIndex;
-		this.matchedRows = new HashSet<Long>();
+		this.matchedRows = Collections.synchronizedSet(new HashSet<Long>());
 	}
 
 	@Override
