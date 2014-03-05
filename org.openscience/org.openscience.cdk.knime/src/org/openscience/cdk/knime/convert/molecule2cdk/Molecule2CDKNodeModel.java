@@ -115,7 +115,7 @@ public class Molecule2CDKNodeModel extends NodeModel {
 
 		try {
 			worker.run(inData[0]);
-		} finally {
+		} finally { 
 			outputTable.close();
 		}
 

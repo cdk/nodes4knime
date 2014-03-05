@@ -81,9 +81,6 @@ public class SumFormulaNodeModel extends CDKNodeModel {
 		DataColumnSpec[] appendSpec = new DataColumnSpec[] { crea1.createSpec(), crea2.createSpec() };
 		columnIndex = spec.findColumnIndex(settings.targetColumn());
 
-		final MassToFormulaTool mtft = new MassToFormulaTool(DefaultChemObjectBuilder.getInstance());
-		final MolecularFormulaChecker mfc = new MolecularFormulaChecker(getRules());
-
 		AbstractCellFactory cf = new AbstractCellFactory(true, appendSpec) {
 
 			@Override
@@ -100,6 +97,7 @@ public class SumFormulaNodeModel extends CDKNodeModel {
 							+ massCell.getClass().getName());
 				}
 
+				MassToFormulaTool mtft = new MassToFormulaTool(DefaultChemObjectBuilder.getInstance());
 				double mass = ((DoubleValue) row.getCell(columnIndex)).getDoubleValue();
 				IMolecularFormulaSet mfSet = null;
 				mfSet = mtft.generate(mass);
@@ -109,6 +107,8 @@ public class SumFormulaNodeModel extends CDKNodeModel {
 					return newCells;
 				}
 
+				MolecularFormulaChecker mfc = new MolecularFormulaChecker(getRules());
+				
 				Collection<StringCell> hillStrings = new ArrayList<StringCell>();
 				Collection<DoubleCell> sumDoubles = new ArrayList<DoubleCell>();
 				for (IMolecularFormula formula : mfSet.molecularFormulas()) {

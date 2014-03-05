@@ -111,11 +111,15 @@ public class MolPropsNodeModel extends CDKNodeModel {
 		// custom "non-qsar" methods
 		DataColumnSpec mfSpec = new DataColumnSpecCreator("Molecular Formula", StringCell.TYPE).createSpec();
 		DataColumnSpec fcSpec = new DataColumnSpecCreator("Formal Charge", IntCell.TYPE).createSpec();
+		DataColumnSpec fcpSpec = new DataColumnSpecCreator("Formal Charge (pos)", IntCell.TYPE).createSpec();
+		DataColumnSpec fcnSpec = new DataColumnSpecCreator("Formal Charge (neg)", IntCell.TYPE).createSpec();
 		DataColumnSpec haSpec = new DataColumnSpecCreator("No. of Heavy Atoms", IntCell.TYPE).createSpec();
 		DataColumnSpec mmSpec = new DataColumnSpecCreator("Molar Mass", DoubleCell.TYPE).createSpec();
 		DataColumnSpec spSpec = new DataColumnSpecCreator("SP3 Character", DoubleCell.TYPE).createSpec();
 		specStringMap.put(mfSpec, "molecularformula");
 		specStringMap.put(fcSpec, "formalcharge");
+		specStringMap.put(fcpSpec, "formalchargepos");
+		specStringMap.put(fcnSpec, "formalchargeneg");
 		specStringMap.put(haSpec, "heavyatoms");
 		specStringMap.put(mmSpec, "molarmass");
 		specStringMap.put(spSpec, "spthreechar");
@@ -189,6 +193,10 @@ public class MolPropsNodeModel extends CDKNodeModel {
 
 				CDKValue cdkCell = ((AdapterValue) row.getCell(columnIndex)).getAdapter(CDKValue.class);
 				IAtomContainer mol = cdkCell.getAtomContainer();
+				if (mol == null) {
+					Arrays.fill(newCells, DataType.getMissingCell());
+					return newCells;
+				}
 
 				try {
 					mol = CDKNodeUtils.getExplicitClone(mol);
@@ -203,6 +211,10 @@ public class MolPropsNodeModel extends CDKNodeModel {
 						newCells[i] = new StringCell(MolecularFormulaManipulator.getString(formula));
 					} else if (prop.equals("formalcharge")) {
 						newCells[i] = new IntCell(AtomContainerManipulator.getTotalFormalCharge(mol));
+					} else if (prop.equals("formalchargepos")) {
+						newCells[i] = new IntCell(AtomContainerManipulator.getTotalPositiveFormalCharge(mol));
+					} else if (prop.equals("formalchargeneg")) {
+						newCells[i] = new IntCell(AtomContainerManipulator.getTotalNegativeFormalCharge(mol));
 					} else if (prop.equals("heavyatoms")) {
 						newCells[i] = new IntCell(AtomContainerManipulator.getHeavyAtoms(mol).size());
 					} else if (prop.equals("molarmass")) {

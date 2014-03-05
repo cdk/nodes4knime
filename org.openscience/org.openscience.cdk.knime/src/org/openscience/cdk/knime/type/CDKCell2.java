@@ -320,6 +320,10 @@ public final class CDKCell2 extends DataCell implements CDKValue, SmilesValue, S
 	public IAtomContainer getAtomContainerWithCoordinates() {
 
 		IAtomContainer molecule = CDKNodeUtils.getFullMolecule(smiles);
+		if (molecule == null) {
+			return null;
+		}
+		
 		int nAtoms = molecule.getAtomCount();
 
 		if (auxBytes.length == 0) {

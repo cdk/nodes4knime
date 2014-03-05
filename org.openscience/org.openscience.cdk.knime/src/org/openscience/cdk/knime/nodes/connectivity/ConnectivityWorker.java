@@ -87,11 +87,11 @@ public class ConnectivityWorker extends MultiThreadWorker<DataRow, DataRow> {
 
 		CDKValue cdkCell = ((AdapterValue) inRow.getCell(columnIndex)).getAdapter(CDKValue.class);
 		IAtomContainer mol = cdkCell.getAtomContainer();
-		if (ConnectivityChecker.isConnected(mol)) {
-			return CDKCell2.createCDKCell(mol);
-		} else {
+		if (mol == null || !ConnectivityChecker.isConnected(mol)) {
 			return DataType.getMissingCell();
 		}
+
+		return CDKCell2.createCDKCell(mol);
 	}
 
 	private DataCell retainBiggest(final DataRow inRow) {

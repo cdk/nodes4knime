@@ -183,6 +183,12 @@ public final class MolPropsLibrary {
 		} else if (descriptorClassName.equals("formalcharge")) {
 			DataColumnSpec fcSpec = new DataColumnSpecCreator("Formal Charge", IntCell.TYPE).createSpec();
 			return fcSpec;
+		} else if (descriptorClassName.equals("formalchargepos")) {
+			DataColumnSpec fcSpec = new DataColumnSpecCreator("Formal Charge (pos)", IntCell.TYPE).createSpec();
+			return fcSpec;
+		} else if (descriptorClassName.equals("formalchargeneg")) {
+			DataColumnSpec fcSpec = new DataColumnSpecCreator("Formal Charge (neg)", IntCell.TYPE).createSpec();
+			return fcSpec;
 		} else if (descriptorClassName.equals("heavyatoms")) {
 			DataColumnSpec haSpec = new DataColumnSpecCreator("Heavy Atoms Count", IntCell.TYPE).createSpec();
 			return haSpec;
