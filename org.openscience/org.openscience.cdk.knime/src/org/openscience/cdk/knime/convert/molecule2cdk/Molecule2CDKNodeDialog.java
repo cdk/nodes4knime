@@ -60,8 +60,6 @@ public class Molecule2CDKNodeDialog extends NodeDialogPane {
 	private final JCheckBox m_generate2D = new JCheckBox();
 	private final JLabel m_force2DLabel;
 	private final JCheckBox m_force2D = new JCheckBox();
-	private final JLabel convertBondFourLabel;
-	private final JCheckBox convertBondFour = new JCheckBox();
 	private final Molecule2CDKSettings m_settings = new Molecule2CDKSettings();
 
 	/**
@@ -125,13 +123,6 @@ public class Molecule2CDKNodeDialog extends NodeDialogPane {
 				m_force2D.setEnabled(m_generate2D.isSelected());
 			}
 		});
-	
-		c.gridy++;
-		c.gridx = 0;
-		convertBondFourLabel = new JLabel("Kekulize structure");
-		p.add(convertBondFourLabel, c);
-		c.gridx = 1;
-		p.add(convertBondFour, c);
 
 		addTab("Standard settings", p);
 	}
@@ -155,7 +146,6 @@ public class Molecule2CDKNodeDialog extends NodeDialogPane {
 		m_force2DLabel.setEnabled(m_settings.generate2D());
 		m_force2D.setEnabled(m_settings.generate2D());
 		m_force2D.setSelected(m_settings.force2D());
-		convertBondFour.setSelected(m_settings.convertOrder());
 	}
 
 	/**
@@ -169,7 +159,6 @@ public class Molecule2CDKNodeDialog extends NodeDialogPane {
 		m_settings.newColumnName(m_newColName.getText());
 		m_settings.generate2D(m_generate2D.isSelected());
 		m_settings.force2D(m_force2D.isSelected());
-		m_settings.convertOrder(convertBondFour.isSelected());
 		m_settings.saveSettings(settings);
 	}
 }

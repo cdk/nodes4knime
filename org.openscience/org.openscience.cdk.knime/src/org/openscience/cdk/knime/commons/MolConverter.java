@@ -17,6 +17,8 @@
  */
 package org.openscience.cdk.knime.commons;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.io.ByteArrayInputStream;
 import java.io.StringReader;
 
@@ -25,7 +27,9 @@ import org.openscience.cdk.ChemFile;
 import org.openscience.cdk.inchi.InChIGeneratorFactory;
 import org.openscience.cdk.inchi.InChIToStructure;
 import org.openscience.cdk.interfaces.IAtomContainer;
+import org.openscience.cdk.interfaces.IBond;
 import org.openscience.cdk.interfaces.IChemFile;
+import org.openscience.cdk.interfaces.IBond.Order;
 import org.openscience.cdk.io.CMLReader;
 import org.openscience.cdk.io.MDLV2000Reader;
 import org.openscience.cdk.io.Mol2Reader;
@@ -124,7 +128,6 @@ public class MolConverter {
 		private FORMAT format;
 		private Conv converter;
 		private boolean configure;
-		private boolean fixBondOrder;
 		private boolean coordinates;
 		private boolean coordinatesForce;
 
@@ -157,18 +160,12 @@ public class MolConverter {
 			}
 			
 			this.configure = false;
-			this.fixBondOrder = false;
 			this.coordinates = false;
 			this.coordinatesForce = false;
 		}
 
 		public Builder configure() {
 			this.configure = true;
-			return this;
-		}
-
-		public Builder fixBondOrder() {
-			this.fixBondOrder = true;
 			return this;
 		}
 
@@ -191,7 +188,6 @@ public class MolConverter {
 	private FORMAT format;
 	private Conv converter;
 	private boolean configure;
-	private boolean fixBondOrder;
 	private boolean coordinates;
 	private boolean coordinatesForce;
 
@@ -204,7 +200,6 @@ public class MolConverter {
 		this.format = builder.format;
 		this.converter = builder.converter;
 		this.configure = builder.configure;
-		this.fixBondOrder = builder.fixBondOrder;
 		this.coordinates = builder.coordinates;
 		this.coordinatesForce = builder.coordinatesForce;
 	}
@@ -215,6 +210,15 @@ public class MolConverter {
 		try {
 			mol = converter.convert(notation);
 
+			boolean fixBondOrder = false;
+			for (IBond bond : mol.bonds()) {
+				IBond.Order order = checkNotNull(bond.getOrder(), "Aromaticity model requires that bond orders must be set");
+				if (order == Order.UNSET) {
+					fixBondOrder = true;
+					break;
+				}
+			}
+			
 			if (fixBondOrder)
 				mol = CDKNodeUtils.fixBondOrder(mol);
 			if (configure)

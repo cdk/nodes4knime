@@ -35,7 +35,6 @@ public class Molecule2CDKSettings implements CDKSettings {
 	private String m_newColName;
 	private boolean m_generate2D = true;
 	private boolean m_force2D = false;
-	private boolean convertOrder = false;
 
 	/**
 	 * Sets the name of the source molecule column.
@@ -128,24 +127,6 @@ public class Molecule2CDKSettings implements CDKSettings {
 	}
 
 	/**
-	 * Returns if bond order of type 4 should be converted to bond orders 1 and 2.
-	 * 
-	 * @return <code>true</code> if they should be converted, <code>false</code> otherwise
-	 */
-	public boolean convertOrder() {
-		return convertOrder;
-	}
-
-	/**
-	 * Sets if 2D bond order of type 4 should be converted to bond orders 1 and 2.
-	 * 
-	 * @param force <code>true</code> if they should be converted, <code>false</code> otherwise
-	 */
-	public void convertOrder(final boolean conertOrder) {
-		this.convertOrder = conertOrder;
-	}
-
-	/**
 	 * Loads the settings from the given node settings object.
 	 * 
 	 * @param settings node settings
@@ -158,7 +139,6 @@ public class Molecule2CDKSettings implements CDKSettings {
 		m_newColName = settings.getString("newColName");
 		m_generate2D = settings.getBoolean("generate2D");
 		m_force2D = settings.getBoolean("force2D");
-		convertOrder = settings.getBoolean("bondOrder");
 	}
 
 	/**
@@ -173,7 +153,6 @@ public class Molecule2CDKSettings implements CDKSettings {
 		m_newColName = settings.getString("newColName", "");
 		m_generate2D = settings.getBoolean("generate2D", false);
 		m_force2D = settings.getBoolean("force2D", false);
-		convertOrder = settings.getBoolean("bondOrder", false);
 	}
 
 	/**
@@ -188,6 +167,5 @@ public class Molecule2CDKSettings implements CDKSettings {
 		settings.addString("newColName", m_newColName);
 		settings.addBoolean("generate2D", m_generate2D);
 		settings.addBoolean("force2D", m_force2D);
-		settings.addBoolean("bondOrder", convertOrder);
 	}
 }

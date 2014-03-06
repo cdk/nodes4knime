@@ -126,11 +126,7 @@ public class Molecule2CDKNodeModel extends NodeModel {
 
 		boolean force = settings.force2D();
 
-		if (settings.convertOrder() && settings.generate2D()) {
-			return new MolConverter.Builder(format).fixBondOrder().configure().coordinates(force).build();
-		} else if (settings.convertOrder()) {
-			return new MolConverter.Builder(format).fixBondOrder().configure().build();
-		} else if (settings.generate2D()) {
+		if (settings.generate2D()) {
 			return new MolConverter.Builder(format).configure().coordinates(force).build();
 		} else {
 			return new MolConverter.Builder(format).configure().build();
