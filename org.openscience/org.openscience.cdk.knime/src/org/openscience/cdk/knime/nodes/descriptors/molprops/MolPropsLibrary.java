@@ -198,6 +198,9 @@ public final class MolPropsLibrary {
 		} else if (descriptorClassName.equals("spthreechar")) {
 			DataColumnSpec spSpec = new DataColumnSpecCreator("SP3 Character", DoubleCell.TYPE).createSpec();
 			return spSpec;
+		} else if (descriptorClassName.equals("nrotbonds")) {
+			DataColumnSpec spSpec = new DataColumnSpecCreator("Rotatable Bonds Count (non terminal)", IntCell.TYPE).createSpec();
+			return spSpec;
 		}
 		
 		return DESCRIPTOR_COLSPEC_HASH.get(descriptorClassName);

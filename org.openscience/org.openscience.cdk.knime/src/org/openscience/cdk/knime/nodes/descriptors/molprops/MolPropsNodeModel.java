@@ -25,9 +25,11 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 
 import org.knime.core.data.AdapterValue;
@@ -48,6 +50,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IAtomType;
@@ -56,6 +59,7 @@ import org.openscience.cdk.knime.commons.CDKNodeUtils;
 import org.openscience.cdk.knime.core.CDKNodeModel;
 import org.openscience.cdk.knime.type.CDKTypeConverter;
 import org.openscience.cdk.knime.type.CDKValue;
+import org.openscience.cdk.qsar.descriptors.molecular.SmartRotatableBondsCountDescriptor;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
@@ -116,6 +120,7 @@ public class MolPropsNodeModel extends CDKNodeModel {
 		DataColumnSpec haSpec = new DataColumnSpecCreator("No. of Heavy Atoms", IntCell.TYPE).createSpec();
 		DataColumnSpec mmSpec = new DataColumnSpecCreator("Molar Mass", DoubleCell.TYPE).createSpec();
 		DataColumnSpec spSpec = new DataColumnSpecCreator("SP3 Character", DoubleCell.TYPE).createSpec();
+		DataColumnSpec rotSpec = new DataColumnSpecCreator("Rotatable Bonds Count (non terminal)", IntCell.TYPE).createSpec();
 		specStringMap.put(mfSpec, "molecularformula");
 		specStringMap.put(fcSpec, "formalcharge");
 		specStringMap.put(fcpSpec, "formalchargepos");
@@ -123,6 +128,7 @@ public class MolPropsNodeModel extends CDKNodeModel {
 		specStringMap.put(haSpec, "heavyatoms");
 		specStringMap.put(mmSpec, "molarmass");
 		specStringMap.put(spSpec, "spthreechar");
+		specStringMap.put(rotSpec, "nrotbonds");
 		MOLPROPS_IDENTIFIER_MAP = Collections.unmodifiableMap(specStringMap);
 		// #########################
 	}
@@ -220,6 +226,14 @@ public class MolPropsNodeModel extends CDKNodeModel {
 					} else if (prop.equals("molarmass")) {
 						IMolecularFormula formula = MolecularFormulaManipulator.getMolecularFormula(mol);
 						newCells[i] = new DoubleCell(MolecularFormulaManipulator.getNaturalExactMass(formula));
+					} else if (prop.equals("nrotbonds")) {
+						SmartRotatableBondsCountDescriptor rot = new SmartRotatableBondsCountDescriptor();
+						try {
+							rot.setParameters(new Object[] {false});
+						} catch (CDKException e) {
+							// fall through
+						}
+						newCells[i] = new IntCell(Integer.parseInt(rot.calculate(mol).getValue().toString()));
 					} else if (prop.equals("spthreechar")) {
 						double character = getSp3Character(mol);
 						newCells[i] = character == -1 ? DataType.getMissingCell() : new DoubleCell(character);
@@ -234,15 +248,9 @@ public class MolPropsNodeModel extends CDKNodeModel {
 								.equalsIgnoreCase("org.openscience.cdk.qsar.descriptors.molecular.BCUTDescriptor")) {
 							int heavyAtomCount = AtomContainerManipulator.getHeavyAtoms(mol).size();
 							params = new Object[] { heavyAtomCount, 0, new Boolean(false) };
-//						} else if (prop
-//								.equalsIgnoreCase("org.openscience.cdk.qsar.descriptors.molecular.SmartHBondAcceptorCountDescriptor")) {
-//							params = new Object[] { new Boolean(false) };
 						} else if (prop
 								.equalsIgnoreCase("org.openscience.cdk.qsar.descriptors.molecular.HBondDonorCountDescriptor")) {
 							params = new Object[] { new Boolean(false) };
-						} else if (prop
-								.equalsIgnoreCase("org.openscience.cdk.qsar.descriptors.molecular.RotatableBondsCountDescriptor")) {
-							params = new Object[] { new Boolean(true), new Boolean(false) };
 						}
 						newCells[i] = MolPropsLibrary.getProperty(row.getKey().toString(), mol, prop, params);
 					}
@@ -342,6 +350,16 @@ public class MolPropsNodeModel extends CDKNodeModel {
 	 */
 	static DataColumnSpec[] getAvailableDescriptorList() {
 
-		return MOLPROPS_IDENTIFIER_MAP.keySet().toArray(new DataColumnSpec[0]);
+		List<DataColumnSpec> dcs = new ArrayList<DataColumnSpec>(MOLPROPS_IDENTIFIER_MAP.keySet());
+		Collections.sort(dcs, new Comparator<DataColumnSpec>() {
+
+			@Override
+			public int compare(DataColumnSpec o1, DataColumnSpec o2) {
+
+				return o1.getName().compareTo(o2.getName());
+			}
+			
+		});
+		return dcs.toArray(new DataColumnSpec[0]);
 	}
 }
