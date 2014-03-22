@@ -183,6 +183,13 @@ public class CDKNodeUtils {
 
 		if (force || (!(GeometryTools.has2DCoordinates(molecule)) && !(GeometryTools.has3DCoordinates(molecule)))) {
 
+			if (force) {
+				for (IAtom atom : molecule.atoms()) {
+					atom.setPoint2d(null);
+					atom.setPoint3d(null);
+				}
+			}
+			
 			StructureDiagramGenerator sdg = new StructureDiagramGenerator();
 			sdg.setUseTemplates(false);
 			if (!ConnectivityChecker.isConnected(molecule)) {
