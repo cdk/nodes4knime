@@ -181,15 +181,8 @@ public class CDKNodeUtils {
 	public static IAtomContainer calculateCoordinates(IAtomContainer molecule, final boolean force, final boolean clone)
 			throws CDKException {
 
-		if (force || (!(GeometryTools.has2DCoordinates(molecule)) && !(GeometryTools.has3DCoordinates(molecule)))) {
+		if (force || !(GeometryTools.has2DCoordinates(molecule))) {
 
-			if (force) {
-				for (IAtom atom : molecule.atoms()) {
-					atom.setPoint2d(null);
-					atom.setPoint3d(null);
-				}
-			}
-			
 			StructureDiagramGenerator sdg = new StructureDiagramGenerator();
 			sdg.setUseTemplates(false);
 			if (!ConnectivityChecker.isConnected(molecule)) {

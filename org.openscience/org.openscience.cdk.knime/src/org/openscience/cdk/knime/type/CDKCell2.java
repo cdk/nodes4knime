@@ -173,7 +173,27 @@ public final class CDKCell2 extends DataCell implements CDKValue, SmilesValue, S
 		byte[] coords = new byte[0];
 		byte[] acols = new byte[0];
 
-		if (GeometryTools.has3DCoordinates(atomContainer)) {
+		if (GeometryTools.has2DCoordinates(atomContainer) && GeometryTools.has3DCoordinates(atomContainer)) {
+			coords = new byte[atomContainer.getAtomCount() * 40 + 1];
+			coords[0] = 3; // 2D & 3D
+			for (int v = 0, k = 0, j = 0; v < seq.length; v++, k += 5) {
+				Point2d p2 = atomContainer.getAtom(seq[v]).getPoint2d();
+				System.arraycopy(toByte(p2.x), 0, coords, k * 8 + 1, 8);
+				System.arraycopy(toByte(p2.y), 0, coords, k * 8 + 9, 8);
+				Point3d p3 = atomContainer.getAtom(seq[v]).getPoint3d();
+				System.arraycopy(toByte(p3.x), 0, coords, k * 8 + 17, 8);
+				System.arraycopy(toByte(p3.y), 0, coords, k * 8 + 25, 8);
+				System.arraycopy(toByte(p3.z), 0, coords, k * 8 + 33, 8);
+				Integer color = atomContainer.getAtom(seq[v]).getProperty(CDKConstants.ANNOTATIONS, Integer.class);
+				if (color != null) {
+					byte[] tmpCols = new byte[acols.length + 8];
+					System.arraycopy(acols, 0, tmpCols, 0, acols.length);
+					acols = tmpCols;
+					System.arraycopy(toByte(seq[v]), 0, acols, j * 8, 4);
+					System.arraycopy(toByte(color), 0, acols, j++ * 8 + 4, 4);
+				}
+			}
+		} else if (GeometryTools.has3DCoordinates(atomContainer)) {
 			coords = new byte[atomContainer.getAtomCount() * 24 + 1];
 			coords[0] = 1; // 3D
 			for (int v = 0, k = 0, j = 0; v < seq.length; v++, k += 3) {
@@ -287,7 +307,7 @@ public final class CDKCell2 extends DataCell implements CDKValue, SmilesValue, S
 		try {
 			stringWriter = new StringWriter();
 			sdfWriter = new SDFWriter(stringWriter);
-			
+
 			if (mol != null && GeometryTools.has2DCoordinates(mol)) {
 				LayoutHelper.adjustStereo(mol);
 			}
@@ -323,14 +343,14 @@ public final class CDKCell2 extends DataCell implements CDKValue, SmilesValue, S
 		if (molecule == null) {
 			return null;
 		}
-		
+
 		int nAtoms = molecule.getAtomCount();
 
 		if (auxBytes.length == 0) {
 			return molecule;
 		}
 
-		int f = (auxBytes[0] == 0) ? 2 : 3;
+		int f = (auxBytes[0] == 0) ? 2 : ((auxBytes[0] == 1) ? 3 : 5);
 
 		double[] coords = new double[nAtoms * f];
 		for (int i = 0; i < coords.length; i++) {
@@ -363,10 +383,19 @@ public final class CDKCell2 extends DataCell implements CDKValue, SmilesValue, S
 					molecule.getAtom(v).setProperty(CDKConstants.ANNOTATIONS, cols[v]);
 				}
 			}
-		} else {
+		} else if (f == 3) {
 			for (int v = 0, k = 0; v < nAtoms; v++, k += 3) {
 				molecule.getAtom(v).setID("" + v);
 				molecule.getAtom(v).setPoint3d(new Point3d(coords[k], coords[k + 1], coords[k + 2]));
+				if (cols[v] != 0) {
+					molecule.getAtom(v).setProperty(CDKConstants.ANNOTATIONS, cols[v]);
+				}
+			}
+		} else {
+			for (int v = 0, k = 0; v < nAtoms; v++, k += 5) {
+				molecule.getAtom(v).setID("" + v);
+				molecule.getAtom(v).setPoint2d(new Point2d(coords[k], coords[k + 1]));
+				molecule.getAtom(v).setPoint3d(new Point3d(coords[k + 2], coords[k + 3], coords[k + 4]));
 				if (cols[v] != 0) {
 					molecule.getAtom(v).setProperty(CDKConstants.ANNOTATIONS, cols[v]);
 				}
@@ -500,8 +529,9 @@ public final class CDKCell2 extends DataCell implements CDKValue, SmilesValue, S
 
 			String blob = input.readUTF(); // either SMILES or CML
 			byte[] bytes = blob.getBytes("ISO-8859-1");
-			
-			if (((bytes)[0] == (byte) (GZIPInputStream.GZIP_MAGIC)) && (bytes[1] == (byte) (GZIPInputStream.GZIP_MAGIC >> 8))) { // legacy CML cell
+
+			if (((bytes)[0] == (byte) (GZIPInputStream.GZIP_MAGIC))
+					&& (bytes[1] == (byte) (GZIPInputStream.GZIP_MAGIC >> 8))) { // legacy CML cell
 				String cml = blob;
 				IAtomContainer mol = readCML(cml); // reads and uncompresses CML
 
@@ -550,7 +580,7 @@ public final class CDKCell2 extends DataCell implements CDKValue, SmilesValue, S
 					mol.addStereoElement(stereoEleemnt);
 				}
 			}
-			
+
 			gis = null;
 			reader = null;
 			chemFile = null;

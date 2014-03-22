@@ -68,29 +68,29 @@ import org.openscience.cdk.renderer.visitor.SmartAWTDrawVisitor;
  */
 public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 
-	 private static final String DESCRIPTION = "CDK";
-	
-	/**
-     * Factory for the {@link CDKValueRenderer}.
-     */
-    public static final class Factory extends AbstractDataValueRendererFactory {
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public String getDescription() {
-            return DESCRIPTION;
-        }
+	private static final String DESCRIPTION = "CDK";
 
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public DataValueRenderer createRenderer(final DataColumnSpec colSpec) {
-            return new CDKValueRenderer();
-        }
-    }
-	
+	/**
+	 * Factory for the {@link CDKValueRenderer}.
+	 */
+	public static final class Factory extends AbstractDataValueRendererFactory {
+		/**
+		 * {@inheritDoc}
+		 */
+		@Override
+		public String getDescription() {
+			return DESCRIPTION;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 */
+		@Override
+		public DataValueRenderer createRenderer(final DataColumnSpec colSpec) {
+			return new CDKValueRenderer();
+		}
+	}
+
 	public enum TYPE {
 		ALL_ATOMS(""), C_ATOMS("C"), H_ATOMS("H");
 
@@ -229,7 +229,11 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 	protected void setAtomContainer(final IAtomContainer con) {
 		m_mol = con;
 		if (m_mol != null) {
-			LayoutHelper.adjustStereo(m_mol);
+			try {
+				LayoutHelper.adjustStereo(m_mol);
+			} catch (IllegalArgumentException exception) {
+				m_mol = con;
+			}
 		}
 	}
 
@@ -245,8 +249,8 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 	/**
 	 * Sets the string object for the cell being rendered.
 	 * 
-	 * @param value the string value for this cell; if value is
-	 *        <code>null</code> it sets the text value to an empty string
+	 * @param value the string value for this cell; if value is <code>null</code> it sets the text value to an empty
+	 *        string
 	 * @see javax.swing.JLabel#setText
 	 * 
 	 */
@@ -290,9 +294,10 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 
 		}
 
+		boolean twoThreeD = false;
 		if (GeometryTools.has2DCoordinates(m_mol) && GeometryTools.has3DCoordinates(m_mol)) {
-			g.drawString("3D view not supported", 2, 14);
-			threeD = true;
+			g.drawString("Using 2D coordinates", 2, 14);
+			twoThreeD = true;
 		}
 
 		int x = 0;
@@ -309,7 +314,7 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 			height = (int) (height * SCALE);
 		}
 
-		if (threeD) {
+		if (threeD || twoThreeD) {
 			y += 14;
 			height -= 14;
 		}

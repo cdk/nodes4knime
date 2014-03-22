@@ -20,7 +20,7 @@ import org.openscience.cdk.interfaces.IAtomContainer;
 
 public class LayoutHelper {
 
-	public static void adjustStereo(IAtomContainer molecule) {
+	public static void adjustStereo(IAtomContainer molecule) throws IllegalArgumentException {
 		
 		// correct double-bond stereo, this changes the layout and in reality 
         // should be done during the initial placement
@@ -29,5 +29,9 @@ public class LayoutHelper {
         // assign up/down labels, this doesn't not alter layout and could be
         // done on-demand (e.g. when writing a MDL Molfile)
         NonplanarBonds.assign(molecule);
+        
+        if (molecule == null) {
+        	throw new IllegalArgumentException("Stereo perception failed.");
+        }
 	}
 }

@@ -32,7 +32,7 @@
         </option>
         <option name="Generate 2D coordinates">
             Enabling this option will generate 2D coordinates for the converted molecules so that they can be
-            visualized. Existing 2D or 3D coordinates are discarded.
+            visualized.
         </option>
         <option name="Force 2D generation">
             Without this option, 2D coordinates will only be generated for molecules that do not only have any (usually
