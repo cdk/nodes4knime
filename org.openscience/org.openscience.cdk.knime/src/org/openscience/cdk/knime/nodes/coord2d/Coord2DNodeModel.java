@@ -128,8 +128,8 @@ public class Coord2DNodeModel extends CDKAdapterNodeModel {
 
 		BufferedDataContainer outputTable = exec.createDataContainer(appendSpec(convertedTables[0].getDataTableSpec()));
 
-		Coord2DWorker worker = new Coord2DWorker(maxQueueSize, maxParallelWorkers, columnIndex, exec, outputTable,
-				m_force);
+		Coord2DWorker worker = new Coord2DWorker(maxQueueSize, maxParallelWorkers, columnIndex, exec.createSubProgress(0.75),
+				convertedTables[0].getRowCount(), outputTable, m_force);
 
 		try {
 			worker.run(convertedTables[0]);

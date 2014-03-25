@@ -26,7 +26,7 @@ import org.knime.core.data.DataRow;
 import org.knime.core.data.DataType;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.CanceledExecutionException;
-import org.knime.core.node.ExecutionContext;
+import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.util.MultiThreadWorker;
 import org.openscience.cdk.interfaces.IAtomContainer;
@@ -43,17 +43,19 @@ public class Coord2DWorker extends MultiThreadWorker<DataRow, DataRow> {
 
 	private final static NodeLogger LOGGER = NodeLogger.getLogger(Coord2DWorker.class);
 
-	private final ExecutionContext exec;
+	private final ExecutionMonitor exec;
 	private final int columnIndex;
+	private final double max;
 	private final BufferedDataContainer bdc;
 	private final boolean force;
 
 	public Coord2DWorker(final int maxQueueSize, final int maxActiveInstanceSize, final int columnIndex,
-			final ExecutionContext exec, final BufferedDataContainer bdc, final boolean force) {
+			final ExecutionMonitor exec, final int max, final BufferedDataContainer bdc, final boolean force) {
 
 		super(maxQueueSize, maxActiveInstanceSize);
 		this.exec = exec;
 		this.bdc = bdc;
+		this.max = max;
 		this.force = force;
 		this.columnIndex = columnIndex;
 	}
@@ -93,6 +95,11 @@ public class Coord2DWorker extends MultiThreadWorker<DataRow, DataRow> {
 			bdc.addRowToTable(append);
 		}
 
+		exec.setProgress(
+				this.getFinishedCount() / max,
+				this.getFinishedCount() + " (active/submitted: " + this.getActiveCount() + "/"
+						+ (this.getSubmittedCount() - this.getFinishedCount()) + ")");
+		
 		try {
 			exec.checkCanceled();
 		} catch (CanceledExecutionException cee) {

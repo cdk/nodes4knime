@@ -13,7 +13,7 @@ import org.knime.core.data.vector.bitvector.DenseBitVector;
 import org.knime.core.data.vector.bitvector.DenseBitVectorCellFactory;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.CanceledExecutionException;
-import org.knime.core.node.ExecutionContext;
+import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.util.MultiThreadWorker;
 import org.openscience.cdk.fingerprint.EStateFingerprinter;
 import org.openscience.cdk.fingerprint.ExtendedFingerprinter;
@@ -29,14 +29,14 @@ import org.openscience.cdk.silent.SilentChemObjectBuilder;
 
 public class FingerprintWorker extends MultiThreadWorker<DataRow, DataRow> {
 
-	private final ExecutionContext exec;
-	private final int max;
+	private final ExecutionMonitor exec;
+	private final double max;
 	private final int columnIndex;
 	private final BufferedDataContainer bdc;
 	private final FingerprintSettings settings;
 
 	public FingerprintWorker(final int maxQueueSize, final int maxActiveInstanceSize, final int columnIndex,
-			final ExecutionContext exec, final int max, final BufferedDataContainer bdc,
+			final ExecutionMonitor exec, final int max, final BufferedDataContainer bdc,
 			final FingerprintSettings settings) {
 
 		super(maxQueueSize, maxActiveInstanceSize);

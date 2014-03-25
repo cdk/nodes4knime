@@ -194,27 +194,22 @@ public abstract class CDKAdapterNodeModel extends NodeModel {
 				}
 			}
 
-			final int numConvertedTables = mapColumnRearrangers.size();
-			int i = 1;
 			for (int j = 0; j < inData.length; j++) {
-				exec.setMessage("Converting input tables for processing (" + i + " of " + numConvertedTables + ")");
+				exec.setMessage("Converting input tables for processing.");
 				final ColumnRearranger rearranger = mapColumnRearrangers.get(j);
 				if (rearranger != null) {
-					i++;
-					convertedTables[j] = exec.createColumnRearrangeTable(inData[j], rearranger,
-							exec.createSubProgress(1.0d / i / 2.0d));
+					ExecutionMonitor e = exec.createSubProgress(1.0d / 4.0d);
+					convertedTables[j] = exec.createColumnRearrangeTable(inData[j], rearranger, e);
 
 					// remove the appended dummy cells from the converted tables
 					final DataTableSpec tableSpec = convertedTables[j].getDataTableSpec();
 					final ColumnRearranger rearrangerWorkaround = new ColumnRearranger(tableSpec);
 					rearrangerWorkaround.remove(tableSpec.getNumColumns() - 1);
-					convertedTables[j] = exec.createColumnRearrangeTable(convertedTables[j], rearrangerWorkaround,
-							exec.createSubProgress(1.0d / i / 2.0d));
+					convertedTables[j] = exec.createColumnRearrangeTable(convertedTables[j], rearrangerWorkaround, e);
 				}
 			}
 		}
 
-		exec.setProgress(1.0d);
 		return convertedTables;
 	}
 
@@ -232,8 +227,8 @@ public abstract class CDKAdapterNodeModel extends NodeModel {
 			if (type.isAdaptable(CDKValue.class) || type.isCompatible(CDKValue.class)) {
 				return false;
 			} else if (type.isCompatible(RWAdapterValue.class) && type.isCompatible(StringValue.class)
-					&& type.isCompatible(SmilesValue.class) && type.isCompatible(SdfValue.class) &&
-					type.isCompatible(InchiValue.class)) {
+					&& type.isCompatible(SmilesValue.class) && type.isCompatible(SdfValue.class)
+					&& type.isCompatible(InchiValue.class)) {
 				return true;
 			} else if (type.isAdaptable(SdfValue.class)) {
 				return true;
@@ -253,7 +248,7 @@ public abstract class CDKAdapterNodeModel extends NodeModel {
 				return true;
 			} else if (type.isCompatible(InchiValue.class)) {
 				return true;
-			} else if (type.isCompatible(StringValue.class) && !type.equals(SmartsCell.TYPE) ) {
+			} else if (type.isCompatible(StringValue.class) && !type.equals(SmartsCell.TYPE)) {
 				return true;
 			}
 		}
@@ -277,7 +272,7 @@ public abstract class CDKAdapterNodeModel extends NodeModel {
 				} else if ((name == null) && s.getType().isAdaptableToAny(CDKNodeUtils.ACCEPTED_VALUE_CLASSES)) {
 					name = s.getName();
 				}
-				
+
 				// hack to circumvent empty adapter value list map
 				if ((name == null) && isAdaptableToAny(s)) {
 					name = s.getName();
@@ -293,7 +288,7 @@ public abstract class CDKAdapterNodeModel extends NodeModel {
 
 		columnIndex = inSpecs[0].findColumnIndex(settings.targetColumn());
 	}
-	
+
 	/**
 	 * Checks the data type of the column spec for CDK compatibility.
 	 * 
@@ -378,6 +373,6 @@ public abstract class CDKAdapterNodeModel extends NodeModel {
 	 * @return the resulting output tables
 	 * @throws Exception if an error has occurred during execution
 	 */
-	protected abstract BufferedDataTable[] process(final BufferedDataTable[] convertedTables, final ExecutionContext exec)
-			throws Exception;
+	protected abstract BufferedDataTable[] process(final BufferedDataTable[] convertedTables,
+			final ExecutionContext exec) throws Exception;
 }

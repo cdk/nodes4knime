@@ -31,7 +31,7 @@ import org.knime.core.data.DataRow;
 import org.knime.core.data.DataType;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.CanceledExecutionException;
-import org.knime.core.node.ExecutionContext;
+import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.util.MultiThreadWorker;
 import org.knime.core.util.Pointer;
@@ -54,18 +54,20 @@ public class Coord3dWorker extends MultiThreadWorker<DataRow, DataRow> {
 
 	private final static NodeLogger LOGGER = NodeLogger.getLogger(Coord3dWorker.class);
 
-	private final ExecutionContext exec;
+	private final ExecutionMonitor exec;
 	private final int columnIndex;
 	private final BufferedDataContainer bdc;
 	private final int timeout;
+	private final double max;
 	private final ExecutorService executor;
 
 	public Coord3dWorker(final int maxQueueSize, final int maxActiveInstanceSize, final int columnIndex,
-			final ExecutionContext exec, final BufferedDataContainer bdc, final int timeout) {
+			final ExecutionMonitor exec, final int max, final BufferedDataContainer bdc, final int timeout) {
 
 		super(maxQueueSize, maxActiveInstanceSize);
 		this.exec = exec;
 		this.bdc = bdc;
+		this.max = max;
 		this.timeout = timeout;
 		this.columnIndex = columnIndex;
 
@@ -146,6 +148,11 @@ public class Coord3dWorker extends MultiThreadWorker<DataRow, DataRow> {
 			bdc.addRowToTable(append);
 		}
 
+		exec.setProgress(
+				this.getFinishedCount() / max,
+				this.getFinishedCount() + " (active/submitted: " + this.getActiveCount() + "/"
+						+ (this.getSubmittedCount() - this.getFinishedCount()) + ")");
+		
 		try {
 			exec.checkCanceled();
 		} catch (CanceledExecutionException cee) {
