@@ -124,7 +124,7 @@ public class Coord3dNodeModel extends CDKAdapterNodeModel {
 
 		BufferedDataContainer outputTable = exec.createDataContainer(appendSpec(convertedTables[0].getDataTableSpec()));
 
-		Coord3dWorker worker = new Coord3dWorker(1, 1, columnIndex, exec.createSubProgress(0.75),
+		Coord3dWorker worker = new Coord3dWorker(1, 1, columnIndex, exec.createSubProgress(1),
 				convertedTables[0].getRowCount(), outputTable, timeout);
 
 		try {

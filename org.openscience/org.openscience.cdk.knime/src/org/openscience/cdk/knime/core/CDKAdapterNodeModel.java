@@ -195,18 +195,18 @@ public abstract class CDKAdapterNodeModel extends NodeModel {
 			}
 
 			for (int j = 0; j < inData.length; j++) {
-				exec.setMessage("Converting input tables for processing.");
+				exec.setMessage("Converting input tables for processing");
 				final ColumnRearranger rearranger = mapColumnRearrangers.get(j);
 				if (rearranger != null) {
 					ExecutionMonitor e = exec.createSubProgress(1.0d / 4.0d);
 					convertedTables[j] = exec.createColumnRearrangeTable(inData[j], rearranger, e);
-
 					// remove the appended dummy cells from the converted tables
 					final DataTableSpec tableSpec = convertedTables[j].getDataTableSpec();
 					final ColumnRearranger rearrangerWorkaround = new ColumnRearranger(tableSpec);
 					rearrangerWorkaround.remove(tableSpec.getNumColumns() - 1);
 					convertedTables[j] = exec.createColumnRearrangeTable(convertedTables[j], rearrangerWorkaround, e);
 				}
+				exec.setMessage(null);
 			}
 		}
 

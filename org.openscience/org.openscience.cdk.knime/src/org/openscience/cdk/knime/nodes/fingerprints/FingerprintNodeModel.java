@@ -68,7 +68,7 @@ public class FingerprintNodeModel extends CDKAdapterNodeModel {
 
 		BufferedDataContainer outputTable = exec.createDataContainer(appendSpec(convertedTables[0].getDataTableSpec()));
 
-		FingerprintWorker worker = new FingerprintWorker(maxQueueSize, maxParallelWorkers, columnIndex, exec.createSubProgress(0.75),
+		FingerprintWorker worker = new FingerprintWorker(maxQueueSize, maxParallelWorkers, columnIndex, exec.createSubProgress(1),
 				convertedTables[0].getRowCount(), outputTable, settings(FingerprintSettings.class));
 
 		try {
