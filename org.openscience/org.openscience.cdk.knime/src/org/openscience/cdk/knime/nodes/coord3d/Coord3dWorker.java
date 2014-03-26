@@ -44,6 +44,7 @@ import org.openscience.cdk.knime.type.CDKValue;
 import org.openscience.cdk.modeling.builder3d.ModelBuilder3D;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
+import org.openscience.cdk.tools.manipulator.SmartAtomContainerManipulator;
 
 /**
  * Multi threaded worker implementation for the Coord3d Worker Node.
@@ -107,6 +108,8 @@ public class Coord3dWorker extends MultiThreadWorker<DataRow, DataRow> {
 								}
 							} else {
 								IAtomContainer mc = m;
+								// silly,  but required to circumvent a n/a bug in the ModelBuilder3D
+								mc = SmartAtomContainerManipulator.suppressNonChiralHydrogens(mc);
 								AtomContainerManipulator.convertImplicitToExplicitHydrogens(mc);
 								mc = ModelBuilder3D.getInstance(SilentChemObjectBuilder.getInstance()).generate3DCoordinates(mc, false);
 								pClone.set(mc);
