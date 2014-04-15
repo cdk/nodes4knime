@@ -82,7 +82,7 @@ public class FingerprintWorker extends MultiThreadWorker<DataRow, DataRow> {
 				IAtomContainer con = CDKNodeUtils.getExplicitClone(mol.getAtomContainer());
 				fingerprint = fp.getBitFingerprint(con).asBitSet();
 				// transfer the bitset into a dense bit vector
-				DenseBitVector bitVector = new DenseBitVector(fingerprint.size());
+				DenseBitVector bitVector = new DenseBitVector(fp.getSize());
 				for (int i = fingerprint.nextSetBit(0); i >= 0; i = fingerprint.nextSetBit(i + 1)) {
 					bitVector.set(i);
 				}
