@@ -71,6 +71,10 @@ public class FingerprintNodeModel extends CDKAdapterNodeModel {
 		FingerprintWorker worker = new FingerprintWorker(maxQueueSize, maxParallelWorkers, columnIndex, exec.createSubProgress(1),
 				convertedTables[0].getRowCount(), outputTable, settings(FingerprintSettings.class));
 
+		// hack for linear fingerprints:
+		// "too many paths generate. We're working making this faster but for now try generating paths with a smaller length"
+		worker.setModel(this);
+		
 		try {
 			worker.run(convertedTables[0]);
 		} finally {
