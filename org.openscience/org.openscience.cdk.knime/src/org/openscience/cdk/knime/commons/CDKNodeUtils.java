@@ -78,7 +78,6 @@ public class CDKNodeUtils {
 	static {
 		try {
 			ig = InChIGeneratorFactory.getInstance();
-			ig.setIgnoreAromaticBonds(true);
 		} catch (CDKException e) {
 			LOGGER.error("Failed to load the InChIGeneratorFactory.");
 		}
