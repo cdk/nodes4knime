@@ -32,12 +32,27 @@ public class FingerprintSettings implements CDKSettings {
 
 	/** Enum for the different fingerprint types. */
 	public enum FingerprintTypes {
-		Standard, Extended, EState, MACCS, Pubchem
+		Standard, Extended, EState, MACCS, Pubchem, Circular
+	}
+	
+	/** Enum for the different circular fingerprint classes. */
+	public enum FingerprintClasses {
+		ECFP0(1), ECFP2(2), ECFP4(3), ECFP6(4), FCFP0(5), FCFP2(6), FCFP4(7), FCFP6(8);
+		
+		private final int value;
+		FingerprintClasses(int value) {
+			this.value = value;
+		}
+		
+		int getValue() {
+			return value;
+		}
 	}
 
 	private String m_molColumn = null;
 
 	private FingerprintTypes m_fingerprintType = FingerprintTypes.Standard;
+	private FingerprintClasses fingerprintClass = FingerprintClasses.ECFP6;
 
 	/**
 	 * Returns the name of the column that holds the molecules.
@@ -74,6 +89,24 @@ public class FingerprintSettings implements CDKSettings {
 	public void fingerprintType(final FingerprintTypes type) {
 		m_fingerprintType = type;
 	}
+	
+	/**
+	 * Returns the class of the circular fingerprint that should be used.
+	 * 
+	 * @return the class of the circular fingerprint
+	 */
+	public FingerprintClasses fingerprintClass() {
+		return fingerprintClass;
+	}
+
+	/**
+	 * Sets the class of the circular fingerprint that should be used.
+	 * 
+	 * @param clazz the clazz of the circular fingerprint
+	 */
+	public void fingerprintClass(final FingerprintClasses clazz) {
+		fingerprintClass = clazz;
+	}
 
 	/**
 	 * Loads the settings from the given node settings object.
@@ -85,6 +118,8 @@ public class FingerprintSettings implements CDKSettings {
 		m_molColumn = settings.getString("molColumn", null);
 		m_fingerprintType = FingerprintTypes.valueOf(settings.getString("fingerprintType",
 				FingerprintTypes.Standard.toString()));
+		fingerprintClass = FingerprintClasses.valueOf(settings.getString("fingerprintClass",
+				FingerprintClasses.ECFP6.toString()));
 	}
 
 	/**
@@ -97,6 +132,7 @@ public class FingerprintSettings implements CDKSettings {
 
 		m_molColumn = settings.getString("molColumn");
 		m_fingerprintType = FingerprintTypes.valueOf(settings.getString("fingerprintType"));
+		fingerprintClass = FingerprintClasses.valueOf(settings.getString("fingerprintClass"));
 	}
 
 	/**
@@ -108,5 +144,6 @@ public class FingerprintSettings implements CDKSettings {
 
 		settings.addString("molColumn", m_molColumn);
 		settings.addString("fingerprintType", m_fingerprintType.toString());
+		settings.addString("fingerprintClass", fingerprintClass.toString());
 	}
 }

@@ -16,6 +16,7 @@ import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.NodeModel;
 import org.knime.core.util.MultiThreadWorker;
+import org.openscience.cdk.fingerprint.CircularFingerprinter;
 import org.openscience.cdk.fingerprint.EStateFingerprinter;
 import org.openscience.cdk.fingerprint.ExtendedFingerprinter;
 import org.openscience.cdk.fingerprint.Fingerprinter;
@@ -67,6 +68,8 @@ public class FingerprintWorker extends MultiThreadWorker<DataRow, DataRow> {
 			fp = new PubchemFingerprinter(SilentChemObjectBuilder.getInstance());
 		} else if (fpType.equals(FingerprintTypes.MACCS)) {
 			fp = new MACCSFingerprinter();
+		} else if (fpType.equals(FingerprintTypes.Circular)){
+			fp = new CircularFingerprinter(settings.fingerprintClass().getValue());
 		} else {
 			fp = new Fingerprinter();
 		}

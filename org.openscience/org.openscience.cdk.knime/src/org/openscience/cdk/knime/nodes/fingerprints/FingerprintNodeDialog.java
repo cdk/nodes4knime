@@ -21,10 +21,13 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 
 import javax.swing.ButtonGroup;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.border.Border;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
@@ -48,14 +51,14 @@ public class FingerprintNodeDialog extends NodeDialogPane {
 			CDKNodeUtils.ACCEPTED_VALUE_CLASSES);
 
 	private final JRadioButton m_standardFP = new JRadioButton("Standard");
-
 	private final JRadioButton m_extendedFP = new JRadioButton("Extended");
-
 	private final JRadioButton m_estateFP = new JRadioButton("EState");
-
 	private final JRadioButton m_pubchemFP = new JRadioButton("Pubchem");
-
 	private final JRadioButton m_maccsFP = new JRadioButton("MACCS");
+
+	private final JRadioButton circularFP = new JRadioButton("Circular");
+	private final JComboBox<FingerprintSettings.FingerprintClasses> circularFpClass = new JComboBox<FingerprintSettings.FingerprintClasses>(
+			FingerprintSettings.FingerprintClasses.values());
 
 	private final FingerprintSettings m_settings = new FingerprintSettings();
 
@@ -89,6 +92,23 @@ public class FingerprintNodeDialog extends NodeDialogPane {
 		p.add(m_pubchemFP, c);
 		c.gridy++;
 		p.add(m_maccsFP, c);
+		c.gridy++;
+		p.add(circularFP, c);
+		c.gridy++;
+		p.add(circularFpClass, c);
+		
+		circularFP.addChangeListener(new ChangeListener() {
+
+			@Override
+			public void stateChanged(ChangeEvent arg0) {
+
+				if (circularFP.isSelected()) {
+					circularFpClass.setEnabled(true);
+				} else {
+					circularFpClass.setEnabled(false);
+				}
+			}
+		});
 
 		ButtonGroup bg = new ButtonGroup();
 		bg.add(m_standardFP);
@@ -96,6 +116,9 @@ public class FingerprintNodeDialog extends NodeDialogPane {
 		bg.add(m_estateFP);
 		bg.add(m_pubchemFP);
 		bg.add(m_maccsFP);
+		bg.add(circularFP);
+
+		circularFpClass.setEnabled(false);
 
 		addTab("Fingerprint Options", p);
 	}
@@ -120,6 +143,10 @@ public class FingerprintNodeDialog extends NodeDialogPane {
 			m_pubchemFP.setSelected(true);
 		} else if (m_settings.fingerprintType().equals(FingerprintTypes.MACCS)) {
 			m_maccsFP.setSelected(true);
+		} else if (m_settings.fingerprintType().equals(FingerprintTypes.Circular)) {
+			circularFP.setSelected(true);
+			circularFpClass.setEnabled(true);
+			circularFpClass.setSelectedItem(m_settings.fingerprintClass());
 		}
 	}
 
@@ -140,6 +167,9 @@ public class FingerprintNodeDialog extends NodeDialogPane {
 			m_settings.fingerprintType(FingerprintTypes.Pubchem);
 		} else if (m_maccsFP.isSelected()) {
 			m_settings.fingerprintType(FingerprintTypes.MACCS);
+		} else if (circularFP.isSelected()) {
+			m_settings.fingerprintType(FingerprintTypes.Circular);
+			m_settings.fingerprintClass((FingerprintSettings.FingerprintClasses) circularFpClass.getSelectedItem());
 		}
 		m_settings.saveSettings(settings);
 	}
