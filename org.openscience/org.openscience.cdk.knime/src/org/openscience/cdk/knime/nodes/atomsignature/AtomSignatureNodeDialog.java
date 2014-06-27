@@ -56,7 +56,7 @@ public class AtomSignatureNodeDialog extends NodeDialogPane {
 	private final JRadioButton m_hosecodes = new JRadioButton("Hose Codes");
 	private final JRadioButton m_atomsignature = new JRadioButton("Atom Signatures");
 
-	private final JComboBox<String> atomBox = new JComboBox<String>(new String[] { "H", "C", "F", "N", "O", "B", "Si", "S", "P" });
+	private final JComboBox atomBox = new JComboBox(new String[] { "H", "C", "F", "N", "O", "B", "Si", "S", "P" });
 
 	private final JCheckBox m_heightChecker = new JCheckBox("Set signature height");
 	private final JTextField m_minHeight = new JTextField(8);

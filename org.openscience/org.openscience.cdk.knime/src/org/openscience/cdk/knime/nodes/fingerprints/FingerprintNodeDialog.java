@@ -57,7 +57,7 @@ public class FingerprintNodeDialog extends NodeDialogPane {
 	private final JRadioButton m_maccsFP = new JRadioButton("MACCS");
 
 	private final JRadioButton circularFP = new JRadioButton("Circular");
-	private final JComboBox<FingerprintSettings.FingerprintClasses> circularFpClass = new JComboBox<FingerprintSettings.FingerprintClasses>(
+	private final JComboBox circularFpClass = new JComboBox(
 			FingerprintSettings.FingerprintClasses.values());
 
 	private final FingerprintSettings m_settings = new FingerprintSettings();
