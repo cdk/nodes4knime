@@ -30,6 +30,7 @@ public class ElementFilterSettings implements CDKSettings {
 
 	private String molColumnName;
 	private String elements = "C,H,N,O,P,S";
+	private boolean keep = true;
 
 	/**
 	 * Gets the name of the CDK column.
@@ -66,6 +67,24 @@ public class ElementFilterSettings implements CDKSettings {
 	public final void setElements(String elements) {
 		this.elements = elements;
 	}
+	
+	/**
+	 * Gets the keeg/exclude flag.
+	 * 
+	 * @return the flag
+	 */
+	public final boolean getKeep() {
+		return keep;
+	}
+
+	/**
+	 * Sets the keep/exclude flag.
+	 * 
+	 * @param keep
+	 */
+	public final void setKeep(boolean keep) {
+		this.keep = keep;
+	}
 
 	/**
 	 * Saves the settings into the given node settings object.
@@ -76,6 +95,7 @@ public class ElementFilterSettings implements CDKSettings {
 
 		settings.addString("molColName", molColumnName);
 		settings.addString("elements", elements);
+		settings.addBoolean("keep", keep);
 	}
 
 	/**
@@ -88,5 +108,6 @@ public class ElementFilterSettings implements CDKSettings {
 
 		molColumnName = settings.getString("molColName");
 		elements = settings.getString("elements");
+		keep = settings.getBoolean("keep");
 	}
 }

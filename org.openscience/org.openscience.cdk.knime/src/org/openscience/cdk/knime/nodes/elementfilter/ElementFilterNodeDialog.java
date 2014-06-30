@@ -48,7 +48,8 @@ public class ElementFilterNodeDialog extends NodeDialogPane {
 	@SuppressWarnings("unchecked")
 	private final ColumnSelectionComboxBox molColumn = new ColumnSelectionComboxBox((Border) null,
 			CDKNodeUtils.ACCEPTED_VALUE_CLASSES);
-	private final JRadioButton customSetButton;
+	private final JRadioButton customSetRemoveButton;
+	private final JRadioButton customSetKeepButton;
 	private final JRadioButton standardSetButton;
 	private final JTextField elementField;
 
@@ -80,26 +81,45 @@ public class ElementFilterNodeDialog extends NodeDialogPane {
 		c.gridx++;
 		standardSetButton = new JRadioButton("(C,H,N,O,P,S)");
 		standardSetButton.setSelected(true);
-		panel.add(standardSetButton, c);
-		c.gridy++;
-		c.gridx = 0;
-
-		panel.add(new JLabel("Custom set (remove) "), c);
-		c.gridx++;
-		customSetButton = new JRadioButton("(comma separated)");
-		customSetButton.addChangeListener(new ChangeListener() {
-
+		standardSetButton.addChangeListener(new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent arg0) {
-
-				if (customSetButton.isSelected()) {
-					elementField.setEditable(true);
-				} else {
+				if (standardSetButton.isSelected()) {
 					elementField.setEditable(false);
 				}
 			}
 		});
-		panel.add(customSetButton, c);
+		panel.add(standardSetButton, c);
+		c.gridy++;
+		c.gridx = 0;
+
+		panel.add(new JLabel("Custom set (keep) "), c);
+		c.gridx++;
+		customSetKeepButton = new JRadioButton("(comma separated)");
+		customSetKeepButton.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent arg0) {
+				if (customSetKeepButton.isSelected()) {
+					elementField.setEditable(true);
+				}
+			}
+		});
+		panel.add(customSetKeepButton, c);
+		c.gridy++;
+		c.gridx = 0;
+		
+		panel.add(new JLabel("Custom set (remove) "), c);
+		c.gridx++;
+		customSetRemoveButton = new JRadioButton("(comma separated)");
+		customSetRemoveButton.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent arg0) {
+				if (customSetRemoveButton.isSelected()) {
+					elementField.setEditable(true);
+				}
+			}
+		});
+		panel.add(customSetRemoveButton, c);
 		c.gridy++;
 		c.gridx = 0;
 
@@ -113,7 +133,8 @@ public class ElementFilterNodeDialog extends NodeDialogPane {
 
 		ButtonGroup buttonGroup = new ButtonGroup();
 		buttonGroup.add(standardSetButton);
-		buttonGroup.add(customSetButton);
+		buttonGroup.add(customSetKeepButton);
+		buttonGroup.add(customSetRemoveButton);
 
 		this.addTab("Settings", panel);
 	}
@@ -133,11 +154,14 @@ public class ElementFilterNodeDialog extends NodeDialogPane {
 
 		molColumn.update(specs[0], this.settings.targetColumn());
 		String elementSet = this.settings.getElements();
-		if (elementSet.equals(STANDARDSET)) {
+		if (elementSet.equals(STANDARDSET) && this.settings.getKeep()) {
 			standardSetButton.setSelected(true);
 			elementField.setEditable(false);
+		} else if (this.settings.getKeep()) {
+			customSetKeepButton.setSelected(true);
+			elementField.setText(this.settings.getElements());
 		} else {
-			customSetButton.setSelected(true);
+			customSetRemoveButton.setSelected(true);
 			elementField.setText(this.settings.getElements());
 		}
 	}
@@ -151,7 +175,9 @@ public class ElementFilterNodeDialog extends NodeDialogPane {
 		this.settings.targetColumn(molColumn.getSelectedColumn());
 		if (standardSetButton.isSelected()) {
 			this.settings.setElements(STANDARDSET);
+			this.settings.setKeep(true);
 		} else {
+			this.settings.setKeep(customSetKeepButton.isSelected());
 			this.settings.setElements(elementField.getText());
 		}
 

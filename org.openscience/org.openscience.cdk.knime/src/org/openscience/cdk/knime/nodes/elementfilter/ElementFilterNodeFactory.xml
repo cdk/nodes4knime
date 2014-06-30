@@ -13,7 +13,7 @@
 
 		<option name="Column with molecules">Molecule column in input table.</option>
 		<option name="Filter set">The element set used for filtering. Keep either molecules that only
-		have types C,H,N,O,P,S or define individual elements that trigger exclusion. The list needs to be comma-separated.</option>
+		have types C,H,N,O,P,S, an extended set or define individual elements that trigger exclusion. The list needs to be comma-separated.</option>
 	</fullDescription>
 
 	<ports>

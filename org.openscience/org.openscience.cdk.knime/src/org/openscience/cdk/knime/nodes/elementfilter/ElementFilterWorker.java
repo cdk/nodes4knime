@@ -16,7 +16,6 @@
  */
 package org.openscience.cdk.knime.nodes.elementfilter;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -48,8 +47,7 @@ public class ElementFilterWorker extends MultiThreadWorker<DataRow, DataRow> {
 	private final Set<Long> matchedRows;
 	private final BufferedDataContainer[] bdcs;
 	private final Set<String> elementSet;
-
-	private final Set<String> STANDARD_SET = new HashSet<String>(Arrays.asList("C", "H", "N", "O", "P", "S"));
+	private final boolean keep;
 
 	public ElementFilterWorker(final int maxQueueSize, final int maxActiveInstanceSize, final int columnIndex,
 			final ExecutionContext exec, final ElementFilterSettings settings, final BufferedDataContainer... bdcs) {
@@ -61,6 +59,7 @@ public class ElementFilterWorker extends MultiThreadWorker<DataRow, DataRow> {
 		for (String element : elements) {
 			elementSet.add(element);
 		}
+		this.keep = settings.getKeep();
 
 		this.exec = exec;
 		this.bdcs = bdcs;
@@ -81,7 +80,7 @@ public class ElementFilterWorker extends MultiThreadWorker<DataRow, DataRow> {
 			List<IElement> sumElements = MolecularFormulaManipulator.getHeavyElements(formula);
 			
 			// keep CHNOPS
-			if (elementSet.size() == 6 && elementSet.containsAll(STANDARD_SET)) {
+			if (keep) {
 				boolean isValid = true;
 				for (IElement element : sumElements) {
 					String symbol = element.getSymbol();
@@ -93,7 +92,7 @@ public class ElementFilterWorker extends MultiThreadWorker<DataRow, DataRow> {
 				if (isValid) {
 					matchedRows.add(index);
 				}
-			// remove everything else
+		    // remove everything else
 			} else {
 				boolean isValid = true;
 				for (IElement element : sumElements) {
