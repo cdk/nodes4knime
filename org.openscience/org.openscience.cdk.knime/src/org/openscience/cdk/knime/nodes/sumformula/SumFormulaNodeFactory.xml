@@ -9,22 +9,25 @@
     </shortDescription>
 
 	<fullDescription>
-		<intro>Generates sum formulas based on a given mass. The mass
-			tolerance limit is 0.05 amu. The formula generator assumes masses to be
-			major isotopic masses.
-			The 'valid sum' of the generated sum formulas
-			is also given. It ranges
-			between 0 and 1 indicating if any of the
-			applied rules for evaluating
-			the validity of a formula has been
-			violated. Rules used are 'ElementRule', 'MMElementRule',
-			'NitrogenRule', and 'RDBERule' (defined in CDK API). All rule parameters are set to
-			default.
-			'Exclusion' removes all formulas with a valid sum of 0.</intro>
-
+		<intro>Generates sum formulas based on a given mass. The formula generator assumes 
+			input masses to be major isotopic masses.
+			
+			The 'valid sum' of the generated sum formulas is also computed. It ranges
+			between 0 and 1 indicating if any of the applied rules for evaluating
+			the validity of a formula has been violated. Rules used are 'ElementRule', 'MMElementRule',
+			'NitrogenRule', and 'RDBERule' (defined in CDK API). All rule parameters are set to default.
+			'Exclusion' keeps only formulas with a valid sum of 1.
+			<br/>
+			<br/>
+			DISABLED Options: 'All elements' and 'Exclude elements' are currently not supported because the
+			matrix required for the calculation exceeds the memory limit of the virtual machine: Math.pow(2, size).</intro>
 		<option name="Column with masses">Mass column in input table.</option>
-		<option name="Remove unprobable formulas">Remove sum formulas that appear to be unlikely.
-		</option>
+		<option name="All elements (DISABLED)">Whether to use all elements for the calculation.</option>
+		<option name="Include elements">Whether to use a custom set of elements.</option>
+		<option name="Exclude elements (DISABLED)">Whether to use all elements excluding a set of elements.</option>
+		<option name="Elements">The comma-separated set of elements to be included or excluded.</option>
+		<option name="Mass tolerance">The mass tolerance in 'amu'.</option>
+		<option name="Remove improbable formulas">Remove sum formulas that violate one or more of the rules.</option>
 	</fullDescription>
 
 	<ports>

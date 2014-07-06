@@ -19,7 +19,9 @@ package org.openscience.cdk.knime.nodes.sumformula;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
@@ -37,13 +39,19 @@ import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.openscience.cdk.DefaultChemObjectBuilder;
+import org.openscience.cdk.config.IsotopeFactory;
+import org.openscience.cdk.config.Isotopes;
+import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.formula.MassToFormulaTool;
 import org.openscience.cdk.formula.MolecularFormulaChecker;
+import org.openscience.cdk.formula.MolecularFormulaRange;
+import org.openscience.cdk.formula.rules.ChargeRule;
 import org.openscience.cdk.formula.rules.ElementRule;
 import org.openscience.cdk.formula.rules.IRule;
 import org.openscience.cdk.formula.rules.MMElementRule;
 import org.openscience.cdk.formula.rules.NitrogenRule;
 import org.openscience.cdk.formula.rules.RDBERule;
+import org.openscience.cdk.formula.rules.ToleranceRangeRule;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.interfaces.IMolecularFormulaSet;
 import org.openscience.cdk.knime.commons.CDKNodeUtils;
@@ -58,6 +66,8 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
  */
 public class SumFormulaNodeModel extends CDKNodeModel {
 
+	private List<IRule> rules;
+	
 	/**
 	 * Constructor for the node model.
 	 */
@@ -80,7 +90,47 @@ public class SumFormulaNodeModel extends CDKNodeModel {
 
 		DataColumnSpec[] appendSpec = new DataColumnSpec[] { crea1.createSpec(), crea2.createSpec() };
 		columnIndex = spec.findColumnIndex(settings.targetColumn());
-
+		
+		// CUSTOM PARAMETERS
+		rules = new ArrayList<IRule>();
+		try {
+			// restriction for occurrence elements
+			IsotopeFactory ifac = Isotopes.getInstance();
+			MolecularFormulaRange mfRange = new MolecularFormulaRange();
+			if (settings(SumFormulaSettings.class).incSpec()) {
+				String[] els = settings(SumFormulaSettings.class).elements().split(",");
+				for (String el : els) {
+					mfRange.addIsotope(ifac.getMajorIsotope(el), 0, 30);
+				}
+			} else if (settings(SumFormulaSettings.class).incAll()) {
+				for (String el : settings(SumFormulaSettings.class).listElements) {
+					mfRange.addIsotope(ifac.getMajorIsotope(el), 0, 30);
+				}
+			} else {
+				String[] rems = settings(SumFormulaSettings.class).elements().split(",");
+				Set<String> remSet = new HashSet<String>(Arrays.asList(rems));
+				for (String el : settings(SumFormulaSettings.class).listElements) {
+					if (!remSet.contains(el)) {
+						mfRange.addIsotope(ifac.getMajorIsotope(el), 0, 30);
+					}
+				}
+			}
+			IRule rule1  = new ElementRule();
+			rule1.setParameters(new Object[] { mfRange });
+			rules.add(rule1);
+			// occurrence for charge
+			IRule rule2  = new ChargeRule(); // default 0.0 neutral
+			rules.add(rule2);
+			// occurrence for tolerance
+			IRule rule3 = new ToleranceRangeRule(); // default 0.05
+			rule3.setParameters(new Object[] { 0.0, settings(SumFormulaSettings.class).tolerance() });
+			rules.add(rule3);
+			// set options
+		} catch (Exception e) {
+			e.printStackTrace();
+			setWarningMessage("Rule violation, falling back to default rules.");
+		}
+		
 		AbstractCellFactory cf = new AbstractCellFactory(true, appendSpec) {
 
 			@Override
@@ -98,6 +148,14 @@ public class SumFormulaNodeModel extends CDKNodeModel {
 				}
 
 				MassToFormulaTool mtft = new MassToFormulaTool(DefaultChemObjectBuilder.getInstance());
+				if (rules.size() == 3) {
+					try {
+						mtft.setRestrictions(rules);
+					} catch (CDKException e) {
+						setWarningMessage("Rule violation, falling back to default rules.");
+						mtft.setDefaultRestrictions();
+					}
+				}
 				double mass = ((DoubleValue) row.getCell(columnIndex)).getDoubleValue();
 				IMolecularFormulaSet mfSet = null;
 				mfSet = mtft.generate(mass);
@@ -113,12 +171,19 @@ public class SumFormulaNodeModel extends CDKNodeModel {
 				Collection<DoubleCell> sumDoubles = new ArrayList<DoubleCell>();
 				for (IMolecularFormula formula : mfSet.molecularFormulas()) {
 
-					double validSum = mfc.isValidSum(formula);
-					if (settings(SumFormulaSettings.class).isExcludeByValidSum() && validSum != 1) {
-						continue;
+					try {
+						double validSum = mfc.isValidSum(formula);
+						if (settings(SumFormulaSettings.class).isExcludeByValidSum() && validSum != 1) {
+							continue;
+						}
+						hillStrings.add(new StringCell(MolecularFormulaManipulator.getString(formula)));
+						sumDoubles.add(new DoubleCell(validSum));
+					} catch (Exception exception) {
+						if (!settings(SumFormulaSettings.class).isExcludeByValidSum()) {
+							hillStrings.add(new StringCell(MolecularFormulaManipulator.getString(formula)));
+							sumDoubles.add(new DoubleCell(0));
+						}
 					}
-					hillStrings.add(new StringCell(MolecularFormulaManipulator.getString(formula)));
-					sumDoubles.add(new DoubleCell(validSum));
 				}
 
 				newCells[0] = CollectionCellFactory.createListCell(hillStrings);

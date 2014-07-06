@@ -30,7 +30,24 @@ import org.openscience.cdk.knime.core.CDKSettings;
 public class SumFormulaSettings implements CDKSettings {
 
 	private String massColumn;
+	private String elements = "C,H,N,O";
+	private boolean incAll = false;
+	private boolean incSpec = true;
+	private double tolerance = 0.5;
 	private boolean excludeByValidSum;
+	
+	protected String[] listElements = new String[]{
+		    "C", "H", "O", "N", "Si", "P", "S", "F", "Cl",
+		    "Br", "I", "Sn", "B", "Pb", "Tl", "Ba", "In", "Pd",
+		    "Pt", "Os", "Ag", "Zr", "Se", "Zn", "Cu", "Ni", "Co", 
+		    "Fe", "Cr", "Ti", "Ca", "K", "Al", "Mg", "Na", "Ce",
+		    "Hg", "Au", "Ir", "Re", "W", "Ta", "Hf", "Lu", "Yb", 
+		    "Tm", "Er", "Ho", "Dy", "Tb", "Gd", "Eu", "Sm", "Pm",
+		    "Nd", "Pr", "La", "Cs", "Xe", "Te", "Sb", "Cd", "Rh", 
+		    "Ru", "Tc", "Mo", "Nb", "Y", "Sr", "Rb", "Kr", "As", 
+		    "Ge", "Ga", "Mn", "V", "Sc", "Ar", "Ne", "Be", "Li", 
+		    "Tl", "Pb", "Bi", "Po", "At", "Rn", "Fr", "Ra", "Ac", 
+		    "Th", "Pa", "U", "Np", "Pu"};
 
 	/**
 	 * Gets the name of the mass containing double column.
@@ -46,7 +63,7 @@ public class SumFormulaSettings implements CDKSettings {
 	 * 
 	 * @param massColumn the massColumn to set
 	 */
-	public void targetColumn(String massColumn) {
+	public void targetColumn(final String massColumn) {
 		this.massColumn = massColumn;
 	}
 
@@ -64,9 +81,9 @@ public class SumFormulaSettings implements CDKSettings {
 	 * 
 	 * @param excludeByValidSum the excludeByValidSum to set
 	 */
-	public void setExcludeByValidSum(boolean excludeByValidSum) {
+	public void setExcludeByValidSum(final boolean excludeByValidSum) {
 		this.excludeByValidSum = excludeByValidSum;
-	}
+	}	
 
 	/**
 	 * Saves the settings into the given node settings object.
@@ -76,6 +93,10 @@ public class SumFormulaSettings implements CDKSettings {
 	public void saveSettings(final NodeSettingsWO settings) {
 
 		settings.addString("massColumn", massColumn);
+		settings.addString("elements", elements);
+		settings.addBoolean("incAll", incAll);
+		settings.addBoolean("incSpec", incSpec);
+		settings.addDouble("tolerance", tolerance);
 		settings.addBoolean("exclude", excludeByValidSum);
 	}
 
@@ -88,6 +109,42 @@ public class SumFormulaSettings implements CDKSettings {
 	public void loadSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
 
 		massColumn = settings.getString("massColumn");
+		elements = settings.getString("elements");
+		incAll = settings.getBoolean("incAll");
+		incSpec = settings.getBoolean("incSpec");
+		tolerance = settings.getDouble("tolerance");
 		excludeByValidSum = settings.getBoolean("exclude");
+	}
+	
+	public String elements() {
+		return elements;
+	}
+	
+	public void elements(String elements) {
+		this.elements = elements;
+	}
+
+	public boolean incAll() {
+		return incAll;
+	}
+
+	public void incAll(boolean incAll) {
+		this.incAll = incAll;
+	}
+
+	public boolean incSpec() {
+		return incSpec;
+	}
+
+	public void incSpec(boolean incSpec) {
+		this.incSpec = incSpec;
+	}
+
+	public double tolerance() {
+		return tolerance;
+	}
+
+	public void tolerance(double tolerance) {
+		this.tolerance = tolerance;
 	}
 }

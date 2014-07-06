@@ -20,10 +20,15 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 
 import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JTextField;
 import javax.swing.border.Border;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DoubleValue;
@@ -44,6 +49,13 @@ public class SumFormulaNodeDialog extends NodeDialogPane {
 
 	@SuppressWarnings("unchecked")
 	private final ColumnSelectionComboxBox massColumn = new ColumnSelectionComboxBox((Border) null, DoubleValue.class);
+
+	private final JRadioButton customRemoveButton;
+	private final JRadioButton customSetButton;
+	private final JRadioButton allSetButton;
+	private final JTextField elementField;
+	private final JTextField toleranceField;
+	
 	private final JCheckBox excludeByValidSum = new JCheckBox("", true);
 
 	private SumFormulaSettings settings = new SumFormulaSettings();
@@ -68,12 +80,82 @@ public class SumFormulaNodeDialog extends NodeDialogPane {
 		c.gridy++;
 		c.gridx = 0;
 
+		allSetButton = new JRadioButton();
+		allSetButton.setEnabled(false);
+		allSetButton.setSelected(false);
+		allSetButton.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent arg0) {
+				if (allSetButton.isSelected()) {
+					elementField.setEditable(false);
+				}
+			}
+		});
+		panel.add(new JLabel("All elements  "), c);
+		c.gridx++;
+		panel.add(allSetButton, c);
+		c.gridy++;
+		c.gridx = 0;
+		
+		customSetButton = new JRadioButton();
+		customSetButton.setSelected(true);
+		customSetButton.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent arg0) {
+				if (customSetButton.isSelected()) {
+					elementField.setEditable(true);
+				}
+			}
+		});
+		panel.add(new JLabel("Include elements  "), c);
+		c.gridx++;
+		panel.add(customSetButton, c);
+		c.gridy++;
+		c.gridx = 0;
+		
+		customRemoveButton = new JRadioButton();
+		customRemoveButton.setEnabled(false);
+		customRemoveButton.setSelected(false);
+		customRemoveButton.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent arg0) {
+				if (customRemoveButton.isSelected()) {
+					elementField.setEditable(true);
+				}
+			}
+		});
+		panel.add(new JLabel("Exclude elements  "), c);
+		c.gridx++;
+		panel.add(customRemoveButton, c);
+		c.gridy++;
+		c.gridx = 0;
+		
+		elementField = new JTextField("C,H,N,O", 12);
+		elementField.setEditable(true);
+		panel.add(new JLabel("Elements  "), c);
+		c.gridx++;
+		panel.add(elementField, c);
+		c.gridy++;
+		c.gridx = 0;
+		
+		toleranceField = new JTextField("0.5", 12);
+		panel.add(new JLabel("Mass tolerance  "), c);
+		c.gridx++;
+		panel.add(toleranceField, c);
+		c.gridy++;
+		c.gridx = 0;
+		
 		panel.add(new JLabel("Exclude filtered  "), c);
 		c.gridx++;
 		panel.add(excludeByValidSum, c);
 		c.gridy++;
 		c.gridx = 0;
 
+		ButtonGroup bg = new ButtonGroup();
+		bg.add(allSetButton);
+		bg.add(customSetButton);
+		bg.add(customRemoveButton);
+		
 		this.addTab("Settings", panel);
 	}
 
@@ -91,6 +173,15 @@ public class SumFormulaNodeDialog extends NodeDialogPane {
 		}
 
 		massColumn.update(specs[0], this.settings.targetColumn());
+		elementField.setText(this.settings.elements());
+		if (this.settings.incAll()) {
+			allSetButton.setSelected(true);
+		} else if (this.settings.incSpec()) {
+			customSetButton.setSelected(true);
+		} else {
+			customRemoveButton.setSelected(true);
+		}
+		toleranceField.setText(this.settings.tolerance() + "");
 		excludeByValidSum.setSelected(this.settings.isExcludeByValidSum());
 	}
 
@@ -101,6 +192,10 @@ public class SumFormulaNodeDialog extends NodeDialogPane {
 	protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
 
 		this.settings.targetColumn(massColumn.getSelectedColumn());
+		this.settings.elements(elementField.getText());
+		this.settings.incAll(allSetButton.isSelected());
+		this.settings.incSpec(customSetButton.isSelected());
+		this.settings.tolerance(Double.parseDouble(toleranceField.getText()));
 		this.settings.setExcludeByValidSum(excludeByValidSum.isSelected());
 
 		this.settings.saveSettings(settings);
