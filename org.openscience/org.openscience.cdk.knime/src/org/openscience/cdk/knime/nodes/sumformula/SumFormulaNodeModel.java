@@ -203,12 +203,12 @@ public class SumFormulaNodeModel extends CDKNodeModel {
 
 		List<IRule> rules = new ArrayList<IRule>();
 
-		IRule elementRule = new ElementRule();
+		// IRule elementRule = new ElementRule();
 		IRule mmElementRule = new MMElementRule();
 		IRule nitrogenRule = new NitrogenRule();
 		IRule rdbeRule = new RDBERule();
 
-		rules.add(elementRule);
+		// rules.add(elementRule);
 		rules.add(mmElementRule);
 		rules.add(nitrogenRule);
 		rules.add(rdbeRule);
