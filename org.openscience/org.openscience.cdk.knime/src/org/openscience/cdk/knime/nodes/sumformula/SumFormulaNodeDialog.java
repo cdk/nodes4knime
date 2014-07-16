@@ -22,6 +22,7 @@ import java.awt.GridBagLayout;
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
@@ -56,7 +57,19 @@ public class SumFormulaNodeDialog extends NodeDialogPane {
 	private final JTextField elementField;
 	private final JTextField toleranceField;
 	
-	private final JCheckBox excludeByValidSum = new JCheckBox("", true);
+	private final JCheckBox ratioRule = new JCheckBox("", true);
+	private final JCheckBox nitrogenRule = new JCheckBox("", true);
+	private final JCheckBox numberRule = new JCheckBox("", true);
+	
+	private final JComboBox ratioBoxRange = new JComboBox(new Object[] {
+			"Common Range", "Extended Range", "Extreme Range"
+	});
+	private final JComboBox ratioBoxType = new JComboBox(new Object[] {
+			"H/C", "SiNOPSBrClF/C", "HSiNOPSBrClF/C"
+	});
+	private final JComboBox numberBox = new JComboBox(new Object[] {
+			"DNP-500", "DNP-1000", "DNP-2000", "DNP-3000", "Wiley-500", "Wiley-1000", "Wiley-2000"
+	});
 
 	private SumFormulaSettings settings = new SumFormulaSettings();
 
@@ -145,11 +158,53 @@ public class SumFormulaNodeDialog extends NodeDialogPane {
 		c.gridy++;
 		c.gridx = 0;
 		
-		panel.add(new JLabel("Exclude filtered  "), c);
+		panel.add(new JLabel("Apply nitrogen rule   "), c);
 		c.gridx++;
-		panel.add(excludeByValidSum, c);
+		panel.add(nitrogenRule, c);
 		c.gridy++;
 		c.gridx = 0;
+		
+		panel.add(new JLabel("Apply element ratio rule   "), c);
+		c.gridx++;
+		panel.add(ratioRule, c);
+		c.gridy++;
+		panel.add(ratioBoxType, c);
+		c.gridy++;
+		panel.add(ratioBoxRange, c);
+		c.gridy++;
+		c.gridx = 0;
+		
+		ratioRule.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent arg0) {
+				if (ratioRule.isSelected()) {
+					ratioBoxType.setEnabled(true);
+					ratioBoxRange.setEnabled(true);
+				} else {
+					ratioBoxType.setEnabled(false);
+					ratioBoxRange.setEnabled(false);
+				}
+			}
+		});
+		
+		panel.add(new JLabel("Apply element restrictions   "), c);
+		c.gridx++;
+		panel.add(numberRule, c);
+		c.gridy++;
+		panel.add(numberBox, c);
+		c.gridy++;
+		c.gridx = 0;
+		
+		numberRule.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent arg0) {
+				if (numberRule.isSelected()) {
+					numberBox.setEnabled(true);
+				} else {
+					numberBox.setEnabled(false);
+				}
+			}
+		});
 
 		ButtonGroup bg = new ButtonGroup();
 		bg.add(allSetButton);
@@ -182,7 +237,23 @@ public class SumFormulaNodeDialog extends NodeDialogPane {
 			customRemoveButton.setSelected(true);
 		}
 		toleranceField.setText(this.settings.tolerance() + "");
-		excludeByValidSum.setSelected(this.settings.isExcludeByValidSum());
+		nitrogenRule.setSelected(this.settings.isApplyNitrogenRule());
+		
+		if (!this.settings.isApplyRatioRule().isEmpty()) {
+			ratioRule.setSelected(true);
+			String[] els = this.settings.isApplyRatioRule().split("-");
+			ratioBoxType.setSelectedItem(els[0]);
+			ratioBoxRange.setSelectedItem(els[1]);
+		} else {
+			ratioRule.setSelected(false);
+		}
+		
+		if (!this.settings.isApplyNumberRule().isEmpty()) {
+			numberRule.setSelected(true);
+			numberBox.setSelectedItem(this.settings.isApplyNumberRule());
+		} else {
+			numberRule.setSelected(false);
+		}
 	}
 
 	/**
@@ -196,7 +267,10 @@ public class SumFormulaNodeDialog extends NodeDialogPane {
 		this.settings.incAll(allSetButton.isSelected());
 		this.settings.incSpec(customSetButton.isSelected());
 		this.settings.tolerance(Double.parseDouble(toleranceField.getText()));
-		this.settings.setExcludeByValidSum(excludeByValidSum.isSelected());
+		this.settings.setApplyNitrogenRule(nitrogenRule.isSelected());
+		this.settings.setApplyRatioRule(ratioRule.isSelected() ? ratioBoxType.getSelectedItem().toString() + 
+				"-" + ratioBoxRange.getSelectedItem().toString(): "");
+		this.settings.setApplyNumberRule(numberRule.isSelected() ? numberBox.getSelectedItem().toString() : "");
 
 		this.settings.saveSettings(settings);
 	}

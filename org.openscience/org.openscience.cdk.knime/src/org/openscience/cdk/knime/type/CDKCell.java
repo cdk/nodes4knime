@@ -47,7 +47,7 @@ import org.openscience.cdk.interfaces.IChemFile;
 import org.openscience.cdk.interfaces.IStereoElement;
 import org.openscience.cdk.io.CMLReader;
 import org.openscience.cdk.io.SDFWriter;
-import org.openscience.cdk.knime.cml.CmlKnimeCore;
+import org.openscience.cdk.io.cml.CmlKnimeCore;
 import org.openscience.cdk.knime.commons.CDKNodeUtils;
 import org.openscience.cdk.layout.LayoutHelper;
 import org.openscience.cdk.silent.ChemFile;

@@ -22,6 +22,7 @@ import nu.xom.Element;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IBond;
+import org.openscience.cdk.io.cml.CmlKnimeCore;
 import org.openscience.cdk.libio.cml.ICMLCustomizer;
 import org.xmlcml.cml.element.CMLAtomParity;
 import org.xmlcml.cml.element.CMLAtomType;

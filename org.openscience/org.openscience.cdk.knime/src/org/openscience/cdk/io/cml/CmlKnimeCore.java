@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Lesser General Public License along with the plugin. If not, see
  * <http://www.gnu.org/licenses/>.
  */
-package org.openscience.cdk.knime.cml;
+package org.openscience.cdk.io.cml;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -30,8 +30,6 @@ import org.openscience.cdk.interfaces.IAtomType;
 import org.openscience.cdk.interfaces.IBond;
 import org.openscience.cdk.interfaces.IBond.Stereo;
 import org.openscience.cdk.interfaces.IChemFile;
-import org.openscience.cdk.io.cml.CMLCoreModule;
-import org.openscience.cdk.io.cml.CMLStack;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.tools.manipulator.AtomTypeManipulator;
 import org.openscience.cdk.tools.manipulator.BondManipulator;
@@ -184,7 +182,7 @@ public class CmlKnimeCore extends CMLCoreModule {
 
 	@Override
 	public void endElement(final CMLStack xpath, final String uri, final String name, final String raw) {
-
+		
 		if (xpath.endsWith("atom", "atomType")) {
 			while ((atomTypes.size() + 1) < atomCounter) {
 				atomTypes.add(null);

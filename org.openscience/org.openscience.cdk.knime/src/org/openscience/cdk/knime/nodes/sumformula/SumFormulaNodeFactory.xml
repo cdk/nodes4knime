@@ -11,12 +11,31 @@
 	<fullDescription>
 		<intro>Generates sum formulas based on a given mass. The formula generator assumes 
 			input masses to be major isotopic masses.
-			
-			The 'valid sum' of the generated sum formulas is also computed. It ranges
-			between 0 and 1 indicating if any of the applied rules for evaluating
-			the validity of a formula has been violated. Rules used are 'ElementRule', 'MMElementRule',
-			'NitrogenRule', and 'RDBERule' (defined in CDK API). All rule parameters are set to default.
-			'Exclusion' keeps only formulas with a valid sum of 1.
+			<br/>
+			<br/>
+			Generated sum formulas can be filtered by the nitrogen rule, element ratio rule, and
+			by element number restriction. For details on the implemented options, please see the
+			"seven golden rules" by Kind et al., 2007. The following excerpts are taken from the publication.
+			<br/>
+			<br/>
+			"The nitrogen rule states that an odd nominal molecular mass implies also an odd number of nitrogens. 
+			This rule should only be used with nominal (integer) masses. When using accurate mass measurements 
+			this rule becomes unreliable in mass ranges higher than 500 Da."
+			<br/>
+			<br/>
+			"The maximum element count can be restricted in a heuristic manner by using the provided sets of element
+			minima und maxima that were derived from NIST and Wiley mass spectra and DNP entries. Maximum element counts 
+			are defined for the mass ranges at smaller 500 Da, 1000 Da, 2000 Da, 3000 Da by taking the higher value found 
+			in either of the two databases."
+			<br/>
+			<br/>
+			"More than 99.7% of all formulas were included with H/C ratios between 0.2–3.1. This range is called the 'common range'. 
+			However, a number of chemical classes fall out of this range. The 'extended ranges' covers 99.99% of all formulas in 
+			the used database (H vs C 0.1–6). There are extreme cases for which rules of typical H vs C ratios may be overridden, e.g. 
+			for the study of fullerenes, which have an extremely low hydrogen/carbon ratio such as in C78H12Cl2N2."
+			<br/>
+			<br/>
+			Sum formulas that do not contain a single Carbon atom are always included.
 			<br/>
 			<br/>
 			DISABLED Options: 'All elements' and 'Exclude elements' are currently not supported because the
@@ -27,7 +46,9 @@
 		<option name="Exclude elements (DISABLED)">Whether to use all elements excluding a set of elements.</option>
 		<option name="Elements">The comma-separated set of elements to be included or excluded.</option>
 		<option name="Mass tolerance">The mass tolerance in 'amu'.</option>
-		<option name="Remove improbable formulas">Remove sum formulas that violate one or more of the rules.</option>
+		<option name="Nitrogen rule">Apply the nitrogen rule.</option>
+		<option name="element ratio rule">Apply the element ratio check rule.</option>
+		<option name="Element restriction">Apply element occurrence restrictions.</option>
 	</fullDescription>
 
 	<ports>

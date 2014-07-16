@@ -34,7 +34,6 @@ import org.knime.core.data.collection.CollectionCellFactory;
 import org.knime.core.data.collection.ListCell;
 import org.knime.core.data.container.AbstractCellFactory;
 import org.knime.core.data.container.ColumnRearranger;
-import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
@@ -46,11 +45,11 @@ import org.openscience.cdk.formula.MassToFormulaTool;
 import org.openscience.cdk.formula.MolecularFormulaChecker;
 import org.openscience.cdk.formula.MolecularFormulaRange;
 import org.openscience.cdk.formula.rules.ChargeRule;
+import org.openscience.cdk.formula.rules.ElementRatioRule;
 import org.openscience.cdk.formula.rules.ElementRule;
 import org.openscience.cdk.formula.rules.IRule;
 import org.openscience.cdk.formula.rules.MMElementRule;
 import org.openscience.cdk.formula.rules.NitrogenRule;
-import org.openscience.cdk.formula.rules.RDBERule;
 import org.openscience.cdk.formula.rules.ToleranceRangeRule;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.interfaces.IMolecularFormulaSet;
@@ -67,6 +66,7 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 public class SumFormulaNodeModel extends CDKNodeModel {
 
 	private List<IRule> rules;
+	private MolecularFormulaChecker mfc;
 	
 	/**
 	 * Constructor for the node model.
@@ -84,11 +84,8 @@ public class SumFormulaNodeModel extends CDKNodeModel {
 		DataColumnSpecCreator crea1 = new DataColumnSpecCreator(
 				DataTableSpec.getUniqueColumnName(spec, "Sum Formula"),
 				ListCell.getCollectionType(StringCell.TYPE));
-		DataColumnSpecCreator crea2 = new DataColumnSpecCreator(
-				DataTableSpec.getUniqueColumnName(spec, "Valid Sum"),
-				ListCell.getCollectionType(DoubleCell.TYPE));
 
-		DataColumnSpec[] appendSpec = new DataColumnSpec[] { crea1.createSpec(), crea2.createSpec() };
+		DataColumnSpec[] appendSpec = new DataColumnSpec[] { crea1.createSpec() };
 		columnIndex = spec.findColumnIndex(settings.targetColumn());
 		
 		// CUSTOM PARAMETERS
@@ -126,6 +123,7 @@ public class SumFormulaNodeModel extends CDKNodeModel {
 			rule3.setParameters(new Object[] { 0.0, settings(SumFormulaSettings.class).tolerance() });
 			rules.add(rule3);
 			// set options
+			mfc = new MolecularFormulaChecker(getRules());
 		} catch (Exception e) {
 			e.printStackTrace();
 			setWarningMessage("Rule violation, falling back to default rules.");
@@ -137,9 +135,9 @@ public class SumFormulaNodeModel extends CDKNodeModel {
 			public DataCell[] getCells(final DataRow row) {
 
 				DataCell massCell = row.getCell(columnIndex);
-				DataCell[] newCells = new DataCell[2];
+				DataCell[] newCells = new DataCell[1];
 				if (massCell.isMissing()) {
-					Arrays.fill(newCells, DataType.getMissingCell());
+					newCells[0] = DataType.getMissingCell();
 					return newCells;
 				}
 				if (!(massCell instanceof DoubleValue)) {
@@ -161,33 +159,26 @@ public class SumFormulaNodeModel extends CDKNodeModel {
 				mfSet = mtft.generate(mass);
 
 				if (mfSet == null || mfSet.size() == 0) {
-					Arrays.fill(newCells, DataType.getMissingCell());
+					newCells[0] = DataType.getMissingCell();
 					return newCells;
 				}
-
-				MolecularFormulaChecker mfc = new MolecularFormulaChecker(getRules());
 				
 				Collection<StringCell> hillStrings = new ArrayList<StringCell>();
-				Collection<DoubleCell> sumDoubles = new ArrayList<DoubleCell>();
 				for (IMolecularFormula formula : mfSet.molecularFormulas()) {
 
 					try {
 						double validSum = mfc.isValidSum(formula);
-						if (settings(SumFormulaSettings.class).isExcludeByValidSum() && validSum != 1) {
+						if (validSum != 1) {
 							continue;
 						}
 						hillStrings.add(new StringCell(MolecularFormulaManipulator.getString(formula)));
-						sumDoubles.add(new DoubleCell(validSum));
 					} catch (Exception exception) {
-						if (!settings(SumFormulaSettings.class).isExcludeByValidSum()) {
-							hillStrings.add(new StringCell(MolecularFormulaManipulator.getString(formula)));
-							sumDoubles.add(new DoubleCell(0));
-						}
+						exception.printStackTrace();
+						hillStrings.add(new StringCell(MolecularFormulaManipulator.getString(formula)));
 					}
 				}
 
 				newCells[0] = CollectionCellFactory.createListCell(hillStrings);
-				newCells[1] = CollectionCellFactory.createListCell(sumDoubles);
 
 				return newCells;
 			}
@@ -199,19 +190,55 @@ public class SumFormulaNodeModel extends CDKNodeModel {
 		return arranger;
 	}
 
-	private List<IRule> getRules() {
+	private List<IRule> getRules() throws CDKException {
 
 		List<IRule> rules = new ArrayList<IRule>();
 
-		// IRule elementRule = new ElementRule();
-		IRule mmElementRule = new MMElementRule();
-		IRule nitrogenRule = new NitrogenRule();
-		IRule rdbeRule = new RDBERule();
-
-		// rules.add(elementRule);
-		rules.add(mmElementRule);
-		rules.add(nitrogenRule);
-		rules.add(rdbeRule);
+		if (settings(SumFormulaSettings.class).isApplyNitrogenRule()) {
+			IRule nitrogenRule = new NitrogenRule();
+			rules.add(nitrogenRule);
+		}
+		if (!settings(SumFormulaSettings.class).isApplyNumberRule().isEmpty()) {
+			IRule mmRule = new MMElementRule();
+			Object[] params = new Object[2];
+			String[] els = settings(SumFormulaSettings.class).isApplyNumberRule().split("-");
+			if (els[0].equals("DNP")) {
+				params[0] = MMElementRule.Database.DNP;
+			} else {
+				params[0] = MMElementRule.Database.WILEY;
+			}
+			if (els[1].equals("500")) {
+				params[1] = MMElementRule.RangeMass.Minus500;
+			} else if (els[1].equals("1000")) {
+				params[1] = MMElementRule.RangeMass.Minus1000;
+			} else if (els[1].equals("2000")) {
+				params[1] = MMElementRule.RangeMass.Minus2000;
+			} else {
+				params[1] = MMElementRule.RangeMass.Minus3000;
+			} 
+			mmRule.setParameters(params);
+			rules.add(mmRule);
+		}
+		if (!settings(SumFormulaSettings.class).isApplyRatioRule().isEmpty()) {
+			Object[] params = new Object[2];
+			String[] els = settings(SumFormulaSettings.class).isApplyRatioRule().split("-");
+			if (els[1].equals("Common Range")) {
+				params[1] = ElementRatioRule.RatioRange.COMMON;
+			} else if (els[1].equals("Extended Range")) {
+				params[1] = ElementRatioRule.RatioRange.EXTENDED;
+			} else {
+				params[1] = ElementRatioRule.RatioRange.EXTREME;
+			}
+			if (els[0].equals("H/C")) {
+				params[0] = ElementRatioRule.RatioType.HYDROGEN_CARBON;
+			} else if (els[0].equals("SiNOPSBrClF/C")) {
+				params[0] = ElementRatioRule.RatioType.HETERATOMS_CARBON;
+			} else {
+				params[0] = ElementRatioRule.RatioType.ALL;
+			}
+			IRule ratioRule = new ElementRatioRule(params);
+			rules.add(ratioRule);
+		}
 
 		return rules;
 	}

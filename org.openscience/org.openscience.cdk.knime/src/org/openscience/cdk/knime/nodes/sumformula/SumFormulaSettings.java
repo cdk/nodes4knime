@@ -34,7 +34,9 @@ public class SumFormulaSettings implements CDKSettings {
 	private boolean incAll = false;
 	private boolean incSpec = true;
 	private double tolerance = 0.5;
-	private boolean excludeByValidSum;
+	private boolean applyNitrogenRule = true;
+	private String applyRatioRule = "HSiNOPSBrClF/C-Common Range";
+	private String applyNumberRule = "Wiley-500";
 	
 	protected String[] listElements = new String[]{
 		    "C", "H", "O", "N", "Si", "P", "S", "F", "Cl",
@@ -67,23 +69,29 @@ public class SumFormulaSettings implements CDKSettings {
 		this.massColumn = massColumn;
 	}
 
-	/**
-	 * Returns if unlikely filtered molecular formulas should be exclucded.
-	 * 
-	 * @return the excludeByValidSum
-	 */
-	public boolean isExcludeByValidSum() {
-		return excludeByValidSum;
+	public final boolean isApplyNitrogenRule() {
+		return applyNitrogenRule;
 	}
 
-	/**
-	 * Sets if unlikely filtered molecular formulas should be exclucded.
-	 * 
-	 * @param excludeByValidSum the excludeByValidSum to set
-	 */
-	public void setExcludeByValidSum(final boolean excludeByValidSum) {
-		this.excludeByValidSum = excludeByValidSum;
-	}	
+	public final void setApplyNitrogenRule(final boolean applyNitrogenRule) {
+		this.applyNitrogenRule = applyNitrogenRule;
+	}
+
+	public final String isApplyRatioRule() {
+		return applyRatioRule;
+	}
+
+	public final void setApplyRatioRule(final String applyRatioRule) {
+		this.applyRatioRule = applyRatioRule;
+	}
+
+	public final String isApplyNumberRule() {
+		return applyNumberRule;
+	}
+
+	public final void setApplyNumberRule(final String applyNumberRule) {
+		this.applyNumberRule = applyNumberRule;
+	}
 
 	/**
 	 * Saves the settings into the given node settings object.
@@ -97,7 +105,9 @@ public class SumFormulaSettings implements CDKSettings {
 		settings.addBoolean("incAll", incAll);
 		settings.addBoolean("incSpec", incSpec);
 		settings.addDouble("tolerance", tolerance);
-		settings.addBoolean("exclude", excludeByValidSum);
+		settings.addBoolean("nitrogenRule", applyNitrogenRule);
+		settings.addString("ratioRule", applyRatioRule);
+		settings.addString("numberRule", applyNumberRule);
 	}
 
 	/**
@@ -113,7 +123,9 @@ public class SumFormulaSettings implements CDKSettings {
 		incAll = settings.getBoolean("incAll");
 		incSpec = settings.getBoolean("incSpec");
 		tolerance = settings.getDouble("tolerance");
-		excludeByValidSum = settings.getBoolean("exclude");
+		applyNitrogenRule = settings.getBoolean("nitrogenRule");
+		applyRatioRule = settings.getString("ratioRule");
+		applyNumberRule = settings.getString("numberRule");
 	}
 	
 	public String elements() {
