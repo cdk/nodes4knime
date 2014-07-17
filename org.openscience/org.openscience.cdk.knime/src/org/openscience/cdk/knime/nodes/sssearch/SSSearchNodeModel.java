@@ -33,6 +33,7 @@ import org.openscience.cdk.knime.commons.CDKNodeUtils;
 import org.openscience.cdk.knime.core.CDKAdapterNodeModel;
 import org.openscience.cdk.knime.type.CDKCell2;
 import org.openscience.cdk.knime.util.JMolSketcherPanel;
+import org.openscience.cdk.silent.SilentChemObjectBuilder;
 
 /**
  * This is the model for the substructure search node. It divides the input
@@ -99,10 +100,15 @@ public class SSSearchNodeModel extends CDKAdapterNodeModel {
 	protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
 
 		try {
-			m_fragment = JMolSketcherPanel.readStringNotation(settings(SSSearchSettings.class).getSmiles())
-					.getAtomContainer(0);
-			if (m_fragment.getAtomCount() != 0) {
-				CDKNodeUtils.getFullMolecule(m_fragment);
+			String smiles = settings(SSSearchSettings.class).getSmiles();
+			if (smiles != null && !smiles.isEmpty()) {
+				m_fragment = JMolSketcherPanel.readStringNotation(settings(SSSearchSettings.class).getSmiles())
+						.getAtomContainer(0);
+				if (m_fragment.getAtomCount() != 0) {
+					CDKNodeUtils.getFullMolecule(m_fragment);
+				}
+			} else {
+				m_fragment = SilentChemObjectBuilder.getInstance().newInstance(IAtomContainer.class);
 			}
 		} catch (Exception ex) {
 			throw new InvalidSettingsException("Unable to read fragment", ex);
@@ -150,7 +156,9 @@ public class SSSearchNodeModel extends CDKAdapterNodeModel {
 		SSSearchSettings s = new SSSearchSettings();
 		s.loadSettings(settings);
 		try {
-			JMolSketcherPanel.readStringNotation(s.getSmiles());
+			if (s.getSmiles() != null && !s.getSmiles().isEmpty()) {
+				JMolSketcherPanel.readStringNotation(s.getSmiles());
+			}
 		} catch (Exception ex) {
 			throw new InvalidSettingsException("Unable to read fragment", ex);
 		}
