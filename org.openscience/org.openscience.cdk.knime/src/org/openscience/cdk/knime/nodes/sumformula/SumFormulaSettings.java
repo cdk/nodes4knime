@@ -31,6 +31,7 @@ public class SumFormulaSettings implements CDKSettings {
 
 	private String massColumn;
 	private String elements = "C,H,N,O";
+	private int[] cRange = new int[] { 0, 30 };
 	private boolean incAll = false;
 	private boolean incSpec = true;
 	private double tolerance = 0.5;
@@ -92,6 +93,14 @@ public class SumFormulaSettings implements CDKSettings {
 	public final void setApplyNumberRule(final String applyNumberRule) {
 		this.applyNumberRule = applyNumberRule;
 	}
+	
+	public final int[] getcRange() {
+		return cRange;
+	}
+
+	public final void setcRange(int[] cRange) {
+		this.cRange = cRange;
+	}
 
 	/**
 	 * Saves the settings into the given node settings object.
@@ -108,6 +117,7 @@ public class SumFormulaSettings implements CDKSettings {
 		settings.addBoolean("nitrogenRule", applyNitrogenRule);
 		settings.addString("ratioRule", applyRatioRule);
 		settings.addString("numberRule", applyNumberRule);
+		settings.addIntArray("crange", cRange);
 	}
 
 	/**
@@ -126,6 +136,7 @@ public class SumFormulaSettings implements CDKSettings {
 		applyNitrogenRule = settings.getBoolean("nitrogenRule");
 		applyRatioRule = settings.getString("ratioRule");
 		applyNumberRule = settings.getString("numberRule");
+		cRange = settings.getIntArray("crange");
 	}
 	
 	public String elements() {

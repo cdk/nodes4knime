@@ -97,18 +97,36 @@ public class SumFormulaNodeModel extends CDKNodeModel {
 			if (settings(SumFormulaSettings.class).incSpec()) {
 				String[] els = settings(SumFormulaSettings.class).elements().split(",");
 				for (String el : els) {
-					mfRange.addIsotope(ifac.getMajorIsotope(el), 0, 30);
+					if (el.equals("C")) {
+						mfRange.addIsotope(ifac.getMajorIsotope(el), 
+								settings(SumFormulaSettings.class).getcRange()[0], 
+								settings(SumFormulaSettings.class).getcRange()[1]);
+					} else {
+						mfRange.addIsotope(ifac.getMajorIsotope(el), 0, 30);
+					}
 				}
 			} else if (settings(SumFormulaSettings.class).incAll()) {
 				for (String el : settings(SumFormulaSettings.class).listElements) {
-					mfRange.addIsotope(ifac.getMajorIsotope(el), 0, 30);
+					if (el.equals("C")) {
+						mfRange.addIsotope(ifac.getMajorIsotope(el), 
+								settings(SumFormulaSettings.class).getcRange()[0], 
+								settings(SumFormulaSettings.class).getcRange()[1]);
+					} else {
+						mfRange.addIsotope(ifac.getMajorIsotope(el), 0, 30);
+					}
 				}
 			} else {
 				String[] rems = settings(SumFormulaSettings.class).elements().split(",");
 				Set<String> remSet = new HashSet<String>(Arrays.asList(rems));
 				for (String el : settings(SumFormulaSettings.class).listElements) {
 					if (!remSet.contains(el)) {
-						mfRange.addIsotope(ifac.getMajorIsotope(el), 0, 30);
+						if (el.equals("C")) {
+							mfRange.addIsotope(ifac.getMajorIsotope(el), 
+									settings(SumFormulaSettings.class).getcRange()[0], 
+									settings(SumFormulaSettings.class).getcRange()[1]);
+						} else {
+							mfRange.addIsotope(ifac.getMajorIsotope(el), 0, 30);
+						}
 					}
 				}
 			}

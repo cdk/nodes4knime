@@ -56,6 +56,7 @@ public class SumFormulaNodeDialog extends NodeDialogPane {
 	private final JRadioButton allSetButton;
 	private final JTextField elementField;
 	private final JTextField toleranceField;
+	private final JTextField cRangeField;
 	
 	private final JCheckBox ratioRule = new JCheckBox("", true);
 	private final JCheckBox nitrogenRule = new JCheckBox("", true);
@@ -151,6 +152,14 @@ public class SumFormulaNodeDialog extends NodeDialogPane {
 		c.gridy++;
 		c.gridx = 0;
 		
+		cRangeField = new JTextField("0-30", 12);
+		cRangeField.setEditable(true);
+		panel.add(new JLabel("Carbon limits  "), c);
+		c.gridx++;
+		panel.add(cRangeField, c);
+		c.gridy++;
+		c.gridx = 0;
+		
 		toleranceField = new JTextField("0.5", 12);
 		panel.add(new JLabel("Mass tolerance  "), c);
 		c.gridx++;
@@ -229,6 +238,7 @@ public class SumFormulaNodeDialog extends NodeDialogPane {
 
 		massColumn.update(specs[0], this.settings.targetColumn());
 		elementField.setText(this.settings.elements());
+		cRangeField.setText(this.settings.getcRange()[0] + "-" + this.settings.getcRange()[1]);
 		if (this.settings.incAll()) {
 			allSetButton.setSelected(true);
 		} else if (this.settings.incSpec()) {
@@ -264,6 +274,16 @@ public class SumFormulaNodeDialog extends NodeDialogPane {
 
 		this.settings.targetColumn(massColumn.getSelectedColumn());
 		this.settings.elements(elementField.getText());
+		
+		int[] cRangeInt = null;
+		try {
+		String[] cRange = cRangeField.getText().split("-");
+		cRangeInt = new int[] { Integer.parseInt(cRange[0]), Integer.parseInt(cRange[1]) };
+		} catch (Exception exception) {
+			cRangeInt = new int[] { 0, 30 };
+		}
+		this.settings.setcRange(cRangeInt);
+		
 		this.settings.incAll(allSetButton.isSelected());
 		this.settings.incSpec(customSetButton.isSelected());
 		this.settings.tolerance(Double.parseDouble(toleranceField.getText()));
