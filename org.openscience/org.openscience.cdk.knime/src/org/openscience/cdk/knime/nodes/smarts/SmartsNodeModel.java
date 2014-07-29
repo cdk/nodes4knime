@@ -107,7 +107,7 @@ public class SmartsNodeModel extends CDKAdapterNodeModel {
 		columnIndex = inSpecs[0].findColumnIndex(colMolecule);
 		smartsIndex = inSpecs[1].findColumnIndex(colSmarts);
 
-		DataTableSpec outSpec = convertTables(inSpecs)[0];
+		DataTableSpec outSpec = convertTables(new DataTableSpec[] { inSpecs[0] })[0];
 		DataTableSpec outSpecFinal = appendSpec(outSpec);
 
 		return new DataTableSpec[] { outSpecFinal, outSpecFinal };

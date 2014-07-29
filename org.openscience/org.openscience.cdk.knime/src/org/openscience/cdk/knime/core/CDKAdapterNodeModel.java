@@ -221,6 +221,9 @@ public abstract class CDKAdapterNodeModel extends NodeModel {
 	 */
 	private boolean needsConversion(final DataTableSpec spec) {
 
+		if (columnIndex >= spec.getNumColumns()) {
+			return false;
+		}
 		DataType type = spec.getColumnSpec(columnIndex).getType();
 
 		if (type.isCompatible(AdapterValue.class)) {
