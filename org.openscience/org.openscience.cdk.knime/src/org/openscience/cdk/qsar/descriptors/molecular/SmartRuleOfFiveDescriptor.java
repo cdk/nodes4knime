@@ -116,14 +116,14 @@ public class SmartRuleOfFiveDescriptor extends AbstractMolecularDescriptor imple
 			int donors = ((IntegerResult) don.calculate(mol).getValue()).intValue();
 
 			IMolecularDescriptor mw = new WeightDescriptor();
-			Object[] mwparams = { "" };
-			mw.setParameters(mwparams);
+			//Object[] mwparams = { "" };
+			//mw.setParameters(mwparams);
 			double mwvalue = ((DoubleResult) mw.calculate(mol).getValue()).doubleValue();
 
 			IMolecularDescriptor rotata = new SmartRotatableBondsCountDescriptor();
 			rotata.setParameters(new Object[] {Boolean.FALSE});
 			int rotatablebonds = ((IntegerResult) rotata.calculate(mol).getValue()).intValue();
-
+			
 			if (xlogPvalue > 5.0) {
 				lipinskifailures += 1;
 			}
