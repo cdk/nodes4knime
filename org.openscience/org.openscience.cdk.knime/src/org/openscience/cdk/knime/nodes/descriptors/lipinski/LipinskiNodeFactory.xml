@@ -11,6 +11,13 @@
         	Christopher A. Lipinski, says that poor absorption (or permeation) is more 
         	likely when: the molecule has more than 5 H-bond donors and more than 
         	10 H-bond acceptors, its molecular weight is over 500, and its LogP is over 5.
+        	<br/>
+        	<br/>
+        	In addition to the four rules defined by Lipinski, the extended rule of five takes 
+        	rotatable bond counts into account. This implementation considers a rotatable bond count
+        	greater than ten as rule violation.
+        	<br/>
+        	Veber et al. (2002). Molecular properties that influence the oral bioavailability of drug candidates. Journal of Medicinal Chemistry, 45(12), 2615–23.
         </intro>
         <option name="CDK column">Select the column containing the molecular
             structure.
