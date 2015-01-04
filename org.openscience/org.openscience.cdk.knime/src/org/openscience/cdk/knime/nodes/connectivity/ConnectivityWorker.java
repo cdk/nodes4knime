@@ -127,9 +127,9 @@ public class ConnectivityWorker extends MultiThreadWorker<DataRow, DataRow> {
 				singleMol = molSet.getAtomContainer(i);
 				cells.add(CDKCell2.createCDKCell(singleMol));
 			}
-			return CollectionCellFactory.createSetCell(cells);
+			return CollectionCellFactory.createListCell(cells);
 		} else {
-			return CollectionCellFactory.createSetCell(Collections.singleton(CDKCell2.createCDKCell(mol)));
+			return CollectionCellFactory.createListCell(Collections.singleton(CDKCell2.createCDKCell(mol)));
 		}
 	}
 

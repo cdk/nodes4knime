@@ -57,7 +57,7 @@ public class CDK2MoleculeNodeDialog extends NodeDialogPane {
 	@SuppressWarnings("unchecked")
 	private final ColumnSelectionComboxBox m_molColumn = new ColumnSelectionComboxBox((Border) null, CDKValue.class);
 
-	private final JComboBox m_destFormat = new JComboBox(new Format[] { Format.SDF, Format.Smiles, Format.Mol2 });
+	private final JComboBox<Format> m_destFormat = new JComboBox<Format>(new Format[] { Format.SDF, Format.Smiles, Format.Mol2 });
 
 	private final JCheckBox m_replaceColumn = new JCheckBox();
 
@@ -114,7 +114,7 @@ public class CDK2MoleculeNodeDialog extends NodeDialogPane {
 
 		m_destFormat.setRenderer(new DefaultListCellRenderer() {
 
-			@SuppressWarnings("deprecation")
+			@SuppressWarnings({ "deprecation", "rawtypes" })
 			@Override
 			public Component getListCellRendererComponent(final JList list, final Object value, final int index,
 					final boolean isSelected, final boolean cellHasFocus) {

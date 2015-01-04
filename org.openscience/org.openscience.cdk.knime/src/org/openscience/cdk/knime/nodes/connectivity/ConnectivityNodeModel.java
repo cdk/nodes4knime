@@ -22,7 +22,7 @@ import java.util.concurrent.ExecutionException;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.collection.SetCell;
+import org.knime.core.data.collection.ListCell;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
@@ -96,7 +96,7 @@ public class ConnectivityNodeModel extends CDKAdapterNodeModel {
 		DataColumnSpec cs;
 		if (settings(ConnectivitySettings.class).addFragmentColumn()) {
 			String name = DataTableSpec.getUniqueColumnName(outSpec, "Fragments");
-			cs = new DataColumnSpecCreator(name, SetCell.getCollectionType(CDKAdapterCell.RAW_TYPE)).createSpec();
+			cs = new DataColumnSpecCreator(name, ListCell.getCollectionType(CDKAdapterCell.RAW_TYPE)).createSpec();
 			return new DataTableSpec(outSpec, new DataTableSpec(cs));
 		} else {
 			DataColumnSpec[] dcs = new DataColumnSpec[outSpec.getNumColumns()];

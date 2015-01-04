@@ -62,13 +62,13 @@ public class SumFormulaNodeDialog extends NodeDialogPane {
 	private final JCheckBox nitrogenRule = new JCheckBox("", true);
 	private final JCheckBox numberRule = new JCheckBox("", true);
 	
-	private final JComboBox ratioBoxRange = new JComboBox(new Object[] {
+	private final JComboBox<Object> ratioBoxRange = new JComboBox<Object>(new Object[] {
 			"Common Range", "Extended Range", "Extreme Range"
 	});
-	private final JComboBox ratioBoxType = new JComboBox(new Object[] {
+	private final JComboBox<Object> ratioBoxType = new JComboBox<Object>(new Object[] {
 			"H/C", "SiNOPSBrClF/C", "HSiNOPSBrClF/C"
 	});
-	private final JComboBox numberBox = new JComboBox(new Object[] {
+	private final JComboBox<Object> numberBox = new JComboBox<Object>(new Object[] {
 			"DNP-500", "DNP-1000", "DNP-2000", "DNP-3000", "Wiley-500", "Wiley-1000", "Wiley-2000"
 	});
 
