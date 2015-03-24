@@ -108,7 +108,6 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 	private static final NodeLogger LOGGER = NodeLogger.getLogger(CDKValueRenderer.class);
 
 	private static AtomContainerRenderer renderer;
-	private static AtomContainerRenderer RENDERER;
 
 	private static final double SCALE = 0.85;
 
@@ -118,6 +117,7 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 			generators.add(new BasicSceneGenerator());
 			generators.add(new SmartRingGenerator());
 			generators.add(new SmartExtendedAtomGenerator());
+			//generators.add(new SmartBasicBondGenerator());
 			generators.add(new SmartAtomNumberGenerator());
 			renderer = new AtomContainerRenderer(generators, new AWTFontManager());
 
@@ -126,8 +126,6 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 		} catch (Exception e) {
 			LOGGER.error("Error during renderer initialization!", e);
 		}
-
-		RENDERER = renderer;
 	}
 
 	private static void setDefaultRendererProps(final RendererModel renderer2dModel, final AROMATICITY aromaticity) {
@@ -370,7 +368,7 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 		GeometryTools.scaleMolecule(cont, aPrefferedSize, 0.8f);
 		GeometryTools.center(cont, aPrefferedSize);
 
-		RENDERER.paint(cont, new SmartAWTDrawVisitor(g2), new Rectangle(x, y, width, height), true);
+		renderer.paint(cont, new SmartAWTDrawVisitor(g2), new Rectangle(x, y, width, height), true);
 	}
 
 	/**

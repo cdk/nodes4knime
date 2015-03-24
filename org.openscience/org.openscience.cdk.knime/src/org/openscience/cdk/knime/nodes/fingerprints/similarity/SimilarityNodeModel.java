@@ -77,7 +77,7 @@ public class SimilarityNodeModel extends CDKNodeModel {
 	protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
 			throws Exception {
 
-		String sr = settings.targetColumn();
+		String sr = ((SimilaritySettings) settings).fingerprintRefColumn();
 		final int fingerprintRefColIndex = inData[1].getDataTableSpec().findColumnIndex(sr);
 		fingerprintRefs = getFingerprintRefs(inData[1], fingerprintRefColIndex);
 		matrixFingerprintRefs = getMatrixRefs(inData[1], fingerprintRefColIndex);
@@ -324,7 +324,8 @@ public class SimilarityNodeModel extends CDKNodeModel {
 
 		settings.targetColumn(CDKNodeUtils.autoConfigure(inSpecs[0], settings.targetColumn(), BitVectorValue.class));
 
-		if (settings.targetColumn() == null || (inSpecs[1].findColumnIndex(settings.targetColumn())) == -1) {
+		String refCol = ((SimilaritySettings) settings).fingerprintRefColumn();
+		if (refCol == null || inSpecs[1].findColumnIndex(refCol) == -1) {
 			String name = null;
 			for (DataColumnSpec s : inSpecs[1]) {
 				if (s.getType().isCompatible(BitVectorValue.class)) {
@@ -332,14 +333,13 @@ public class SimilarityNodeModel extends CDKNodeModel {
 				}
 			}
 			if (name != null) {
-				settings.targetColumn(name);
+				((SimilaritySettings) settings).fingerprintRefColumn(name);
 			} else {
 				throw new InvalidSettingsException("No reference DenseBitVector compatible column in input table");
 			}
 		}
 
-		// creates the column rearranger -- does the heavy lifting for adapter
-		// cells
+		// creates the column rearranger -- does the heavy lifting for adapter cells
 		ColumnRearranger arranger = createColumnRearranger(inSpecs[0]);
 		return new DataTableSpec[] { arranger.createSpec() };
 	}
