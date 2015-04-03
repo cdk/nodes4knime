@@ -39,7 +39,7 @@ import org.openscience.cdk.AtomContainer;
 import org.openscience.cdk.graph.ConnectivityChecker;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IAtomContainerSet;
-import org.openscience.cdk.knime.type.CDKCell2;
+import org.openscience.cdk.knime.type.CDKCell3;
 import org.openscience.cdk.knime.type.CDKValue;
 import org.openscience.cdk.modeling.builder3d.ModelBuilder3D;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
@@ -125,7 +125,7 @@ public class Coord3dWorker extends MultiThreadWorker<DataRow, DataRow> {
 				Future<?> future = executor.submit(r);
 				future.get(timeout, TimeUnit.MILLISECONDS);
 				if (pClone.get() != null) {
-					outCell = CDKCell2.createCDKCell(pClone.get());
+					outCell = CDKCell3.createCDKCell(pClone.get());
 				} else {
 					outCell = DataType.getMissingCell();
 				}

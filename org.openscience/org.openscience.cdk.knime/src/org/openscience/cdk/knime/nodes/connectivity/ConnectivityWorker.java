@@ -36,7 +36,7 @@ import org.knime.core.util.MultiThreadWorker;
 import org.openscience.cdk.graph.ConnectivityChecker;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IAtomContainerSet;
-import org.openscience.cdk.knime.type.CDKCell2;
+import org.openscience.cdk.knime.type.CDKCell3;
 import org.openscience.cdk.knime.type.CDKValue;
 
 /**
@@ -91,7 +91,7 @@ public class ConnectivityWorker extends MultiThreadWorker<DataRow, DataRow> {
 			return DataType.getMissingCell();
 		}
 
-		return CDKCell2.createCDKCell(mol);
+		return CDKCell3.createCDKCell(mol);
 	}
 
 	private DataCell retainBiggest(final DataRow inRow) {
@@ -107,9 +107,9 @@ public class ConnectivityWorker extends MultiThreadWorker<DataRow, DataRow> {
 					biggest = molSet.getAtomContainer(i);
 				}
 			}
-			return CDKCell2.createCDKCell(biggest);
+			return CDKCell3.createCDKCell(biggest);
 		} else {
-			return CDKCell2.createCDKCell(mol);
+			return CDKCell3.createCDKCell(mol);
 		}
 	}
 
@@ -125,11 +125,11 @@ public class ConnectivityWorker extends MultiThreadWorker<DataRow, DataRow> {
 			IAtomContainer singleMol;
 			for (int i = 0; i < molSet.getAtomContainerCount(); i++) {
 				singleMol = molSet.getAtomContainer(i);
-				cells.add(CDKCell2.createCDKCell(singleMol));
+				cells.add(CDKCell3.createCDKCell(singleMol));
 			}
 			return CollectionCellFactory.createListCell(cells);
 		} else {
-			return CollectionCellFactory.createListCell(Collections.singleton(CDKCell2.createCDKCell(mol)));
+			return CollectionCellFactory.createListCell(Collections.singleton(CDKCell3.createCDKCell(mol)));
 		}
 	}
 

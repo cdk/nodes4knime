@@ -34,7 +34,7 @@ import org.openscience.cdk.DefaultChemObjectBuilder;
 import org.openscience.cdk.exception.InvalidSmilesException;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.knime.core.CDKAdapterNodeModel;
-import org.openscience.cdk.knime.type.CDKCell2;
+import org.openscience.cdk.knime.type.CDKCell3;
 import org.openscience.cdk.smiles.SmilesParser;
 
 /**
@@ -113,7 +113,7 @@ public class SugarRemoverNodeModel extends CDKAdapterNodeModel {
 			for (DataColumnSpec s : spec) {
 				if (i == columnIndex) {
 					String name = spec.getColumnNames()[columnIndex];
-					dcs[i] = new DataColumnSpecCreator(name, CDKCell2.TYPE).createSpec();
+					dcs[i] = new DataColumnSpecCreator(name, CDKCell3.TYPE).createSpec();
 				} else {
 					dcs[i] = s;
 				}
@@ -123,7 +123,7 @@ public class SugarRemoverNodeModel extends CDKAdapterNodeModel {
 		} else {
 			String name = DataTableSpec.getUniqueColumnName(spec, settings(SugarRemoverSettings.class)
 					.appendColumnName());
-			cs = new DataColumnSpecCreator(name, CDKCell2.TYPE).createSpec();
+			cs = new DataColumnSpecCreator(name, CDKCell3.TYPE).createSpec();
 			return new DataTableSpec(spec, new DataTableSpec(cs));
 		}
 	}

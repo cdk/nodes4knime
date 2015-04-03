@@ -31,7 +31,7 @@ import org.knime.core.node.ExecutionContext;
 import org.knime.core.util.MultiThreadWorker;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.knime.commons.CDKNodeUtils;
-import org.openscience.cdk.knime.type.CDKCell2;
+import org.openscience.cdk.knime.type.CDKCell3;
 import org.openscience.cdk.knime.type.CDKValue;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 import org.openscience.cdk.tools.manipulator.SmartAtomContainerManipulator;
@@ -77,7 +77,7 @@ public class HydrogenAdderWorker extends MultiThreadWorker<DataRow, DataRow> {
 				}
 
 				CDKNodeUtils.getFullMolecule(mol);
-				outCell = CDKCell2.createCDKCell(mol);
+				outCell = CDKCell3.createCDKCell(mol);
 			} catch (Throwable t) {
 				outCell = DataType.getMissingCell();
 			}

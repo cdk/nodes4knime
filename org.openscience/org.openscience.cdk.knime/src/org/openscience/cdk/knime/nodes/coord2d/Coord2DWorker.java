@@ -31,7 +31,7 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.util.MultiThreadWorker;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.knime.commons.CDKNodeUtils;
-import org.openscience.cdk.knime.type.CDKCell2;
+import org.openscience.cdk.knime.type.CDKCell3;
 import org.openscience.cdk.knime.type.CDKValue;
 
 /**
@@ -80,7 +80,7 @@ public class Coord2DWorker extends MultiThreadWorker<DataRow, DataRow> {
 				LOGGER.error(t.getMessage(), t);
 			}
 
-			outCell = CDKCell2.createCDKCell(m);
+			outCell = CDKCell3.createCDKCell(m);
 		}
 
 		return new ReplacedColumnsDataRow(row, outCell, columnIndex);

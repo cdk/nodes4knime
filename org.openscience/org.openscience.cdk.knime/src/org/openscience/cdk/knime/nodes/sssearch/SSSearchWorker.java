@@ -44,7 +44,7 @@ import org.openscience.cdk.isomorphism.Mappings;
 import org.openscience.cdk.isomorphism.Pattern;
 import org.openscience.cdk.isomorphism.VentoFoggia;
 import org.openscience.cdk.knime.commons.CDKNodeUtils;
-import org.openscience.cdk.knime.type.CDKCell2;
+import org.openscience.cdk.knime.type.CDKCell3;
 import org.openscience.cdk.knime.type.CDKValue;
 
 import com.google.common.base.Predicate;
@@ -152,7 +152,7 @@ public class SSSearchWorker extends MultiThreadWorker<DataRow, DataRow> {
 						j++;
 					}
 
-					row = new ReplacedColumnsDataRow(row, CDKCell2.createCDKCell(mol), columnIndex);
+					row = new ReplacedColumnsDataRow(row, CDKCell3.createCDKCell(mol), columnIndex);
 				}
 			}
 		}

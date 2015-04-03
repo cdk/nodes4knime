@@ -38,7 +38,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.openscience.cdk.knime.type.CDKCell2;
+import org.openscience.cdk.knime.type.CDKCell3;
 
 /**
  * This is the model implementation of OpsinNameConverter. Converts IUPAC names
@@ -78,7 +78,7 @@ public class OpsinNameConverterNodeModel extends NodeModel {
 		List<String> urlSuffix = new ArrayList<String>();
 		if (settings.isAddCdk()) {
 			DataColumnSpec colSpec = new DataColumnSpecCreator(DataTableSpec.getUniqueColumnName(spec, "CDK"),
-					CDKCell2.TYPE).createSpec();
+					CDKCell3.TYPE).createSpec();
 			dataColumnSpecs.add(colSpec);
 			urlSuffix.add("cdk");
 		}

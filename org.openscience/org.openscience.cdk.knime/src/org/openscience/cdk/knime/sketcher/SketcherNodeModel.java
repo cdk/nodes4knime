@@ -38,7 +38,7 @@ import org.knime.core.node.NodeSettingsWO;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.knime.commons.CDKNodeUtils;
 import org.openscience.cdk.knime.type.CDKAdapterCell;
-import org.openscience.cdk.knime.type.CDKCell2;
+import org.openscience.cdk.knime.type.CDKCell3;
 
 /**
  * @author wiswedel, University of Konstanz
@@ -79,7 +79,7 @@ public class SketcherNodeModel extends NodeModel {
 
 		IAtomContainer mol = CDKNodeUtils.getFullMolecule(smiles);
 		mol = CDKNodeUtils.calculateCoordinates(mol, false);
-		DataCell cell = CDKCell2.createCDKCell(mol);
+		DataCell cell = CDKCell3.createCDKCell(mol);
 		c.addRowToTable(new DefaultRow(new RowKey("Structure"), cell));
 
 		c.close();
@@ -146,7 +146,7 @@ public class SketcherNodeModel extends NodeModel {
 			IAtomContainer mol = CDKNodeUtils.getFullMolecule(smiles);
 			mol = CDKNodeUtils.calculateCoordinates(mol, false);
 			@SuppressWarnings("unused")
-			DataCell c = CDKCell2.createCDKCell(mol);
+			DataCell c = CDKCell3.createCDKCell(mol);
 		} catch (Exception exception) {
 			throw new InvalidSettingsException("Can't parse SMILES string: " + smiles);
 		}

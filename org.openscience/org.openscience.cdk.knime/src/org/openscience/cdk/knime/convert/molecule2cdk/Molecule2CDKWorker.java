@@ -22,7 +22,7 @@ import org.knime.core.node.ExecutionContext;
 import org.knime.core.util.MultiThreadWorker;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.knime.commons.MolConverter;
-import org.openscience.cdk.knime.type.CDKCell2;
+import org.openscience.cdk.knime.type.CDKCell3;
 
 public class Molecule2CDKWorker extends MultiThreadWorker<DataRow, DataRow> {
 
@@ -55,7 +55,7 @@ public class Molecule2CDKWorker extends MultiThreadWorker<DataRow, DataRow> {
 			if (mol == null) {
 				cell = DataType.getMissingCell();
 			} else {
-				cell = CDKCell2.createCDKCell(mol);
+				cell = CDKCell3.createCDKCell(mol);
 			}
 		}
 

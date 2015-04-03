@@ -44,7 +44,7 @@ import org.openscience.cdk.interfaces.IRing;
 import org.openscience.cdk.interfaces.IRingSet;
 import org.openscience.cdk.isomorphism.UniversalIsomorphismTester;
 import org.openscience.cdk.knime.commons.CDKNodeUtils;
-import org.openscience.cdk.knime.type.CDKCell2;
+import org.openscience.cdk.knime.type.CDKCell3;
 import org.openscience.cdk.knime.type.CDKValue;
 import org.openscience.cdk.normalize.SMSDNormalizer;
 import org.openscience.cdk.ringsearch.SSSRFinder;
@@ -185,7 +185,7 @@ public class SugarRemoverWorker extends MultiThreadWorker<DataRow, DataRow> {
 		}
 
 		return (finalAtomContainer == null || finalAtomContainer.getAtomCount() == 0) ? DataType.getMissingCell()
-				: CDKCell2.createCDKCell(finalAtomContainer);
+				: CDKCell3.createCDKCell(finalAtomContainer);
 	}
 
 	/**
