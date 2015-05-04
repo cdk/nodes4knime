@@ -57,6 +57,8 @@ public class SumFormulaNodeDialog extends NodeDialogPane {
 	private final JTextField elementField;
 	private final JTextField toleranceField;
 	private final JTextField cRangeField;
+	private final JTextField hRangeField;
+	private final JTextField oRangeField;
 	
 	private final JCheckBox ratioRule = new JCheckBox("", true);
 	private final JCheckBox nitrogenRule = new JCheckBox("", true);
@@ -160,6 +162,22 @@ public class SumFormulaNodeDialog extends NodeDialogPane {
 		c.gridy++;
 		c.gridx = 0;
 		
+		hRangeField = new JTextField("0-80", 12);
+		hRangeField.setEditable(true);
+		panel.add(new JLabel("Hydrogen limits  "), c);
+		c.gridx++;
+		panel.add(hRangeField, c);
+		c.gridy++;
+		c.gridx = 0;
+		
+		oRangeField = new JTextField("0-30", 12);
+		oRangeField.setEditable(true);
+		panel.add(new JLabel("Other limits  "), c);
+		c.gridx++;
+		panel.add(oRangeField, c);
+		c.gridy++;
+		c.gridx = 0;
+		
 		toleranceField = new JTextField("0.5", 12);
 		panel.add(new JLabel("Mass tolerance  "), c);
 		c.gridx++;
@@ -239,6 +257,8 @@ public class SumFormulaNodeDialog extends NodeDialogPane {
 		massColumn.update(specs[0], this.settings.targetColumn());
 		elementField.setText(this.settings.elements());
 		cRangeField.setText(this.settings.getcRange()[0] + "-" + this.settings.getcRange()[1]);
+		hRangeField.setText(this.settings.gethRange()[0] + "-" + this.settings.gethRange()[1]);
+		oRangeField.setText(this.settings.getoRange()[0] + "-" + this.settings.getoRange()[1]);
 		if (this.settings.incAll()) {
 			allSetButton.setSelected(true);
 		} else if (this.settings.incSpec()) {
@@ -276,13 +296,23 @@ public class SumFormulaNodeDialog extends NodeDialogPane {
 		this.settings.elements(elementField.getText());
 		
 		int[] cRangeInt = null;
+		int[] hRangeInt = null;
+		int[] oRangeInt = null;
 		try {
-		String[] cRange = cRangeField.getText().split("-");
-		cRangeInt = new int[] { Integer.parseInt(cRange[0]), Integer.parseInt(cRange[1]) };
+			String[] cRange = cRangeField.getText().split("-");
+			cRangeInt = new int[] { Integer.parseInt(cRange[0]), Integer.parseInt(cRange[1]) };
+			String[] hRange = hRangeField.getText().split("-");
+			hRangeInt = new int[] { Integer.parseInt(hRange[0]), Integer.parseInt(hRange[1]) };
+			String[] oRange = oRangeField.getText().split("-");
+			oRangeInt = new int[] { Integer.parseInt(oRange[0]), Integer.parseInt(oRange[1]) };
 		} catch (Exception exception) {
 			cRangeInt = new int[] { 0, 30 };
+			hRangeInt = new int[] { 0, 80 };
+			oRangeInt = new int[] { 0, 30 };
 		}
 		this.settings.setcRange(cRangeInt);
+		this.settings.setoRange(oRangeInt);
+		this.settings.sethRange(hRangeInt);
 		
 		this.settings.incAll(allSetButton.isSelected());
 		this.settings.incSpec(customSetButton.isSelected());

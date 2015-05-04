@@ -32,6 +32,8 @@ public class SumFormulaSettings implements CDKSettings {
 	private String massColumn;
 	private String elements = "C,H,N,O";
 	private int[] cRange = new int[] { 0, 30 };
+	private int[] hRange = new int[] { 0, 80 };
+	private int[] oRange = new int[] { 0, 30 };
 	private boolean incAll = false;
 	private boolean incSpec = true;
 	private double tolerance = 0.5;
@@ -102,6 +104,22 @@ public class SumFormulaSettings implements CDKSettings {
 		this.cRange = cRange;
 	}
 
+	public final int[] gethRange() {
+		return hRange;
+	}
+
+	public final void sethRange(int[] hRange) {
+		this.hRange = hRange;
+	}
+
+	public final int[] getoRange() {
+		return oRange;
+	}
+
+	public final void setoRange(int[] oRange) {
+		this.oRange = oRange;
+	}
+
 	/**
 	 * Saves the settings into the given node settings object.
 	 * 
@@ -118,6 +136,8 @@ public class SumFormulaSettings implements CDKSettings {
 		settings.addString("ratioRule", applyRatioRule);
 		settings.addString("numberRule", applyNumberRule);
 		settings.addIntArray("crange", cRange);
+		settings.addIntArray("hrange", hRange);
+		settings.addIntArray("orange", oRange);
 	}
 
 	/**
@@ -137,6 +157,8 @@ public class SumFormulaSettings implements CDKSettings {
 		applyRatioRule = settings.getString("ratioRule");
 		applyNumberRule = settings.getString("numberRule");
 		cRange = settings.getIntArray("crange");
+		hRange = settings.getIntArray("hrange");
+		oRange = settings.getIntArray("orange");
 	}
 	
 	public String elements() {

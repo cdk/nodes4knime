@@ -101,8 +101,14 @@ public class SumFormulaNodeModel extends CDKNodeModel {
 						mfRange.addIsotope(ifac.getMajorIsotope(el), 
 								settings(SumFormulaSettings.class).getcRange()[0], 
 								settings(SumFormulaSettings.class).getcRange()[1]);
+					} else if (el.equals("H")) {
+						mfRange.addIsotope(ifac.getMajorIsotope(el), 
+								settings(SumFormulaSettings.class).gethRange()[0], 
+								settings(SumFormulaSettings.class).gethRange()[1]);
 					} else {
-						mfRange.addIsotope(ifac.getMajorIsotope(el), 0, 30);
+						mfRange.addIsotope(ifac.getMajorIsotope(el), 
+								settings(SumFormulaSettings.class).getoRange()[0], 
+								settings(SumFormulaSettings.class).getoRange()[1]);
 					}
 				}
 			} else if (settings(SumFormulaSettings.class).incAll()) {
@@ -111,8 +117,14 @@ public class SumFormulaNodeModel extends CDKNodeModel {
 						mfRange.addIsotope(ifac.getMajorIsotope(el), 
 								settings(SumFormulaSettings.class).getcRange()[0], 
 								settings(SumFormulaSettings.class).getcRange()[1]);
+					} else if (el.equals("H")) {
+						mfRange.addIsotope(ifac.getMajorIsotope(el), 
+								settings(SumFormulaSettings.class).gethRange()[0], 
+								settings(SumFormulaSettings.class).gethRange()[1]);
 					} else {
-						mfRange.addIsotope(ifac.getMajorIsotope(el), 0, 30);
+						mfRange.addIsotope(ifac.getMajorIsotope(el), 
+								settings(SumFormulaSettings.class).getoRange()[0], 
+								settings(SumFormulaSettings.class).getoRange()[1]);
 					}
 				}
 			} else {
@@ -124,8 +136,14 @@ public class SumFormulaNodeModel extends CDKNodeModel {
 							mfRange.addIsotope(ifac.getMajorIsotope(el), 
 									settings(SumFormulaSettings.class).getcRange()[0], 
 									settings(SumFormulaSettings.class).getcRange()[1]);
+						} else if (el.equals("H")) {
+							mfRange.addIsotope(ifac.getMajorIsotope(el), 
+									settings(SumFormulaSettings.class).gethRange()[0], 
+									settings(SumFormulaSettings.class).gethRange()[1]);
 						} else {
-							mfRange.addIsotope(ifac.getMajorIsotope(el), 0, 30);
+							mfRange.addIsotope(ifac.getMajorIsotope(el), 
+									settings(SumFormulaSettings.class).getoRange()[0], 
+									settings(SumFormulaSettings.class).getoRange()[1]);
 						}
 					}
 				}

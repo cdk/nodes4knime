@@ -45,9 +45,12 @@
 		<option name="Include elements">Whether to use a custom set of elements.</option>
 		<option name="Exclude elements (DISABLED)">Whether to use all elements excluding a set of elements.</option>
 		<option name="Elements">The comma-separated set of elements to be included or excluded.</option>
+		<option name="Carbon limits">The allowed minimum and maximum number of carbon element counts.</option>
+		<option name="Hydrogen limits">The allowed minimum and maximum number of hydrogen element counts.</option>
+		<option name="Other limits">The allowed minimum and maximum number of other element counts.</option>
 		<option name="Mass tolerance">The mass tolerance in 'amu'.</option>
 		<option name="Nitrogen rule">Apply the nitrogen rule.</option>
-		<option name="element ratio rule">Apply the element ratio check rule.</option>
+		<option name="Element ratio rule">Apply the element ratio check rule.</option>
 		<option name="Element restriction">Apply element occurrence restrictions.</option>
 	</fullDescription>
 
