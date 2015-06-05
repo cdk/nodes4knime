@@ -26,6 +26,7 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.def.IntCell;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
@@ -41,6 +42,7 @@ public class SmartsNodeModel extends CDKAdapterNodeModel {
 
 	private String colSmarts = "";
 	private String colMolecule = "";
+	private boolean count = false;
 
 	private int smartsIndex = 0;
 
@@ -66,11 +68,13 @@ public class SmartsNodeModel extends CDKAdapterNodeModel {
 		}
 
 		BufferedDataContainer outputTable[] = new BufferedDataContainer[] {
-				exec.createDataContainer(appendSpec(convertedTables[0].getDataTableSpec())),
+				exec.createDataContainer(count 
+						? appendSpecCount(convertedTables[0].getDataTableSpec()) 
+						: appendSpec(convertedTables[0].getDataTableSpec())),
 				exec.createDataContainer(appendSpec(convertedTables[0].getDataTableSpec())) };
 
 		SmartsWorker worker = new SmartsWorker(maxQueueSize, maxParallelWorkers, columnIndex,
-				convertedTables[0].getRowCount(), smarts, exec, outputTable);
+				convertedTables[0].getRowCount(), smarts, count, exec, outputTable);
 
 		try {
 			worker.run(convertedTables[0]);
@@ -108,9 +112,13 @@ public class SmartsNodeModel extends CDKAdapterNodeModel {
 		smartsIndex = inSpecs[1].findColumnIndex(colSmarts);
 
 		DataTableSpec outSpec = convertTables(new DataTableSpec[] { inSpecs[0] })[0];
-		DataTableSpec outSpecFinal = appendSpec(outSpec);
+		DataTableSpec outSpecSecond = appendSpec(outSpec);
+		DataTableSpec outSpecFirst = outSpecSecond;
+		if (count) {
+			outSpecFirst = appendSpecCount(outSpec);
+		}
 
-		return new DataTableSpec[] { outSpecFinal, outSpecFinal };
+		return new DataTableSpec[] { outSpecFirst, outSpecSecond };
 	}
 
 	private DataTableSpec appendSpec(DataTableSpec spec) {
@@ -128,6 +136,23 @@ public class SmartsNodeModel extends CDKAdapterNodeModel {
 		}
 		return new DataTableSpec(dcs);
 	}
+	
+	private DataTableSpec appendSpecCount(DataTableSpec spec) {
+
+		DataColumnSpec[] dcs = new DataColumnSpec[spec.getNumColumns() + 1];
+		int i = 0;
+		for (DataColumnSpec s : spec) {
+			if (i == columnIndex) {
+				String name = spec.getColumnNames()[columnIndex];
+				dcs[i] = new DataColumnSpecCreator(name, CDKCell3.TYPE).createSpec();
+			} else {
+				dcs[i] = s;
+			}
+			i++;
+		}
+		dcs[i] = new DataColumnSpecCreator("Unique Count", IntCell.TYPE).createSpec();
+		return new DataTableSpec(dcs);
+	}
 
 	/**
 	 * {@inheritDoc}
@@ -137,6 +162,7 @@ public class SmartsNodeModel extends CDKAdapterNodeModel {
 
 		colMolecule = settings.getString("Molecule");
 		colSmarts = settings.getString("SMARTS");
+		count = settings.getBoolean("Count Unique");
 	}
 
 	/**
@@ -147,6 +173,7 @@ public class SmartsNodeModel extends CDKAdapterNodeModel {
 
 		settings.addString("Molecule", colMolecule);
 		settings.addString("SMARTS", colSmarts);
+		settings.addBoolean("Count Unique", count);
 	}
 
 	/**

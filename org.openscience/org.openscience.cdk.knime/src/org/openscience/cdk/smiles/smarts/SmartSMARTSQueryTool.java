@@ -68,4 +68,20 @@ public class SmartSMARTSQueryTool {
 
 		return false;
 	}
+	
+	public int countUnique(IAtomContainer atomContainer) throws CDKException {
+		
+		SmartsMatchers.prepare(atomContainer, RING_QUERY);
+
+		int total = 0;
+		for (Entry<Pattern, QueryAtomContainer> entry : queries.entrySet()) {
+			Mappings mappings = entry.getKey().matchAll(atomContainer)
+					.filter(new SmartsStereoMatch(entry.getValue(), atomContainer))
+					.filter(new ComponentGrouping(entry.getValue(), atomContainer));
+			
+			total += mappings.countUnique();
+		}
+		
+		return total;
+	}
 }

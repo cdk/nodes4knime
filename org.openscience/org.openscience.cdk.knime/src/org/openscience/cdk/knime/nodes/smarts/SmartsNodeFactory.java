@@ -16,6 +16,8 @@
  */
 package org.openscience.cdk.knime.nodes.smarts;
 
+import javax.swing.JCheckBox;
+
 import org.knime.chem.types.SmartsValue;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
@@ -39,6 +41,7 @@ public class SmartsNodeFactory extends NodeFactory<SmartsNodeModel> {
 		CDKDialog dialog = new CDKDialog();
 		dialog.addColumnSelection("Molecule", CDKNodeUtils.ACCEPTED_VALUE_CLASSES);
 		dialog.addColumnSelection("SMARTS", 1, SmartsValue.class);
+		dialog.addCustomOption("Count Unique", new JCheckBox("", false));
 		return dialog.build();
 	}
 

@@ -23,11 +23,13 @@ import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 
+import org.knime.base.data.append.column.AppendedColumnRow;
 import org.knime.base.data.replace.ReplacedColumnsDataRow;
 import org.knime.core.data.AdapterValue;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataType;
+import org.knime.core.data.def.IntCell;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
@@ -47,15 +49,18 @@ public class SmartsWorker extends MultiThreadWorker<DataRow, DataRow> {
 	private final double max;
 	private final BufferedDataContainer[] bdc;
 
+	private final boolean count;
+	
 	private final SmartSMARTSQueryTool smarts;
 	private final Set<Long> matchedRows;
 
 	public SmartsWorker(final int maxQueueSize, final int maxActiveInstanceSize, final int columnIndex,
-			final int max, final List<String> smarts, final ExecutionContext exec, final BufferedDataContainer[] bdc) {
+			final int max, final List<String> smarts, final boolean count, final ExecutionContext exec, final BufferedDataContainer[] bdc) {
 
 		super(maxQueueSize, maxActiveInstanceSize);
 		this.exec = exec;
 		this.bdc = bdc;
+		this.count = count;
 		this.max = max;
 		this.smarts = new SmartSMARTSQueryTool(smarts);
 		this.columnIndex = columnIndex;
@@ -66,6 +71,8 @@ public class SmartsWorker extends MultiThreadWorker<DataRow, DataRow> {
 	protected DataRow compute(DataRow row, long index) throws Exception {
 
 		DataCell outCell;
+		int uniqueCount = 0;
+		DataRow countRow = row;
 		if (row.getCell(columnIndex).isMissing()
 				|| (((AdapterValue) row.getCell(columnIndex)).getAdapterError(CDKValue.class) != null)) {
 			outCell = DataType.getMissingCell();
@@ -76,6 +83,10 @@ public class SmartsWorker extends MultiThreadWorker<DataRow, DataRow> {
 			try {
 				if (smarts.matches(m)) {
 					matchedRows.add(index);
+					if (count) {
+						uniqueCount = smarts.countUnique(m);
+						countRow = new AppendedColumnRow(row, new IntCell(uniqueCount));
+					}
 				}
 			} catch (ThreadDeath d) {
 				LOGGER.debug("SMARTS Query failed for row \"" + row.getKey() + "\"");
@@ -87,7 +98,7 @@ public class SmartsWorker extends MultiThreadWorker<DataRow, DataRow> {
 			outCell = CDKCell3.createCDKCell(m);
 		}
 
-		return new ReplacedColumnsDataRow(row, outCell, columnIndex);
+		return new ReplacedColumnsDataRow(countRow, outCell, columnIndex);
 	}
 
 	@Override
