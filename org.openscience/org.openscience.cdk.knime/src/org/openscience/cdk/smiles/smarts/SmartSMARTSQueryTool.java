@@ -20,11 +20,12 @@
  */
 package org.openscience.cdk.smiles.smarts;
 
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 
+import org.knime.core.data.def.IntCell;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.isomorphism.ComponentGrouping;
@@ -39,13 +40,13 @@ import org.openscience.cdk.smiles.smarts.parser.SMARTSParser;
 
 public class SmartSMARTSQueryTool {
 
-	private final Map<Pattern, QueryAtomContainer> queries;
+	private final LinkedHashMap<Pattern, QueryAtomContainer> queries;
 
 	private static final boolean RING_QUERY = true;
 
 	public SmartSMARTSQueryTool(List<String> smarts) {
 
-		this.queries = new HashMap<Pattern, QueryAtomContainer>();
+		this.queries = new LinkedHashMap<Pattern, QueryAtomContainer>();
 		for (String smart : smarts) {
 			QueryAtomContainer query = SMARTSParser.parse(smart, SilentChemObjectBuilder.getInstance());
 			this.queries.put(VentoFoggia.findSubstructure(query), query);
@@ -69,17 +70,17 @@ public class SmartSMARTSQueryTool {
 		return false;
 	}
 	
-	public int countUnique(IAtomContainer atomContainer) throws CDKException {
+	public List<IntCell> countUnique(IAtomContainer atomContainer) throws CDKException {
 		
 		SmartsMatchers.prepare(atomContainer, RING_QUERY);
 
-		int total = 0;
+		List<IntCell> total = new ArrayList<>();
 		for (Entry<Pattern, QueryAtomContainer> entry : queries.entrySet()) {
 			Mappings mappings = entry.getKey().matchAll(atomContainer)
 					.filter(new SmartsStereoMatch(entry.getValue(), atomContainer))
 					.filter(new ComponentGrouping(entry.getValue(), atomContainer));
 			
-			total += mappings.countUnique();
+			total.add(new IntCell(mappings.countUnique()));
 		}
 		
 		return total;

@@ -16,6 +16,7 @@
  */
 package org.openscience.cdk.knime.nodes.smarts;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -29,6 +30,7 @@ import org.knime.core.data.AdapterValue;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataType;
+import org.knime.core.data.collection.CollectionCellFactory;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.CanceledExecutionException;
@@ -71,7 +73,7 @@ public class SmartsWorker extends MultiThreadWorker<DataRow, DataRow> {
 	protected DataRow compute(DataRow row, long index) throws Exception {
 
 		DataCell outCell;
-		int uniqueCount = 0;
+		List<IntCell> uniqueCounts = new ArrayList<>();
 		DataRow countRow = row;
 		if (row.getCell(columnIndex).isMissing()
 				|| (((AdapterValue) row.getCell(columnIndex)).getAdapterError(CDKValue.class) != null)) {
@@ -84,8 +86,8 @@ public class SmartsWorker extends MultiThreadWorker<DataRow, DataRow> {
 				if (smarts.matches(m)) {
 					matchedRows.add(index);
 					if (count) {
-						uniqueCount = smarts.countUnique(m);
-						countRow = new AppendedColumnRow(row, new IntCell(uniqueCount));
+						uniqueCounts = smarts.countUnique(m);
+						countRow = new AppendedColumnRow(row, CollectionCellFactory.createListCell(uniqueCounts));
 					}
 				}
 			} catch (ThreadDeath d) {
