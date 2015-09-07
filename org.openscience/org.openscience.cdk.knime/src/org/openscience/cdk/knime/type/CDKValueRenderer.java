@@ -1,17 +1,17 @@
 /*
  * Copyright (C) 2003 - 2013 University of Konstanz, Germany and KNIME GmbH, Konstanz, Germany Website:
  * http://www.knime.org; Email: contact@knime.org
- * 
+ *
  * This file is part of the KNIME CDK plugin.
- * 
+ *
  * The KNIME CDK plugin is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
  * General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your
  * option) any later version.
- * 
+ *
  * The KNIME CDK plugin is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
  * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License
  * for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License along with the plugin. If not, see
  * <http://www.gnu.org/licenses/>.
  */
@@ -59,7 +59,7 @@ import org.openscience.cdk.renderer.visitor.SmartAWTDrawVisitor;
 /**
  * Renderer for {@link CDKValue}s. It will use CDK classes to render a 2D
  * structure of a molecule.
- * 
+ *
  * @author Bernd Wiswedel, University of Konstanz
  * @author Andreas Truszkowski, EMBL-EBI
  * @author Stephan Beisken, EMBL-EBI
@@ -68,7 +68,7 @@ import org.openscience.cdk.renderer.visitor.SmartAWTDrawVisitor;
  */
 public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 
-	private static final String DESCRIPTION = "CDK";
+	private static final String DESCRIPTION = "CDK Molecule";
 
 	/**
 	 * Factory for the {@link CDKValueRenderer}.
@@ -195,7 +195,7 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 
 	/**
 	 * Sets the numbering parameters for the renderer model.
-	 * 
+	 *
 	 * @param type the element symbol to be replaced by a number
 	 * @param numbering the numbering scheme (sequential, canonical)
 	 */
@@ -221,7 +221,7 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 
 	/**
 	 * Sets a new object to be rendered.
-	 * 
+	 *
 	 * @param con the new molecule to be rendered (<code>null</code> is ok)
 	 */
 	protected void setAtomContainer(final IAtomContainer con) {
@@ -237,7 +237,7 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 
 	/**
 	 * Get the currently set molecule for rendering (may be <code>null</code>).
-	 * 
+	 *
 	 * @return the current molecule
 	 */
 	protected IAtomContainer getAtomContainer() {
@@ -246,11 +246,11 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 
 	/**
 	 * Sets the string object for the cell being rendered.
-	 * 
+	 *
 	 * @param value the string value for this cell; if value is <code>null</code> it sets the text value to an empty
 	 *        string
 	 * @see javax.swing.JLabel#setText
-	 * 
+	 *
 	 */
 	@Override
 	protected void setValue(final Object value) {
@@ -376,7 +376,7 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 	 */
 	@Override
 	public String getDescription() {
-		return "CDK Molecule";
+		return DESCRIPTION;
 	}
 
 	/**
