@@ -2,7 +2,7 @@
 <feature
       id="org.openscience.cdk.knime.feature"
       label="KNIME-CDK"
-      version="1.5.3.qualifier"
+      version="1.5.4.qualifier"
       provider-name="University Konstanz and EBI"
       plugin="org.openscience.cdk.knime">
 
@@ -16,7 +16,7 @@ KNIME.org update site.
    </description>
 
    <copyright>
-      Copyright, 2003 - 2014
+      Copyright, 2003 - 2015
 University of Konstanz, Germany
 KNIME GmbH, Konstanz, Germany
 EBI, Hinxton, UK
