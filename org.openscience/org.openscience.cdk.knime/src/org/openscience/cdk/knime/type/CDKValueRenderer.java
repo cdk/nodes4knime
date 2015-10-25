@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 - 2013 University of Konstanz, Germany and KNIME GmbH, Konstanz, Germany Website:
+ * Copyright (C) 2003 - 2016 University of Konstanz, Germany and KNIME GmbH, Konstanz, Germany Website:
  * http://www.knime.org; Email: contact@knime.org
  *
  * This file is part of the KNIME CDK plugin.
@@ -17,6 +17,7 @@
  */
 package org.openscience.cdk.knime.type;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
@@ -42,19 +43,17 @@ import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IAtomContainerSet;
 import org.openscience.cdk.knime.CDKNodePlugin;
-import org.openscience.cdk.knime.preferences.CDKPreferencePage.AROMATICITY;
 import org.openscience.cdk.knime.preferences.CDKPreferencePage.NUMBERING;
 import org.openscience.cdk.layout.LayoutHelper;
 import org.openscience.cdk.renderer.AtomContainerRenderer;
 import org.openscience.cdk.renderer.RendererModel;
+import org.openscience.cdk.renderer.SymbolVisibility;
+import org.openscience.cdk.renderer.color.ModCPKAtomColors;
 import org.openscience.cdk.renderer.font.AWTFontManager;
-import org.openscience.cdk.renderer.generators.BasicAtomGenerator;
 import org.openscience.cdk.renderer.generators.BasicSceneGenerator;
 import org.openscience.cdk.renderer.generators.IGenerator;
-import org.openscience.cdk.renderer.generators.SmartAtomNumberGenerator;
-import org.openscience.cdk.renderer.generators.SmartExtendedAtomGenerator;
-import org.openscience.cdk.renderer.generators.SmartRingGenerator;
-import org.openscience.cdk.renderer.visitor.SmartAWTDrawVisitor;
+import org.openscience.cdk.renderer.generators.standard.StandardGenerator;
+import org.openscience.cdk.renderer.visitor.AWTDrawVisitor;
 
 /**
  * Renderer for {@link CDKValue}s. It will use CDK classes to render a 2D
@@ -108,42 +107,31 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 	private static final NodeLogger LOGGER = NodeLogger.getLogger(CDKValueRenderer.class);
 
 	private static AtomContainerRenderer renderer;
-
-	private static final double SCALE = 0.85;
-
+	
 	static {
 		try {
 			List<IGenerator<IAtomContainer>> generators = new ArrayList<IGenerator<IAtomContainer>>();
 			generators.add(new BasicSceneGenerator());
-			generators.add(new SmartRingGenerator());
-			generators.add(new SmartExtendedAtomGenerator());
-			//generators.add(new SmartBasicBondGenerator());
-			generators.add(new SmartAtomNumberGenerator());
+			generators.add(new StandardGenerator(new Font("Verdana", Font.PLAIN, 18)));
 			renderer = new AtomContainerRenderer(generators, new AWTFontManager());
 
-			setDefaultRendererProps(renderer.getRenderer2DModel(), CDKNodePlugin.showAomaticity());
+			setDefaultRendererProps(renderer.getRenderer2DModel());
 
 		} catch (Exception e) {
 			LOGGER.error("Error during renderer initialization!", e);
 		}
 	}
 
-	private static void setDefaultRendererProps(final RendererModel renderer2dModel, final AROMATICITY aromaticity) {
+	private static void setDefaultRendererProps(final RendererModel renderer2dModel) {
 
-		if (aromaticity.equals(AROMATICITY.SHOW_KEKULE)) {
-			renderer.getRenderer2DModel().set(SmartRingGenerator.ShowAromaticity.class, false);
-		} else {
-			renderer.getRenderer2DModel().set(SmartRingGenerator.ShowAromaticity.class, true);
-		}
-
-		renderer2dModel.set(SmartRingGenerator.MaxDrawableAromaticRing.class, 9);
 		renderer2dModel.set(BasicSceneGenerator.UseAntiAliasing.class, true);
-		renderer2dModel.set(BasicAtomGenerator.ShowExplicitHydrogens.class, true);
-		renderer2dModel.set(BasicAtomGenerator.ShowEndCarbons.class, true);
-		renderer2dModel.set(SmartExtendedAtomGenerator.ShowImplicitHydrogens.class, true);
-		renderer2dModel.set(SmartAtomNumberGenerator.WillDrawAtomNumbers.class, false);
+		renderer2dModel.set(StandardGenerator.AtomColor.class, new ModCPKAtomColors());
+		renderer2dModel.set(StandardGenerator.AnnotationColor.class, Color.RED);
+		renderer2dModel.set(StandardGenerator.Highlighting.class, StandardGenerator.HighlightStyle.OuterGlow);
+		renderer2dModel.set(StandardGenerator.Visibility.class, SymbolVisibility.iupacRecommendations());
 	}
 
+	private NUMBERING numbering;
 	private IAtomContainer m_mol;
 
 	private static final Font NO_2D_FONT = new Font(Font.SANS_SERIF, Font.PLAIN, 11);
@@ -151,72 +139,7 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 	public CDKValueRenderer() {
 
 		super();
-
-		AROMATICITY aromaticity;
-
-		switch (CDKNodePlugin.showAomaticity()) {
-
-		case SHOW_KEKULE:
-			aromaticity = AROMATICITY.SHOW_KEKULE;
-			break;
-		default:
-			aromaticity = AROMATICITY.SHOW_RINGS;
-			break;
-		}
-
-		NUMBERING numbering;
-
-		switch (CDKNodePlugin.numbering()) {
-
-		case SEQUENTIAL:
-			numbering = NUMBERING.SEQUENTIAL;
-			break;
-		default:
-			numbering = NUMBERING.CANONICAL;
-			break;
-		}
-
-		switch (CDKNodePlugin.showNumbers()) {
-
-		case ALL:
-			setRendererProps(TYPE.ALL_ATOMS, numbering, aromaticity);
-			break;
-		case CARBON:
-			setRendererProps(TYPE.C_ATOMS, numbering, aromaticity);
-			break;
-		case HYDROGEN:
-			setRendererProps(TYPE.H_ATOMS, numbering, aromaticity);
-			break;
-		default:
-			setDefaultRendererProps(renderer.getRenderer2DModel(), aromaticity);
-			break;
-		}
-	}
-
-	/**
-	 * Sets the numbering parameters for the renderer model.
-	 *
-	 * @param type the element symbol to be replaced by a number
-	 * @param numbering the numbering scheme (sequential, canonical)
-	 */
-	private void setRendererProps(final TYPE type, final NUMBERING numbering, final AROMATICITY aromaticity) {
-
-		renderer.getRenderer2DModel().set(SmartExtendedAtomGenerator.ShowImplicitHydrogens.class, false);
-		renderer.getRenderer2DModel().set(BasicAtomGenerator.ShowEndCarbons.class, false);
-		renderer.getRenderer2DModel().set(SmartAtomNumberGenerator.WillDrawAtomNumbers.class, true);
-		renderer.getRenderer2DModel().set(SmartAtomNumberGenerator.DrawSpecificElement.class, type.getSymbol());
-
-		if (aromaticity.equals(AROMATICITY.SHOW_KEKULE)) {
-			renderer.getRenderer2DModel().set(SmartRingGenerator.ShowAromaticity.class, false);
-		} else {
-			renderer.getRenderer2DModel().set(SmartRingGenerator.ShowAromaticity.class, true);
-		}
-
-		if (numbering.equals(NUMBERING.SEQUENTIAL)) {
-			renderer.getRenderer2DModel().set(SmartAtomNumberGenerator.DrawSequential.class, true);
-		} else {
-			renderer.getRenderer2DModel().set(SmartAtomNumberGenerator.DrawSequential.class, false);
-		}
+		numbering = CDKNodePlugin.numbering();
 	}
 
 	/**
@@ -232,6 +155,21 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 			} catch (IllegalArgumentException exception) {
 				m_mol = con;
 			}
+		}
+		switch (numbering) {
+			case SEQUENTIAL:
+				int i = 1;
+				for (IAtom atom : con.atoms()) {
+				    String label = Integer.toString(i++);
+				    atom.setProperty(StandardGenerator.ANNOTATION_LABEL, label);
+				}
+				break;
+			case CANONICAL:
+				for (IAtom atom : con.atoms()) {
+				    String label = atom.getID();
+				    atom.setProperty(StandardGenerator.ANNOTATION_LABEL, label);
+				}
+				break;
 		}
 	}
 
@@ -305,23 +243,14 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 
 		Graphics2D g2 = (Graphics2D) g;
 
-		if (SCALE < 1.0) {
-			x = (int) ((width * (1.0 - SCALE)) / 2);
-			y = (int) ((height * (1.0 - SCALE)) / 2);
-			width = (int) (width * SCALE);
-			height = (int) (height * SCALE);
-		}
-
 		if (threeD || twoThreeD) {
 			y += 14;
 			height -= 14;
 		}
 
 		IAtomContainer cont = new AtomContainer();
-		Dimension aPrefferedSize = new Dimension(width, height);
 
-		// if not connected, draw every compound in succession next to each
-		// other
+		// if not connected, draw every compound in succession next to each other
 		if (!ConnectivityChecker.isConnected(m_mol)) {
 			double cumX = 0;
 			IAtomContainerSet molSet = ConnectivityChecker.partitionIntoMolecules(m_mol);
@@ -364,11 +293,7 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 			}
 		}
 
-		GeometryTools.translateAllPositive(cont);
-		GeometryTools.scaleMolecule(cont, aPrefferedSize, 0.8f);
-		GeometryTools.center(cont, aPrefferedSize);
-
-		renderer.paint(cont, new SmartAWTDrawVisitor(g2), new Rectangle(x, y, width, height), true);
+		renderer.paint(cont, new AWTDrawVisitor(g2), new Rectangle(x, y, width, height), true);
 	}
 
 	/**
