@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Stephan Beisken (sbeisken@gmail.com). All rights reserved.
+ * Copyright (c) 2016, Stephan Beisken (sbeisken@gmail.com). All rights reserved.
  * 
  * This file is part of the KNIME CDK plugin.
  * 
@@ -33,7 +33,6 @@ import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.util.MultiThreadWorker;
-import org.openscience.cdk.CDKConstants;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IBond;
@@ -46,6 +45,7 @@ import org.openscience.cdk.isomorphism.VentoFoggia;
 import org.openscience.cdk.knime.commons.CDKNodeUtils;
 import org.openscience.cdk.knime.type.CDKCell3;
 import org.openscience.cdk.knime.type.CDKValue;
+import org.openscience.cdk.renderer.generators.standard.StandardGenerator;
 
 import com.google.common.base.Predicate;
 
@@ -139,7 +139,7 @@ public class SSSearchWorker extends MultiThreadWorker<DataRow, DataRow> {
 
 					for (Map<IAtom, IAtom> map : mappings.toAtomMap()) {
 						for (Map.Entry<IAtom, IAtom> e : map.entrySet()) {
-							e.getValue().setProperty(CDKConstants.ANNOTATIONS, color[i].getRGB());
+							e.getValue().setProperty(StandardGenerator.HIGHLIGHT_COLOR, color[i]);
 						}
 						i++;
 					}
@@ -147,7 +147,7 @@ public class SSSearchWorker extends MultiThreadWorker<DataRow, DataRow> {
 					int j = 0;
 					for (Map<IBond, IBond> map : mappings.toBondMap()) {
 						for (Map.Entry<IBond, IBond> e : map.entrySet()) {
-							e.getValue().setProperty(CDKConstants.ANNOTATIONS, color[j].getRGB());
+							e.getValue().setProperty(StandardGenerator.HIGHLIGHT_COLOR, color[j]);
 						}
 						j++;
 					}

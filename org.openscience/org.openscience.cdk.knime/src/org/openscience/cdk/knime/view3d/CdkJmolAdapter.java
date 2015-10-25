@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2013 The Jmol Development Team
+ * Copyright (C) 2003-2016 The Jmol Development Team
  * 
  * Contact: jmol-developers@lists.sf.net
  * 

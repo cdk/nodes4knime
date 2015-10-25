@@ -22,7 +22,6 @@ package org.openscience.cdk.qsar.descriptors.molecular;
 import java.util.List;
 
 import org.openscience.cdk.CDKConstants;
-import org.openscience.cdk.annotations.TestMethod;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
@@ -51,7 +50,6 @@ public class SmartHBondAcceptorCountDescriptor extends AbstractMolecularDescript
 	 * 
 	 * @return The specification value
 	 */
-	@TestMethod("testGetSpecification")
 	public DescriptorSpecification getSpecification() {
 		return new DescriptorSpecification(
 				"http://www.blueobelisk.org/ontologies/chemoinformatics-algorithms/#hBondacceptors", this.getClass()
@@ -64,7 +62,6 @@ public class SmartHBondAcceptorCountDescriptor extends AbstractMolecularDescript
 	 * @param params a boolean true means that aromaticity has to be checked
 	 * @exception CDKException Description of the Exception
 	 */
-	@TestMethod("testSetParameters_arrayObject")
 	public void setParameters(Object[] params) throws CDKException {}
 
 	/**
@@ -72,12 +69,10 @@ public class SmartHBondAcceptorCountDescriptor extends AbstractMolecularDescript
 	 * 
 	 * @return The parameters value
 	 */
-	@TestMethod("testGetParameters")
 	public Object[] getParameters() {
 		return new Object[0];
 	}
 
-	@TestMethod(value = "testNamesConsistency")
 	public String[] getDescriptorNames() {
 		return names;
 	}
@@ -88,7 +83,6 @@ public class SmartHBondAcceptorCountDescriptor extends AbstractMolecularDescript
 	 * @param atomContainer AtomContainer
 	 * @return number of H bond acceptors
 	 */
-	@TestMethod("testCalculate_IAtomContainer")
 	public DescriptorValue calculate(IAtomContainer ac) {
 		int hBondAcceptors = 0;
 
@@ -151,7 +145,6 @@ public class SmartHBondAcceptorCountDescriptor extends AbstractMolecularDescript
 	 *         descriptor in the
 	 *         {@link org.openscience.cdk.qsar.DescriptorValue} object
 	 */
-	@TestMethod("testGetDescriptorResultType")
 	public IDescriptorResult getDescriptorResultType() {
 		return new IntegerResult(1);
 	}
@@ -162,7 +155,6 @@ public class SmartHBondAcceptorCountDescriptor extends AbstractMolecularDescript
 	 * 
 	 * @return The parameterNames value
 	 */
-	@TestMethod("testGetParameterNames")
 	public String[] getParameterNames() {
 		return new String[0];
 	}
@@ -174,7 +166,6 @@ public class SmartHBondAcceptorCountDescriptor extends AbstractMolecularDescript
 	 * @param name Description of the Parameter
 	 * @return The parameterType value
 	 */
-	@TestMethod("testGetParameterType_String")
 	public Object getParameterType(String name) {
 		return false;
 	}

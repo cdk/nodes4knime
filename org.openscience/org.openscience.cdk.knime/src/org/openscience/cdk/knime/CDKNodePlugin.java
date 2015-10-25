@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 - 2013 University of Konstanz, Germany and KNIME GmbH, Konstanz, Germany Website:
+ * Copyright (C) 2003 - 2016 University of Konstanz, Germany and KNIME GmbH, Konstanz, Germany Website:
  * http://www.knime.org; Email: contact@knime.org
  * 
  * This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public
@@ -37,8 +37,6 @@ import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.knime.ext.chem.moss.CDKMolConverter;
 import org.knime.ext.chem.moss.MolConverter;
 import org.openscience.cdk.knime.preferences.CDKPreferenceInitializer;
-import org.openscience.cdk.knime.preferences.CDKPreferencePage.AROMATICITY;
-import org.openscience.cdk.knime.preferences.CDKPreferencePage.LABELS;
 import org.openscience.cdk.knime.preferences.CDKPreferencePage.NUMBERING;
 import org.osgi.framework.BundleContext;
 
@@ -56,8 +54,6 @@ public class CDKNodePlugin extends AbstractUIPlugin {
 	// The shared instance.
 	private static CDKNodePlugin plugin;
 
-	private static AROMATICITY showRings = AROMATICITY.SHOW_RINGS;
-	private static LABELS showNumbers = LABELS.NONE;
 	private static NUMBERING numbering = NUMBERING.CANONICAL;
 
 	/**
@@ -95,19 +91,13 @@ public class CDKNodePlugin extends AbstractUIPlugin {
 			@Override
 			public void propertyChange(final PropertyChangeEvent event) {
 
-				if (event.getProperty().equals(CDKPreferenceInitializer.SHOW_NUMBERS)) {
-					showNumbers = LABELS.valueOf(pStore.getString(CDKPreferenceInitializer.SHOW_NUMBERS));
-				} else if (event.getProperty().equals(CDKPreferenceInitializer.NUMBERING_TYPE)) {
+				if (event.getProperty().equals(CDKPreferenceInitializer.NUMBERING_TYPE)) {
 					numbering = NUMBERING.valueOf(pStore.getString(CDKPreferenceInitializer.NUMBERING_TYPE));
-				} else if (event.getProperty().equals(CDKPreferenceInitializer.SHOW_AROMATICITY)) {
-					showRings = AROMATICITY.valueOf(pStore.getString(CDKPreferenceInitializer.SHOW_AROMATICITY));
 				}
 			}
 		});
 
-		showNumbers = LABELS.valueOf(pStore.getString(CDKPreferenceInitializer.SHOW_NUMBERS));
 		numbering = NUMBERING.valueOf(pStore.getString(CDKPreferenceInitializer.NUMBERING_TYPE));
-		showRings = AROMATICITY.valueOf(pStore.getString(CDKPreferenceInitializer.SHOW_AROMATICITY));
 
 		try {
 			// may fail if MoSS is not installed
@@ -140,29 +130,11 @@ public class CDKNodePlugin extends AbstractUIPlugin {
 	}
 
 	/**
-	 * Returns which atom id labels should be shown.
-	 * 
-	 * @return <code>true</code> if the id labels should be displayed, <code>false</code> otherwise
-	 */
-	public static LABELS showNumbers() {
-		return showNumbers;
-	}
-
-	/**
 	 * Returns the numbering type that should be used for the atom ids.
 	 * 
 	 * @return the numbering type
 	 */
 	public static NUMBERING numbering() {
 		return numbering;
-	}
-
-	/**
-	 * Returns if aromaticity should be shown Kekule style.
-	 * 
-	 * @return if the aromaticity should be shown Kekule style
-	 */
-	public static AROMATICITY showAomaticity() {
-		return showRings;
 	}
 }

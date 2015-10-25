@@ -22,7 +22,6 @@ package org.openscience.cdk.qsar.descriptors.molecular;
 import java.lang.reflect.Method;
 
 import org.openscience.cdk.CDKConstants;
-import org.openscience.cdk.annotations.TestMethod;
 import org.openscience.cdk.atomtype.EStateAtomTypeMatcher;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtom;
@@ -1856,7 +1855,6 @@ public class SmartALogPDescriptor extends AbstractMolecularDescriptor implements
 	 * @param atomContainer the molecule to calculate on
 	 * @return the result of the calculation
 	 */
-	@TestMethod("testCalculate_IAtomContainer,testChloroButane")
 	public DescriptorValue calculate(IAtomContainer container) {
 
 		IRingSet rs;
@@ -1922,37 +1920,30 @@ public class SmartALogPDescriptor extends AbstractMolecularDescriptor implements
 	 *         descriptor in the
 	 *         {@link org.openscience.cdk.qsar.DescriptorValue} object
 	 */
-	@TestMethod("testGetDescriptorResultType")
 	public IDescriptorResult getDescriptorResultType() {
 		return new DoubleArrayResultType(3);
 	}
 
-	@TestMethod("testGetSpecification")
 	public DescriptorSpecification getSpecification() {
 		return new DescriptorSpecification("http://www.blueobelisk.org/ontologies/chemoinformatics-algorithms/#ALOGP",
 				this.getClass().getName(), "$Id: 5249892f21d33ffb4d1a000565760b480b8872ed $",
 				"The Chemistry Development Kit");
 	}
 
-	@TestMethod("testGetParameterNames")
 	public String[] getParameterNames() {
 		return new String[0];
 	}
 
-	@TestMethod("testGetParameterType_String")
 	public Object getParameterType(String name) {
 		return null;
 	}
 
-	@TestMethod("testSetParameters_arrayObject")
 	public void setParameters(Object[] params) throws CDKException {}
 
-	@TestMethod("testGetParameters")
 	public Object[] getParameters() {
 		return null;
 	}
 
-	@TestMethod(value = "testNamesConsistency")
 	public String[] getDescriptorNames() {
 		return strings;
 	}

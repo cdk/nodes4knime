@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Stephan Beisken (sbeisken@gmail.com). All rights reserved.
+ * Copyright (c) 2016, Stephan Beisken (sbeisken@gmail.com). All rights reserved.
  * 
  * This file is part of the KNIME CDK plugin.
  * 
@@ -243,6 +243,7 @@ public class CDKNodeUtils {
 			try {
 				smiles = SG.create(molecule, sequence);
 			} catch (Exception e) {
+				LOGGER.error("Error while parsing SMILES.", e);
 				smiles = "";
 			}
 		}

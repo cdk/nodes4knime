@@ -25,7 +25,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.openscience.cdk.CDKConstants;
-import org.openscience.cdk.annotations.TestMethod;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.graph.Cycles;
 import org.openscience.cdk.graph.GraphUtil;
@@ -109,7 +108,6 @@ public class SmartXLogPDescriptor extends AbstractMolecularDescriptor implements
 		return params;
 	}
 
-	@TestMethod(value = "testNamesConsistency")
 	public String[] getDescriptorNames() {
 		return names;
 	}
@@ -125,7 +123,6 @@ public class SmartXLogPDescriptor extends AbstractMolecularDescriptor implements
 	 * @param atomContainer AtomContainer
 	 * @return XLogP is a double
 	 */
-	@TestMethod("testCalculate_IAtomContainer")
 	public DescriptorValue calculate(IAtomContainer ac) {
 
 		IRingSet rs = (IRingSet) new SSSRFinder(ac).findSSSR();
@@ -887,7 +884,6 @@ public class SmartXLogPDescriptor extends AbstractMolecularDescriptor implements
 	 *         indicating the actual type of values returned by the
 	 *         descriptor in the {@link org.openscience.cdk.qsar.DescriptorValue} object
 	 */
-	@TestMethod("testGetDescriptorResultType")
 	public IDescriptorResult getDescriptorResultType() {
 		return new DoubleResult(0.0);
 	}
@@ -1380,7 +1376,6 @@ public class SmartXLogPDescriptor extends AbstractMolecularDescriptor implements
 	 * 
 	 * @return The parameterNames value
 	 */
-	@TestMethod("testGetParameterNames")
 	public String[] getParameterNames() {
 		String[] params = new String[1];
 		params[0] = "salicylFlag";
@@ -1393,7 +1388,6 @@ public class SmartXLogPDescriptor extends AbstractMolecularDescriptor implements
 	 * @param name Description of the Parameter
 	 * @return The parameterType value
 	 */
-	@TestMethod("testGetParameterType_String")
 	public Object getParameterType(String name) {
 		return true;
 	}

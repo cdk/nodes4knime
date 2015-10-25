@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Stephan Beisken (sbeisken@gmail.com). All rights reserved.
+ * Copyright (c) 2016, Stephan Beisken (sbeisken@gmail.com). All rights reserved.
  * 
  * This file is part of the KNIME CDK plugin.
  * 
@@ -98,7 +98,8 @@ public class AtomSignatureWorker extends MultiThreadWorker<DataRow, List<DataRow
 
 		int atomId = 1;
 		Map<String, Integer> parentIdMap = new HashMap<String, Integer>();
-		if (CDKNodePlugin.numbering() == NUMBERING.SEQUENTIAL) {
+		if (CDKNodePlugin.numbering() == NUMBERING.NONE || 
+				CDKNodePlugin.numbering() == NUMBERING.SEQUENTIAL) {
 
 			for (IAtom atom : molecule.atoms()) {
 				parentIdMap.put(atom.getID(), atomId);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Luis Filipe de Figueiredo (ldpf@ebi.ac.uk). All rights reserved.
+ * Copyright (c) 2016, Luis Filipe de Figueiredo (ldpf@ebi.ac.uk). All rights reserved.
  * 
  * This file is part of the KNIME CDK plugin.
  * 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 European Bioinformatics Institute (EMBL-EBI)
+ * Copyright (c) 2016 European Bioinformatics Institute (EMBL-EBI)
  *                    Stephan Beisken <beisken@ebi.ac.uk>
  *
  * Contact: cdk-devel@lists.sourceforge.net

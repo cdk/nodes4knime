@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Stephan Beisken (sbeisken@gmail.com). All rights reserved.
+ * Copyright (c) 2016, Stephan Beisken (sbeisken@gmail.com). All rights reserved.
  * 
  * This file is part of the KNIME CDK plugin.
  * 
@@ -37,7 +37,6 @@ import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.util.MultiThreadWorker;
-import org.openscience.cdk.CDKConstants;
 import org.openscience.cdk.graph.ConnectivityChecker;
 import org.openscience.cdk.graph.invariant.EquivalentClassPartitioner;
 import org.openscience.cdk.interfaces.IAtom;
@@ -48,6 +47,7 @@ import org.openscience.cdk.knime.preferences.CDKPreferencePage.NUMBERING;
 import org.openscience.cdk.knime.type.CDKCell3;
 import org.openscience.cdk.knime.type.CDKValue;
 import org.openscience.cdk.normalize.SMSDNormalizer;
+import org.openscience.cdk.renderer.generators.standard.StandardGenerator;
 
 /**
  * Multi threaded worker implementation for the Symmetry Calculator Worker
@@ -94,7 +94,8 @@ public class SymmetryCalculatorWorker extends MultiThreadWorker<DataRow, List<Da
 			int atomId = 1;
 			Map<String, Integer> parentIdMap = new HashMap<String, Integer>();
 			// make a map of the sequential numbering based
-			if (CDKNodePlugin.numbering() == NUMBERING.SEQUENTIAL) {
+			if (CDKNodePlugin.numbering() == NUMBERING.NONE || 
+					CDKNodePlugin.numbering() == NUMBERING.SEQUENTIAL) {
 				for (IAtom atom : m.atoms()) {
 					parentIdMap.put(atom.getID(), atomId);
 					atomId++;
@@ -146,8 +147,8 @@ public class SymmetryCalculatorWorker extends MultiThreadWorker<DataRow, List<Da
 							colorsUsed.put(partitions[i] - 1, k);
 							k++;
 						}
-						m.getAtom(i - 1).setProperty(CDKConstants.ANNOTATIONS,
-								colors[colorsUsed.get(partitions[i] - 1)].getRGB());
+						m.getAtom(i - 1).setProperty(StandardGenerator.HIGHLIGHT_COLOR, 
+								colors[colorsUsed.get(partitions[i] - 1)]);
 					}
 				}
 				DataCell[] image = new DataCell[] { CDKCell3.createCDKCell(m) };

@@ -1,7 +1,5 @@
 /*
- * Created on 25.03.2007 16:49:50 by thor
- * 
- * Copyright (C) 2003 - 2013 University of Konstanz, Germany and KNIME GmbH, Konstanz, Germany Website:
+ * Copyright (C) 2003 - 2016 University of Konstanz, Germany and KNIME GmbH, Konstanz, Germany Website:
  * http://www.knime.org; Email: contact@knime.org
  * 
  * This file is part of the KNIME CDK plugin.
@@ -22,8 +20,6 @@ package org.openscience.cdk.knime.preferences;
 import org.eclipse.core.runtime.preferences.AbstractPreferenceInitializer;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.openscience.cdk.knime.CDKNodePlugin;
-import org.openscience.cdk.knime.preferences.CDKPreferencePage.AROMATICITY;
-import org.openscience.cdk.knime.preferences.CDKPreferencePage.LABELS;
 import org.openscience.cdk.knime.preferences.CDKPreferencePage.NUMBERING;
 
 /**
@@ -34,15 +30,9 @@ import org.openscience.cdk.knime.preferences.CDKPreferencePage.NUMBERING;
  */
 public class CDKPreferenceInitializer extends AbstractPreferenceInitializer {
 
-	/** Preference key for the "show numbers" setting. */
-	public static final String SHOW_NUMBERS = "knime.cdk.numbers";
-
 	/** Preference key for the "numbering type" setting. */
 	public static final String NUMBERING_TYPE = "knime.cdk.numbering";
-
-	/** Preference key for the "aromaticity" settings. */
-	public static final String SHOW_AROMATICITY = "knime.cdk.aromaticity";
-
+	
 	/**
 	 * {@inheritDoc}
 	 */
@@ -53,8 +43,6 @@ public class CDKPreferenceInitializer extends AbstractPreferenceInitializer {
 		IPreferenceStore store = CDKNodePlugin.getDefault().getPreferenceStore();
 
 		// set default values
-		store.setDefault(SHOW_AROMATICITY, AROMATICITY.SHOW_RINGS.name());
-		store.setDefault(SHOW_NUMBERS, LABELS.NONE.name());
-		store.setDefault(NUMBERING_TYPE, NUMBERING.CANONICAL.name());
+		store.setDefault(NUMBERING_TYPE, NUMBERING.NONE.name());
 	}
 }

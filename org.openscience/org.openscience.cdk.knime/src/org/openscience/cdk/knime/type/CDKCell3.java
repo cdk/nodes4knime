@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 - 2013 University of Konstanz, Germany and KNIME GmbH, Konstanz, Germany Website:
+ * Copyright (C) 2003 - 2016 University of Konstanz, Germany and KNIME GmbH, Konstanz, Germany Website:
  * http://www.knime.org; Email: contact@knime.org
  * 
  * This file is part of the KNIME CDK plugin.
@@ -17,6 +17,7 @@
  */
 package org.openscience.cdk.knime.type;
 
+import java.awt.Color;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.StringWriter;
@@ -36,7 +37,6 @@ import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.StringValue;
 import org.knime.core.node.NodeLogger;
-import org.openscience.cdk.CDKConstants;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.geometry.GeometryTools;
 import org.openscience.cdk.graph.ConnectivityChecker;
@@ -49,6 +49,7 @@ import org.openscience.cdk.io.SDFWriter;
 import org.openscience.cdk.io.cml.CmlKnimeCore;
 import org.openscience.cdk.knime.commons.CDKNodeUtils;
 import org.openscience.cdk.layout.LayoutHelper;
+import org.openscience.cdk.renderer.generators.standard.StandardGenerator;
 import org.openscience.cdk.silent.ChemFile;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.stereo.StereoElementFactory;
@@ -63,6 +64,7 @@ import org.openscience.cdk.tools.manipulator.ChemFileManipulator;
  * 
  * NOTE by Edmund Duesbury 20/3/2015 - I have modified this to accept colours from bonds via CDKConstants.ANNOTATIONS rather than the 
  * original method of only colouring the atoms, then colouring the bonds in between. 
+ * NOTE by Stephan Beisken 25/10/2015 - Changed CDKConstants.ANNOTATIONS to StandardGenerator.HIGHLIGHT_COLOR for API changes in CDK 1.5.12
  */
 public final class CDKCell3 extends DataCell implements CDKValue, SmilesValue, SdfValue, StringValue {
 
@@ -206,13 +208,14 @@ public final class CDKCell3 extends DataCell implements CDKValue, SmilesValue, S
 				System.arraycopy(toByte(p3.x), 0, coords, k * 8 + 17, 8);
 				System.arraycopy(toByte(p3.y), 0, coords, k * 8 + 25, 8);
 				System.arraycopy(toByte(p3.z), 0, coords, k * 8 + 33, 8);
-				Integer color = atomContainer.getAtom(seq[v]).getProperty(CDKConstants.ANNOTATIONS, Integer.class);
+				Color color = atomContainer.getAtom(seq[v]).getProperty(StandardGenerator.HIGHLIGHT_COLOR, Color.class);
 				if (color != null) {
+					int rgb = color.getRGB();
 					byte[] tmpCols = new byte[acols.length + 8];
 					System.arraycopy(acols, 0, tmpCols, 0, acols.length);
 					acols = tmpCols;
 					System.arraycopy(toByte(seq[v]), 0, acols, j * 8, 4);
-					System.arraycopy(toByte(color), 0, acols, j++ * 8 + 4, 4);
+					System.arraycopy(toByte(rgb), 0, acols, j++ * 8 + 4, 4);
 				}
 			}
 		} else if (GeometryTools.has3DCoordinates(atomContainer)) {
@@ -223,13 +226,14 @@ public final class CDKCell3 extends DataCell implements CDKValue, SmilesValue, S
 				System.arraycopy(toByte(p.x), 0, coords, k * 8 + 1, 8);
 				System.arraycopy(toByte(p.y), 0, coords, k * 8 + 9, 8);
 				System.arraycopy(toByte(p.z), 0, coords, k * 8 + 17, 8);
-				Integer color = atomContainer.getAtom(seq[v]).getProperty(CDKConstants.ANNOTATIONS, Integer.class);
+				Color color = atomContainer.getAtom(seq[v]).getProperty(StandardGenerator.HIGHLIGHT_COLOR, Color.class);
 				if (color != null) {
+					int rgb = color.getRGB();
 					byte[] tmpCols = new byte[acols.length + 8];
 					System.arraycopy(acols, 0, tmpCols, 0, acols.length);
 					acols = tmpCols;
 					System.arraycopy(toByte(seq[v]), 0, acols, j * 8, 4);
-					System.arraycopy(toByte(color), 0, acols, j++ * 8 + 4, 4);
+					System.arraycopy(toByte(rgb), 0, acols, j++ * 8 + 4, 4);
 				}
 			}
 		} else if (GeometryTools.has2DCoordinates(atomContainer)) {
@@ -239,13 +243,14 @@ public final class CDKCell3 extends DataCell implements CDKValue, SmilesValue, S
 				Point2d p = atomContainer.getAtom(seq[v]).getPoint2d();
 				System.arraycopy(toByte(p.x), 0, coords, k * numBytesPerUnit + 1, numBytesPerUnit);
 				System.arraycopy(toByte(p.y), 0, coords, k * numBytesPerUnit + 9, numBytesPerUnit);
-				Integer color = atomContainer.getAtom(seq[v]).getProperty(CDKConstants.ANNOTATIONS, Integer.class);
+				Color color = atomContainer.getAtom(seq[v]).getProperty(StandardGenerator.HIGHLIGHT_COLOR, Color.class);
 				if (color != null) {
+					int rgb = color.getRGB();
 					byte[] tmpCols = new byte[acols.length + 8];
 					System.arraycopy(acols, 0, tmpCols, 0, acols.length);
 					acols = tmpCols;
 					System.arraycopy(toByte(seq[v]), 0, acols, j * 8, 4);
-					System.arraycopy(toByte(color), 0, acols, j++ * 8 + 4, 4);
+					System.arraycopy(toByte(rgb), 0, acols, j++ * 8 + 4, 4);
 				}
 			}
 		}
@@ -254,20 +259,18 @@ public final class CDKCell3 extends DataCell implements CDKValue, SmilesValue, S
 		bcols = new byte[1];
 		bcols[0] = atomBondSeparationVal;  // separator from atoms
 		for (int v = 0, j = 0; v < atomContainer.getBondCount(); v++) {
-			Integer color = atomContainer.getBond(v).getProperty(CDKConstants.ANNOTATIONS, Integer.class);
+			Color color = atomContainer.getBond(v).getProperty(StandardGenerator.HIGHLIGHT_COLOR, Color.class);
 			if (color != null) {
+				int rgb = color.getRGB();
 				byte[] tmpCols = new byte[bcols.length + numBytesPerUnit];  // appending 8 bytes to array
 				System.arraycopy(bcols, 0, tmpCols, 0, bcols.length);  // copy original contents to new array
 				bcols = tmpCols;
 				System.arraycopy(toByte(v), 0, bcols, j * numBytesPerUnit + 1, 4);  
-				System.arraycopy(toByte(color), 0, bcols, j++ * numBytesPerUnit + 5, 4);
+				System.arraycopy(toByte(rgb), 0, bcols, j++ * numBytesPerUnit + 5, 4);
 			}
 		}
 		
-		//System.out.println( "bcols length " + bcols.length  + " " + acols.length + " " + bcols[0] );
-
 		byte[] aux = new byte[coords.length + acols.length + bcols.length];
-		//byte[] aux = new byte[coords.length + acols.length];
 		System.arraycopy(coords, 0, aux, 0, coords.length);
 		System.arraycopy(acols, 0, aux, coords.length, acols.length);
 		System.arraycopy(bcols, 0, aux, coords.length + acols.length, bcols.length);
@@ -411,8 +414,6 @@ public final class CDKCell3 extends DataCell implements CDKValue, SmilesValue, S
 
 		boolean hasAnnotations = (nAtoms * 8 * f + 1 == auxBytes.length) ? false : true;
 
-		// int endAtomByte = (nAtoms * 8 * f) + 1 + (nAtoms * 8);
-		//System.out.println( nAtoms + " " + ((nAtoms * 8 * f) + 1) + " " + endAtomByte + " " + auxBytes.length + " " + hasAnnotations );
 		int[] cols = new int[nAtoms];
 		// start from first byte of the array (where atom colours begin, after coordinates)
 		int i = nAtoms * 8 * f + 1;
@@ -429,7 +430,7 @@ public final class CDKCell3 extends DataCell implements CDKValue, SmilesValue, S
 		for ( ; i < auxBytes.length; i += 8) {
 			int pos = toInt(new byte[] { auxBytes[i], auxBytes[i + 1], auxBytes[i + 2], auxBytes[i + 3] });
 			int col = toInt(new byte[] { auxBytes[i + 4], auxBytes[i + 5], auxBytes[i + 6], auxBytes[i + 7] });
-			molecule.getBond(pos).setProperty(CDKConstants.ANNOTATIONS, col);
+			molecule.getBond(pos).setProperty(StandardGenerator.HIGHLIGHT_COLOR, new Color(col));
 		}
 
 		if (f == 2) {
@@ -437,7 +438,7 @@ public final class CDKCell3 extends DataCell implements CDKValue, SmilesValue, S
 				molecule.getAtom(v).setID("" + v);
 				molecule.getAtom(v).setPoint2d(new Point2d(coords[k], coords[k + 1]));
 				if (cols[v] != 0) {
-					molecule.getAtom(v).setProperty(CDKConstants.ANNOTATIONS, cols[v]);
+					molecule.getAtom(v).setProperty(StandardGenerator.HIGHLIGHT_COLOR, new Color(cols[v]));
 				}
 			}
 		} else if (f == 3) {
@@ -445,7 +446,7 @@ public final class CDKCell3 extends DataCell implements CDKValue, SmilesValue, S
 				molecule.getAtom(v).setID("" + v);
 				molecule.getAtom(v).setPoint3d(new Point3d(coords[k], coords[k + 1], coords[k + 2]));
 				if (cols[v] != 0) {
-					molecule.getAtom(v).setProperty(CDKConstants.ANNOTATIONS, cols[v]);
+					molecule.getAtom(v).setProperty(StandardGenerator.HIGHLIGHT_COLOR, new Color(cols[v]));
 				}
 			}
 		} else {
@@ -454,7 +455,7 @@ public final class CDKCell3 extends DataCell implements CDKValue, SmilesValue, S
 				molecule.getAtom(v).setPoint2d(new Point2d(coords[k], coords[k + 1]));
 				molecule.getAtom(v).setPoint3d(new Point3d(coords[k + 2], coords[k + 3], coords[k + 4]));
 				if (cols[v] != 0) {
-					molecule.getAtom(v).setProperty(CDKConstants.ANNOTATIONS, cols[v]);
+					molecule.getAtom(v).setProperty(StandardGenerator.HIGHLIGHT_COLOR, new Color(cols[v]));
 				}
 			}
 		}
@@ -464,14 +465,12 @@ public final class CDKCell3 extends DataCell implements CDKValue, SmilesValue, S
 			int[] visited = new int[nAtoms];
 			if (ConnectivityChecker.isConnected(molecule)) {
 				IAtom atom = molecule.getAtom(0);
-				visited[0] = atom.getProperty(CDKConstants.ANNOTATIONS) == null ? 1 : 2;
-				//colorDfs(molecule, atom, cols, visited);
+				visited[0] = atom.getProperty(StandardGenerator.HIGHLIGHT_COLOR) == null ? 1 : 2;
 			} else {
 				for (IAtomContainer mol : ConnectivityChecker.partitionIntoMolecules(molecule).atomContainers()) {
 					IAtom atom = mol.getAtom(0);
-					visited[Integer.parseInt(atom.getID())] = atom.getProperty(CDKConstants.ANNOTATIONS) == null ? 1
-							: 2;
-					//colorDfs(mol, atom, cols, visited);
+					visited[Integer.parseInt(atom.getID())] = atom.getProperty(StandardGenerator.HIGHLIGHT_COLOR) == null 
+							? 1 : 2;
 				}
 			}
 		}
@@ -489,14 +488,14 @@ public final class CDKCell3 extends DataCell implements CDKValue, SmilesValue, S
 			int w = Integer.parseInt(neighbor.getID());
 
 			if (visited[w] == 0) {
-				visited[w] = neighbor.getProperty(CDKConstants.ANNOTATIONS) == null ? 1 : 2;
+				visited[w] = neighbor.getProperty(StandardGenerator.HIGHLIGHT_COLOR) == null ? 1 : 2;
 				if (visited[v] == 2 && visited[w] == 2) {
-					molecule.getBond(atom, neighbor).setProperty(CDKConstants.ANNOTATIONS, cols[v]);
+					molecule.getBond(atom, neighbor).setProperty(StandardGenerator.HIGHLIGHT_COLOR, cols[v]);
 				}
 				colorDfs(molecule, neighbor, cols, visited);
 			} else if (visited[w] == 2) {
 				if (visited[v] == 2) {
-					molecule.getBond(atom, neighbor).setProperty(CDKConstants.ANNOTATIONS, cols[v]);
+					molecule.getBond(atom, neighbor).setProperty(StandardGenerator.HIGHLIGHT_COLOR, cols[v]);
 				}
 			}
 		}

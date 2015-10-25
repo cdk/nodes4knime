@@ -1,7 +1,5 @@
 /*
- * Created on 25.03.2007 16:52:27 by thor
- * 
- * Copyright (C) 2003 - 2013 University of Konstanz, Germany and KNIME GmbH, Konstanz, Germany Website:
+ * Copyright (C) 2003 - 2016 University of Konstanz, Germany and KNIME GmbH, Konstanz, Germany Website:
  * http://www.knime.org; Email: contact@knime.org
  * 
  * This file is part of the KNIME CDK plugin.
@@ -34,16 +32,8 @@ import org.openscience.cdk.knime.CDKNodePlugin;
  */
 public class CDKPreferencePage extends FieldEditorPreferencePage implements IWorkbenchPreferencePage {
 
-	public enum LABELS {
-		NONE, ALL, CARBON, HYDROGEN
-	};
-
 	public enum NUMBERING {
-		CANONICAL, SEQUENTIAL
-	};
-
-	public enum AROMATICITY {
-		SHOW_RINGS, SHOW_KEKULE
+		NONE, CANONICAL, SEQUENTIAL
 	};
 
 	/**
@@ -66,28 +56,15 @@ public class CDKPreferencePage extends FieldEditorPreferencePage implements IWor
 
 		Composite parent = getFieldEditorParent();
 
-		String[][] numberLabelsAndValues = new String[][] { { "No Atoms", LABELS.NONE.name() },
-				{ "All Atoms", LABELS.ALL.name() }, { "Carbon Atoms", LABELS.CARBON.name() },
-				{ "Hydrogen Atoms", LABELS.HYDROGEN.name() } };
-
-		RadioGroupFieldEditor showNumbers = new RadioGroupFieldEditor(CDKPreferenceInitializer.SHOW_NUMBERS,
-				"Show atom numbers for: ", 1, numberLabelsAndValues, parent);
-
-		String[][] numberingLabelsAndValues = new String[][] { { "Canonical", NUMBERING.CANONICAL.name() },
+		String[][] numberingLabelsAndValues = new String[][] { 
+				{ "None", NUMBERING.NONE.name() },
+				{ "Canonical", NUMBERING.CANONICAL.name() },
 				{ "Sequential", NUMBERING.SEQUENTIAL.name() } };
 
 		RadioGroupFieldEditor numbering = new RadioGroupFieldEditor(CDKPreferenceInitializer.NUMBERING_TYPE,
 				"Atom number type: ", 1, numberingLabelsAndValues, parent);
 
-		String[][] aromaticityLabelsAndValues = new String[][] { { "Aromatic Form", AROMATICITY.SHOW_RINGS.name() },
-				{ "Kekule Form", AROMATICITY.SHOW_KEKULE.name() } };
-
-		RadioGroupFieldEditor showAromaticity = new RadioGroupFieldEditor(CDKPreferenceInitializer.SHOW_AROMATICITY,
-				"Aromaticity: ", 1, aromaticityLabelsAndValues, parent);
-
-		addField(showNumbers);
 		addField(numbering);
-		addField(showAromaticity);
 	}
 
 	/**
