@@ -3,7 +3,7 @@
 # We discussed the different descriptors during the CDK Workshop on 30. Jan 2006
 
 # double array result 
-org.openscience.cdk.qsar.descriptors.molecular.SmartALogPDescriptor
+org.openscience.cdk.qsar.descriptors.molecular.ALOGPDescriptor
 org.openscience.cdk.qsar.descriptors.molecular.MannholdLogPDescriptor
 org.openscience.cdk.qsar.descriptors.molecular.AutocorrelationDescriptorMass
 
@@ -32,7 +32,7 @@ org.openscience.cdk.qsar.descriptors.molecular.CPSADescriptor
 
 org.openscience.cdk.qsar.descriptors.molecular.EccentricConnectivityIndexDescriptor
 org.openscience.cdk.qsar.descriptors.molecular.FragmentComplexityDescriptor
-org.openscience.cdk.qsar.descriptors.molecular.VABCDescriptor
+# org.openscience.cdk.qsar.descriptors.molecular.VABCDescriptor
 
 # 3D requrired, array result
 # org.openscience.cdk.qsar.descriptors.molecular.GravitationalIndexDescriptor
