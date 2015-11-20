@@ -44,9 +44,7 @@ import org.knime.core.data.AdapterCell;
 import org.knime.core.data.AdapterValue;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataCellDataInput;
-import org.knime.core.data.DataCellSerializer;
 import org.knime.core.data.DataType;
-import org.knime.core.data.DataValue;
 import org.knime.core.data.StringValue;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.knime.commons.CDKNodeUtils;
@@ -66,17 +64,12 @@ public class CDKAdapterCell extends AdapterCell implements CDKValue, SmilesValue
 	 */
 	public static final DataType RAW_TYPE = DataType.getType(CDKAdapterCell.class);
 
-	private static final AdapterCellSerializer<CDKAdapterCell> SERIALIZER = new AdapterCellSerializer<CDKAdapterCell>() {
-
+	public static final class Serializer extends AdapterCellSerializer<CDKAdapterCell> {
 		@Override
 		public CDKAdapterCell deserialize(final DataCellDataInput input) throws IOException {
 			return new CDKAdapterCell(input);
 		}
 	};
-
-	public static DataCellSerializer<CDKAdapterCell> getCellSerializer() {
-		return SERIALIZER;
-	}
 
 	private CDKAdapterCell(final DataCellDataInput input) throws IOException {
 		super(input);
@@ -89,15 +82,6 @@ public class CDKAdapterCell extends AdapterCell implements CDKValue, SmilesValue
 	 */
 	public CDKAdapterCell(final DataCell cell) {
 		super(cell);
-	}
-
-	/**
-	 * See {@link DataCell} description for details.
-	 * 
-	 * @return CDKValue.class
-	 */
-	public static final Class<? extends DataValue> getPreferredValueClass() {
-		return CDKValue.class;
 	}
 
 	/**

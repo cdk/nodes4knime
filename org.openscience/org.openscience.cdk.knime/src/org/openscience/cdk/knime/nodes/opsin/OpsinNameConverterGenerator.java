@@ -25,7 +25,7 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
 
-import org.knime.base.node.io.tablecreator.prop.SmilesTypeHelper;
+import org.knime.chem.types.SmilesCellFactory;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataRow;
@@ -95,7 +95,6 @@ public class OpsinNameConverterGenerator implements CellFactory {
 		URL url;
 
 		int i = 0;
-		SmilesTypeHelper smilesTypeHelper = SmilesTypeHelper.INSTANCE;
 		for (String suffix : urlSuffix) {
 			try {
 				url = new URL("http://opsin.ch.cam.ac.uk/opsin/" + iupacKey + "." + suffix);
@@ -105,7 +104,7 @@ public class OpsinNameConverterGenerator implements CellFactory {
 					reader.close();
 				} else if (suffix.equals("smi")) {
 					reader = new BufferedReader(new InputStreamReader(url.openConnection().getInputStream()));
-					newCells[i] = smilesTypeHelper.newInstance(reader.readLine());
+					newCells[i] = SmilesCellFactory.create(reader.readLine());
 					reader.close();
 				} else if (suffix.equals("cml")) {
 					if (cmlBuilder == null) {
@@ -138,6 +137,7 @@ public class OpsinNameConverterGenerator implements CellFactory {
 					CMLReader cmlReader = new CMLReader(bais);
 					IChemFile chemFile = new ChemFile();
 					chemFile = (IChemFile) cmlReader.read(chemFile);
+					cmlReader.close();
 					IAtomContainer container = ChemFileManipulator.getAllAtomContainers(chemFile).get(0);
 					// OPSIN WS return has explicit Hs
 					container = SMSDNormalizer.convertExplicitToImplicitHydrogens(container);

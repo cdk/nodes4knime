@@ -2,7 +2,7 @@
 <feature
       id="org.openscience.cdk.knime.testing.feature"
       label="CDK Testing feature"
-      version="1.0.0.qualifier"
+      version="1.5.200.qualifier"
       provider-name="University Konstanz and EBI">
 
    <description>

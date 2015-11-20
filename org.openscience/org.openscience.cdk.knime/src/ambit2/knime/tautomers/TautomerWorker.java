@@ -81,7 +81,7 @@ public class TautomerWorker extends MultiThreadWorker<DataRow, DataRow[]> {
 	 * @param bdc output data container to be written to
 	 * @param columnIndex target row column index
 	 */
-	public TautomerWorker(final int maxQueueSize, final int maxActiveInstanceSize, final int maxRows,
+	public TautomerWorker(final int maxQueueSize, final int maxActiveInstanceSize, final long maxRows,
 			final ExecutionContext exec, final BufferedDataContainer bdc, final int columnIndex) {
 
 		super(maxQueueSize, maxActiveInstanceSize);

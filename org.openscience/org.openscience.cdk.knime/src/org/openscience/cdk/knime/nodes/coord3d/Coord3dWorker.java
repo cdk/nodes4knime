@@ -63,7 +63,7 @@ public class Coord3dWorker extends MultiThreadWorker<DataRow, DataRow> {
 	private final ExecutorService executor;
 
 	public Coord3dWorker(final int maxQueueSize, final int maxActiveInstanceSize, final int columnIndex,
-			final ExecutionMonitor exec, final int max, final BufferedDataContainer bdc, final int timeout) {
+			final ExecutionMonitor exec, final long max, final BufferedDataContainer bdc, final int timeout) {
 
 		super(maxQueueSize, maxActiveInstanceSize);
 		this.exec = exec;

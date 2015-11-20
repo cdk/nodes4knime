@@ -33,7 +33,6 @@ import org.knime.core.data.DataCellDataInput;
 import org.knime.core.data.DataCellDataOutput;
 import org.knime.core.data.DataCellSerializer;
 import org.knime.core.data.DataType;
-import org.knime.core.data.DataValue;
 import org.knime.core.data.StringValue;
 import org.knime.core.data.container.BlobDataCell;
 import org.knime.core.node.NodeLogger;
@@ -70,17 +69,6 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 	 */
 	public static final DataType TYPE = DataType.getType(CDKCell.class);
 
-	/**
-	 * Returns the preferred value class of this cell implementation. This
-	 * method is called per reflection to determine which is the preferred
-	 * renderer, comparator, etc.
-	 * 
-	 * @return CDKValue.class
-	 */
-	public static final Class<? extends DataValue> getPreferredValueClass() {
-		return CDKValue.class;
-	}
-
 	private static final NodeLogger LOGGER = NodeLogger.getLogger(CDKCell.class);
 
 	/**
@@ -94,22 +82,6 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 	 * the column have 3D coordinates.
 	 */
 	public static final String COORD3D_AVAILABLE = "3D coordinates available";
-
-	/**
-	 * Static instance of the serializer.
-	 */
-	private static final DataCellSerializer<CDKCell> SERIALIZER = new CDKSerializer();
-
-	/**
-	 * Returns the factory to read/write DataCells of this class from/to a
-	 * DataInput/DataOutput. This method is called via reflection.
-	 * 
-	 * @return A serializer for reading/writing cells of this kind.
-	 * @see DataCell
-	 */
-	public static final DataCellSerializer<CDKCell> getCellSerializer() {
-		return SERIALIZER;
-	}
 
 	/**
 	 * The visual representation for this CDK cell.
@@ -475,7 +447,7 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 	/**
 	 * Factory for (de-)serializing a CDKCell.
 	 */
-	private static class CDKSerializer implements DataCellSerializer<CDKCell> {
+	public static final class CDKSerializer implements DataCellSerializer<CDKCell> {
 
 		/**
 		 * {@inheritDoc}
@@ -546,7 +518,7 @@ public final class CDKCell extends BlobDataCell implements CDKValue, SmilesValue
 					mol.addStereoElement(stereoEleemnt);
 				}
 			}
-			
+			reader.close();
 			gis = null;
 			reader = null;
 			chemFile = null;

@@ -57,7 +57,7 @@ public class SmartsWorker extends MultiThreadWorker<DataRow, DataRow> {
 	private final Set<Long> matchedRows;
 
 	public SmartsWorker(final int maxQueueSize, final int maxActiveInstanceSize, final int columnIndex,
-			final int max, final List<String> smarts, final boolean count, final ExecutionContext exec, final BufferedDataContainer[] bdc) {
+			final long max, final List<String> smarts, final boolean count, final ExecutionContext exec, final BufferedDataContainer[] bdc) {
 
 		super(maxQueueSize, maxActiveInstanceSize);
 		this.exec = exec;

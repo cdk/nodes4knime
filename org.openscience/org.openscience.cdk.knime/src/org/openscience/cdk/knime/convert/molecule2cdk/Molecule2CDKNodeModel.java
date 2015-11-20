@@ -111,7 +111,7 @@ public class Molecule2CDKNodeModel extends NodeModel {
 		}
 		
 		Molecule2CDKWorker worker = new Molecule2CDKWorker(maxQueueSize, maxParallelWorkers, columnIndex, exec,
-				inData[0].getRowCount(), outputTable, converter, settings);
+				inData[0].size(), outputTable, converter, settings);
 
 		try {
 			worker.run(inData[0]);

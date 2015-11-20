@@ -30,6 +30,7 @@ import org.knime.chem.types.Mol2CellFactory;
 import org.knime.chem.types.SdfCell;
 import org.knime.chem.types.SdfCellFactory;
 import org.knime.chem.types.SmilesCell;
+import org.knime.chem.types.SmilesCellFactory;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
@@ -122,7 +123,7 @@ class MolConverter implements ExtendedCellFactory {
 				throw new CDKException("Smiles generation failed.");
 			}
 			
-			return new SmilesCell(smiles);
+			return SmilesCellFactory.create(smiles);
 		}
 	}
 

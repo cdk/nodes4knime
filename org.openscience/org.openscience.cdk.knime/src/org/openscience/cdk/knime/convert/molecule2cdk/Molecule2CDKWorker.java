@@ -34,7 +34,7 @@ public class Molecule2CDKWorker extends MultiThreadWorker<DataRow, DataRow> {
 	private final MolConverter converter;
 
 	public Molecule2CDKWorker(final int maxQueueSize, final int maxActiveInstanceSize, final int columnIndex,
-			final ExecutionContext exec, final int max, final BufferedDataContainer bdc, final MolConverter converter,
+			final ExecutionContext exec, final long max, final BufferedDataContainer bdc, final MolConverter converter,
 			final Molecule2CDKSettings settings) {
 
 		super(maxQueueSize, maxActiveInstanceSize);

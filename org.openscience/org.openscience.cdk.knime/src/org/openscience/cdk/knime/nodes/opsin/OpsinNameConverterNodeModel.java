@@ -21,7 +21,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.knime.base.node.io.tablecreator.prop.SmilesTypeHelper;
+import org.knime.chem.types.SmilesCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
@@ -101,9 +101,8 @@ public class OpsinNameConverterNodeModel extends NodeModel {
 			urlSuffix.add("png");
 		}
 		if (settings.isAddSmiles()) {
-			SmilesTypeHelper smilesTypeHelper = SmilesTypeHelper.INSTANCE;
 			DataColumnSpec colSpec = new DataColumnSpecCreator(DataTableSpec.getUniqueColumnName(spec, "SMILES"),
-					smilesTypeHelper.getSmilesType()).createSpec();
+					SmilesCell.TYPE).createSpec();
 			dataColumnSpecs.add(colSpec);
 			urlSuffix.add("smi");
 		}

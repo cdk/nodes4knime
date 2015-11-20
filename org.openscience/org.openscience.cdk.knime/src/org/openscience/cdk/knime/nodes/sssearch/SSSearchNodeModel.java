@@ -65,7 +65,7 @@ public class SSSearchNodeModel extends CDKAdapterNodeModel {
 				.getDataTableSpec()));
 
 		SSSearchWorker worker = new SSSearchWorker(maxQueueSize, maxParallelWorkers, columnIndex,
-				convertedTables[0].getRowCount(), exec, m_fragment, outputTableMatched, outputTableMissed);
+				convertedTables[0].size(), exec, m_fragment, outputTableMatched, outputTableMissed);
 		worker.highlight(settings(SSSearchSettings.class).isHighlight());
 		worker.charge(settings(SSSearchSettings.class).isCharge());
 		worker.exactMatch(settings(SSSearchSettings.class).isExactMatch());

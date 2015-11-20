@@ -170,6 +170,8 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 				    atom.setProperty(StandardGenerator.ANNOTATION_LABEL, label);
 				}
 				break;
+			case NONE:
+				break;
 		}
 	}
 

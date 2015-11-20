@@ -72,7 +72,7 @@ public class SSSearchWorker extends MultiThreadWorker<DataRow, DataRow> {
 	private static final int MAX_MATCHES = 5;
 
 	public SSSearchWorker(final int maxQueueSize, final int maxActiveInstanceSize, final int columnIndex,
-			final int max, final ExecutionContext exec, final IAtomContainer fragment,
+			final long max, final ExecutionContext exec, final IAtomContainer fragment,
 			final BufferedDataContainer... bdcs) {
 
 		super(maxQueueSize, maxActiveInstanceSize);

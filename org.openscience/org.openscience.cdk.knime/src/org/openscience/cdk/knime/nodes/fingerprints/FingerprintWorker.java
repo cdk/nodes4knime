@@ -38,7 +38,7 @@ public class FingerprintWorker extends MultiThreadWorker<DataRow, DataRow> {
 	private final FingerprintSettings settings;
 
 	public FingerprintWorker(final int maxQueueSize, final int maxActiveInstanceSize, final int columnIndex,
-			final ExecutionMonitor exec, final int max, final BufferedDataContainer bdc,
+			final ExecutionMonitor exec, final long max, final BufferedDataContainer bdc,
 			final FingerprintSettings settings) {
 
 		super(maxQueueSize, maxActiveInstanceSize);

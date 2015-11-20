@@ -57,7 +57,7 @@ public class TautomerModel extends CDKAdapterNodeModel {
 		BufferedDataContainer bdc = exec.createDataContainer(outSpec(convertedTables[0].getDataTableSpec()));
 
 		// create the tautomer worker
-		int rowCount = convertedTables[0].getRowCount();
+		long rowCount = convertedTables[0].size();
 		TautomerWorker worker = new TautomerWorker(maxQueueSize, maxParallelWorkers, rowCount, exec, bdc, columnIndex);
 		// set execution mode
 		worker.executionMode(settings(TautomerSettings.class).mode());

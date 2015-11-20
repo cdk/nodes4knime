@@ -75,7 +75,7 @@ public class SmartsNodeModel extends CDKAdapterNodeModel {
 				exec.createDataContainer(appendSpec(convertedTables[0].getDataTableSpec())) };
 
 		SmartsWorker worker = new SmartsWorker(maxQueueSize, maxParallelWorkers, columnIndex,
-				convertedTables[0].getRowCount(), smarts, count, exec, outputTable);
+				convertedTables[0].size(), smarts, count, exec, outputTable);
 
 		try {
 			worker.run(convertedTables[0]);

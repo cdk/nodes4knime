@@ -18,17 +18,21 @@
 package org.openscience.cdk.knime.nodes.descriptors.molprops;
 
 import java.awt.BorderLayout;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import javax.swing.JPanel;
 
+import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
-import org.knime.core.node.util.ColumnFilterPanel;
 import org.knime.core.node.util.ColumnSelectionPanel;
+import org.knime.core.node.util.filter.column.DataColumnSpecFilterPanel;
 import org.openscience.cdk.knime.commons.CDKNodeUtils;
 
 /**
@@ -39,7 +43,7 @@ import org.openscience.cdk.knime.commons.CDKNodeUtils;
 public class MolPropsNodeDialog extends NodeDialogPane {
 
 	private final ColumnSelectionPanel m_selPanel;
-	private final ColumnFilterPanel m_filterPanel;
+	private final DataColumnSpecFilterPanel m_filterPanel;
 
 	/**
 	 * Inits GUI.
@@ -48,7 +52,7 @@ public class MolPropsNodeDialog extends NodeDialogPane {
 	MolPropsNodeDialog() {
 
 		m_selPanel = new ColumnSelectionPanel(CDKNodeUtils.ACCEPTED_VALUE_CLASSES);
-		m_filterPanel = new ColumnFilterPanel(false);
+		m_filterPanel = new DataColumnSpecFilterPanel(false);
 		JPanel panel = new JPanel(new BorderLayout(5, 5));
 		panel.add(m_selPanel, BorderLayout.NORTH);
 		panel.add(m_filterPanel, BorderLayout.CENTER);
@@ -63,10 +67,17 @@ public class MolPropsNodeDialog extends NodeDialogPane {
 			throws NotConfigurableException {
 
 		String a = settings.getString(MolPropsNodeModel.CFGKEY_SMILES, null);
-		String[] selProps = settings.getStringArray(MolPropsNodeModel.CFGKEY_PROPS, (String[]) null);
 		m_selPanel.update(specs[0], a);
-		DataTableSpec dummySpec = new DataTableSpec(MolPropsNodeModel.getAvailableDescriptorList());
-		m_filterPanel.update(dummySpec, false, selProps);
+		
+		String[] inclArr = settings.getStringArray(MolPropsNodeModel.CFGKEY_PROPS, (String[]) null);
+		List<String> incl = Arrays.asList(inclArr);
+		List<String> all = new ArrayList<>();
+		List<String> excl = new ArrayList<>();
+		for (DataColumnSpec dcs : MolPropsNodeModel.getAvailableDescriptorList()) {
+			all.add(dcs.getName());
+			if (!incl.contains(dcs.getName())) excl.add(dcs.getName());
+		}
+		m_filterPanel.update(incl, excl, all.toArray(new String[0]));
 	}
 
 	/**
@@ -77,7 +88,7 @@ public class MolPropsNodeDialog extends NodeDialogPane {
 
 		String smilesCell = m_selPanel.getSelectedColumn();
 		settings.addString(MolPropsNodeModel.CFGKEY_SMILES, smilesCell);
-		String[] selProps = m_filterPanel.getIncludedColumnSet().toArray(new String[0]);
+		String[] selProps = m_filterPanel.getIncludedNamesAsSet().toArray(new String[0]);
 		settings.addStringArray(MolPropsNodeModel.CFGKEY_PROPS, selProps);
 	}
 }

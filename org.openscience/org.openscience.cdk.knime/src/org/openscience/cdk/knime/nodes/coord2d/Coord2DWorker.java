@@ -50,7 +50,7 @@ public class Coord2DWorker extends MultiThreadWorker<DataRow, DataRow> {
 	private final boolean force;
 
 	public Coord2DWorker(final int maxQueueSize, final int maxActiveInstanceSize, final int columnIndex,
-			final ExecutionMonitor exec, final int max, final BufferedDataContainer bdc, final boolean force) {
+			final ExecutionMonitor exec, final long max, final BufferedDataContainer bdc, final boolean force) {
 
 		super(maxQueueSize, maxActiveInstanceSize);
 		this.exec = exec;

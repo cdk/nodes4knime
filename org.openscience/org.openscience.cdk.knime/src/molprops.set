@@ -34,7 +34,7 @@ org.openscience.cdk.qsar.descriptors.molecular.EccentricConnectivityIndexDescrip
 org.openscience.cdk.qsar.descriptors.molecular.FragmentComplexityDescriptor
 # org.openscience.cdk.qsar.descriptors.molecular.VABCDescriptor
 
-# 3D requrired, array result
+# 3D required, array result
 # org.openscience.cdk.qsar.descriptors.molecular.GravitationalIndexDescriptor
 
 org.openscience.cdk.qsar.descriptors.molecular.SmartHBondAcceptorCountDescriptor
