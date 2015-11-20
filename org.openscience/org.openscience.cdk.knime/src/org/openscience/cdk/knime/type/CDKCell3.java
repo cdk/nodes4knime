@@ -34,7 +34,6 @@ import org.knime.core.data.DataCellDataInput;
 import org.knime.core.data.DataCellDataOutput;
 import org.knime.core.data.DataCellSerializer;
 import org.knime.core.data.DataType;
-import org.knime.core.data.DataValue;
 import org.knime.core.data.StringValue;
 import org.knime.core.node.NodeLogger;
 import org.openscience.cdk.exception.CDKException;
@@ -75,17 +74,6 @@ public final class CDKCell3 extends DataCell implements CDKValue, SmilesValue, S
 	 */
 	public static final DataType TYPE = DataType.getType(CDKCell3.class);
 
-	/**
-	 * Returns the preferred value class of this cell implementation. This
-	 * method is called per reflection to determine which is the preferred
-	 * renderer, comparator, etc.
-	 * 
-	 * @return CDKValue.class
-	 */
-	public static final Class<? extends DataValue> getPreferredValueClass() {
-		return CDKValue.class;
-	}
-
 	private static final NodeLogger LOGGER = NodeLogger.getLogger(CDKCell3.class);
 
 	/**
@@ -99,22 +87,6 @@ public final class CDKCell3 extends DataCell implements CDKValue, SmilesValue, S
 	 * the column have 3D coordinates.
 	 */
 	public static final String COORD3D_AVAILABLE = "3D coordinates available";
-
-	/**
-	 * Static instance of the serializer.
-	 */
-	private static final DataCellSerializer<CDKCell3> SERIALIZER = new CDKSerializer();
-
-	/**
-	 * Returns the factory to read/write DataCells of this class from/to a
-	 * DataInput/DataOutput. This method is called via reflection.
-	 * 
-	 * @return A serializer for reading/writing cells of this kind.
-	 * @see DataCell
-	 */
-	public static final DataCellSerializer<CDKCell3> getCellSerializer() {
-		return SERIALIZER;
-	}
 
 	/**
 	 * The visual representation for this CDK cell.
@@ -566,7 +538,7 @@ public final class CDKCell3 extends DataCell implements CDKValue, SmilesValue, S
 	/**
 	 * Factory for (de-)serializing a CDKCell.
 	 */
-	private static class CDKSerializer implements DataCellSerializer<CDKCell3> {
+	public static final class CDKSerializer implements DataCellSerializer<CDKCell3> {
 
 		/**
 		 * {@inheritDoc}
@@ -638,7 +610,7 @@ public final class CDKCell3 extends DataCell implements CDKValue, SmilesValue, S
 					mol.addStereoElement(stereoEleemnt);
 				}
 			}
-
+			reader.close();
 			gis = null;
 			reader = null;
 			chemFile = null;
