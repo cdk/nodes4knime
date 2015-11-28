@@ -39,13 +39,17 @@ import org.openscience.cdk.interfaces.IBond;
 import org.openscience.cdk.interfaces.IStereoElement;
 import org.openscience.cdk.interfaces.ITetrahedralChirality;
 import org.openscience.cdk.interfaces.ITetrahedralChirality.Stereo;
+import org.openscience.cdk.isomorphism.AtomMatcher;
+import org.openscience.cdk.isomorphism.BondMatcher;
 import org.openscience.cdk.isomorphism.Mappings;
 import org.openscience.cdk.isomorphism.Pattern;
 import org.openscience.cdk.isomorphism.VentoFoggia;
+import org.openscience.cdk.isomorphism.matchers.QueryAtomContainerCreator;
 import org.openscience.cdk.knime.commons.CDKNodeUtils;
 import org.openscience.cdk.knime.type.CDKCell3;
 import org.openscience.cdk.knime.type.CDKValue;
 import org.openscience.cdk.renderer.generators.standard.StandardGenerator;
+import org.openscience.cdk.silent.PseudoAtom;
 
 import com.google.common.base.Predicate;
 
@@ -81,8 +85,21 @@ public class SSSearchWorker extends MultiThreadWorker<DataRow, DataRow> {
 		this.columnIndex = columnIndex;
 		this.bdcs = bdcs;
 		this.query = fragment;
-		this.pattern = VentoFoggia.findSubstructure(fragment);
-
+		
+		boolean hasPseudoAtoms = false;
+		for (IAtom atom : fragment.atoms()) {
+			if (atom instanceof PseudoAtom) {
+				hasPseudoAtoms = true;
+				break;
+			}
+		}
+		if (hasPseudoAtoms) {
+			IAtomContainer queryFragment = QueryAtomContainerCreator.createAnyAtomForPseudoAtomQueryContainer(fragment);
+			this.pattern = VentoFoggia.findSubstructure(queryFragment, AtomMatcher.forQuery(), BondMatcher.forQuery());
+		} else {
+			this.pattern = VentoFoggia.findSubstructure(fragment);
+		}
+		
 		highlight = false;
 		charge = false;
 		exactMatch = false;
@@ -135,7 +152,7 @@ public class SSSearchWorker extends MultiThreadWorker<DataRow, DataRow> {
 				if (highlight) {
 
 					int i = 0;
-					Color[] color = CDKNodeUtils.generateColors(MAX_MATCHES);
+					Color[] color = CDKNodeUtils.generateColorPalette();
 
 					for (Map<IAtom, IAtom> map : mappings.toAtomMap()) {
 						for (Map.Entry<IAtom, IAtom> e : map.entrySet()) {

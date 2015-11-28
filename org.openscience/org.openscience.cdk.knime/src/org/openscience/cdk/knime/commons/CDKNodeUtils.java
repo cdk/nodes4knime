@@ -183,7 +183,7 @@ public class CDKNodeUtils {
 		if (force || !(GeometryTools.has2DCoordinates(molecule))) {
 
 			StructureDiagramGenerator sdg = new StructureDiagramGenerator();
-			sdg.setUseTemplates(false);
+			sdg.setUseIdentityTemplates(true);
 			if (!ConnectivityChecker.isConnected(molecule)) {
 				IAtomContainerSet set = ConnectivityChecker.partitionIntoMolecules(molecule);
 				molecule = SilentChemObjectBuilder.getInstance().newInstance(IAtomContainer.class);
@@ -324,6 +324,26 @@ public class CDKNodeUtils {
 		for (int i = 0; i < n; i++) {
 			cols[i] = Color.getHSBColor((float) i / (float) n, 0.85f, 1.0f);
 		}
+		return cols;
+	}
+	
+	// 13-color palette for color blindness
+	public static Color[] generateColorPalette() {
+		Color[] cols = new Color[] {
+				new Color(0, 146, 146),
+				new Color(255, 109, 182),
+				new Color(255, 182, 119),
+				new Color(73, 0, 146),
+				new Color(0, 109, 219),
+				new Color(182, 109, 255),
+				new Color(109, 182, 255),
+				new Color(182, 219, 255),
+				new Color(146, 0, 0),
+				new Color(146, 73, 0),
+				new Color(219, 209, 0),
+				new Color(36, 255, 36),
+				new Color(255, 255, 109),
+		};
 		return cols;
 	}
 

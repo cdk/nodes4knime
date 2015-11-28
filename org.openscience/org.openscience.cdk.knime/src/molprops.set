@@ -32,7 +32,7 @@ org.openscience.cdk.qsar.descriptors.molecular.CPSADescriptor
 
 org.openscience.cdk.qsar.descriptors.molecular.EccentricConnectivityIndexDescriptor
 org.openscience.cdk.qsar.descriptors.molecular.FragmentComplexityDescriptor
-# org.openscience.cdk.qsar.descriptors.molecular.VABCDescriptor
+org.openscience.cdk.qsar.descriptors.molecular.VABCDescriptor
 
 # 3D required, array result
 # org.openscience.cdk.qsar.descriptors.molecular.GravitationalIndexDescriptor
