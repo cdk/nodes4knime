@@ -125,7 +125,7 @@ public class SmartRotatableBondsCountDescriptor extends AbstractMolecularDescrip
 			IAtom atom0 = bond.getAtom(0);
 			IAtom atom1 = bond.getAtom(1);
             if (atom0.getSymbol().equals("H") || atom1.getSymbol().equals("H")) continue;
-            if (bond.getOrder() == CDKConstants.BONDORDER_SINGLE) {
+            if (bond.getOrder() == IBond.Order.SINGLE) {
             	
             	if (isAmide(atom0, atom1, ac) || isAmide(atom1, atom0, ac)) {
             		continue;
@@ -161,7 +161,7 @@ public class SmartRotatableBondsCountDescriptor extends AbstractMolecularDescrip
     	// (c) anything else that does not work but should
     	if (atom0.getSymbol().equals("C") && atom1.getSymbol().equals("N")) {
     		for (IAtom neighbor : ac.getConnectedAtomsList(atom0)) {
-    			if (neighbor.getSymbol().equals("O") && ac.getBond(atom0, neighbor).getOrder() == CDKConstants.BONDORDER_DOUBLE) {
+    			if (neighbor.getSymbol().equals("O") && ac.getBond(atom0, neighbor).getOrder() == IBond.Order.DOUBLE) {
     				return true;
     			}
     		}

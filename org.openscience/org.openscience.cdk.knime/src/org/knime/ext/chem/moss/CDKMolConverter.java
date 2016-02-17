@@ -82,11 +82,11 @@ public class CDKMolConverter extends MolConverter<IAtomContainer, CDKValue> {
 
 			if (b.getFlag(CDKConstants.ISAROMATIC)) {
 				g.addEdge(nodeA, nodeB, Bonds.AROMATIC);
-			} else if (b.getOrder() == CDKConstants.BONDORDER_SINGLE) {
+			} else if (b.getOrder() == IBond.Order.SINGLE) {
 				g.addEdge(nodeA, nodeB, Bonds.SINGLE);
-			} else if (b.getOrder() == CDKConstants.BONDORDER_DOUBLE) {
+			} else if (b.getOrder() == IBond.Order.DOUBLE) {
 				g.addEdge(nodeA, nodeB, Bonds.DOUBLE);
-			} else if (b.getOrder() == CDKConstants.BONDORDER_TRIPLE) {
+			} else if (b.getOrder() == IBond.Order.TRIPLE) {
 				g.addEdge(nodeA, nodeB, Bonds.TRIPLE);
 			} else {
 				throw new IllegalArgumentException("Unknown bond type: " + b.getOrder());
@@ -123,13 +123,13 @@ public class CDKMolConverter extends MolConverter<IAtomContainer, CDKValue> {
 			mol.addBond(bond);
 
 			if (Bonds.getBond(e.getType()) == Bonds.SINGLE) {
-				bond.setOrder(CDKConstants.BONDORDER_SINGLE);
+				bond.setOrder(IBond.Order.SINGLE);
 			} else if (Bonds.getBond(e.getType()) == Bonds.DOUBLE) {
-				bond.setOrder(CDKConstants.BONDORDER_DOUBLE);
+				bond.setOrder(IBond.Order.DOUBLE);
 			} else if (Bonds.getBond(e.getType()) == Bonds.TRIPLE) {
-				bond.setOrder(CDKConstants.BONDORDER_TRIPLE);
+				bond.setOrder(IBond.Order.TRIPLE);
 			} else if (Bonds.getBond(e.getType()) == Bonds.AROMATIC) {
-				bond.setOrder(CDKConstants.BONDORDER_SINGLE);
+				bond.setOrder(IBond.Order.SINGLE);
 				bond.setFlag(CDKConstants.ISAROMATIC, true);
 				atomA.setFlag(CDKConstants.ISAROMATIC, true);
 				atomB.setFlag(CDKConstants.ISAROMATIC, true);

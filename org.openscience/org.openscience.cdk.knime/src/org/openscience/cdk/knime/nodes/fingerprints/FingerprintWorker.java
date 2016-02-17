@@ -4,11 +4,11 @@ import java.util.BitSet;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 
-import org.knime.base.data.append.column.AppendedColumnRow;
 import org.knime.core.data.AdapterValue;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataType;
+import org.knime.core.data.append.AppendedColumnRow;
 import org.knime.core.data.vector.bitvector.DenseBitVector;
 import org.knime.core.data.vector.bitvector.DenseBitVectorCellFactory;
 import org.knime.core.node.BufferedDataContainer;

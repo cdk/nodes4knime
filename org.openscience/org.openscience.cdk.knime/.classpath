@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry exported="true" kind="lib" path="lib/cdk-bundle-1.5.12.jar" sourcepath="lib/cdk-bundle-1.5.12-src.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/cdk-bundle-1.5.13.jar" sourcepath="lib/cdk-bundle-1.5.13-src.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/ambit2-base-2.6.0-SNAPSHOT.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/ambit2-core-2.6.0-SNAPSHOT.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/ambit2-smarts-2.6.0-SNAPSHOT.jar"/>

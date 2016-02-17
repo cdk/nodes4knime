@@ -115,13 +115,13 @@ public class CmlKnimeCore extends CMLCoreModule {
 					String bondOrder = (String) orders.next();
 
 					if ("S".equals(bondOrder)) {
-						currentBond.setOrder(CDKConstants.BONDORDER_SINGLE);
+						currentBond.setOrder(IBond.Order.SINGLE);
 					} else if ("D".equals(bondOrder)) {
-						currentBond.setOrder(CDKConstants.BONDORDER_DOUBLE);
+						currentBond.setOrder(IBond.Order.DOUBLE);
 					} else if ("T".equals(bondOrder)) {
-						currentBond.setOrder(CDKConstants.BONDORDER_TRIPLE);
+						currentBond.setOrder(IBond.Order.TRIPLE);
 					} else if ("A".equals(bondOrder)) {
-						currentBond.setOrder(CDKConstants.BONDORDER_SINGLE);
+						currentBond.setOrder(IBond.Order.SINGLE);
 						currentBond.setFlag(CDKConstants.ISAROMATIC, true);
 						currentBond.setFlag(CDKConstants.SINGLE_OR_DOUBLE, true);
 					} else {

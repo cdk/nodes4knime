@@ -23,13 +23,13 @@ import java.util.Vector;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 
-import org.knime.base.data.append.column.AppendedColumnRow;
 import org.knime.base.data.replace.ReplacedColumnsDataRow;
 import org.knime.core.data.AdapterValue;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataType;
 import org.knime.core.data.RowKey;
+import org.knime.core.data.append.AppendedColumnRow;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.CanceledExecutionException;
@@ -122,7 +122,7 @@ public class TautomerWorker extends MultiThreadWorker<DataRow, DataRow[]> {
 
 		// instantiate the tautomer generator with the current molecule
 		TautomerManager tautomerManager = new TautomerManager();
-		
+
 		// tautomer manager configuration (static for now)
 		// n.b. no idea what all those filters do exactly
 		tautomerManager.tautomerFilter.FlagApplyWarningFilter = true;
@@ -132,23 +132,23 @@ public class TautomerWorker extends MultiThreadWorker<DataRow, DataRow[]> {
 		tautomerManager.tautomerFilter.FlagApplyDuplicationCheckInChI = false;
 		tautomerManager.tautomerFilter.FlagFilterIncorrectValencySumStructures = true;
 		tautomerManager.tautomerFilter.FlagApplySimpleAromaticityRankCorrection = true;
-		
+
 		tautomerManager.FlagCheckDuplicationOnRegistering = true;
-		
+
 		tautomerManager.FlagRecurseBackResultTautomers = false;
-		
+
 		tautomerManager.FlagPrintTargetMoleculeInfo = false;
 		tautomerManager.FlagPrintExtendedRuleInstances = true;
 		tautomerManager.FlagPrintIcrementalStepDebugInfo = false;
-		
+
 		tautomerManager.getKnowledgeBase().activateChlorineRules(false);
-		tautomerManager.getKnowledgeBase().activateRingChainRules(false);		
-		//tautomerManager.getKnowledgeBase().use13ShiftRulesOnly(true);
+		tautomerManager.getKnowledgeBase().activateRingChainRules(false);
+		// tautomerManager.getKnowledgeBase().use13ShiftRulesOnly(true);
 		tautomerManager.getKnowledgeBase().use15ShiftRules(true);
 		tautomerManager.getKnowledgeBase().use17ShiftRules(false);
-		
+
 		tautomerManager.maxNumOfBackTracks = 10000;
-		
+
 		tautomerManager.setStructure(molecule);
 
 		// generate all tautomers
@@ -235,8 +235,8 @@ public class TautomerWorker extends MultiThreadWorker<DataRow, DataRow[]> {
 	 * {@inheritDoc}
 	 */
 	@Override
-	protected void processFinished(ComputationTask task) throws ExecutionException, CancellationException,
-			InterruptedException {
+	protected void processFinished(ComputationTask task)
+			throws ExecutionException, CancellationException, InterruptedException {
 
 		for (DataRow row : task.get()) {
 			bdc.addRowToTable(row);
@@ -258,8 +258,8 @@ public class TautomerWorker extends MultiThreadWorker<DataRow, DataRow[]> {
 	 * @return if missing or corrupted
 	 */
 	private boolean missingOrBroken(DataRow row) {
-		return (row.getCell(columnIndex).isMissing() || (((AdapterValue) row.getCell(columnIndex))
-				.getAdapterError(CDKValue.class) != null));
+		return (row.getCell(columnIndex).isMissing()
+				|| (((AdapterValue) row.getCell(columnIndex)).getAdapterError(CDKValue.class) != null));
 	}
 
 	/**

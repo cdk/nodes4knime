@@ -3,7 +3,6 @@ package org.openscience.cdk.knime.convert.molecule2cdk;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 
-import org.knime.base.data.append.column.AppendedColumnRow;
 import org.knime.base.data.replace.ReplacedColumnsDataRow;
 import org.knime.chem.types.CMLValue;
 import org.knime.chem.types.InchiValue;
@@ -15,6 +14,7 @@ import org.knime.core.data.DataCell;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataType;
 import org.knime.core.data.StringValue;
+import org.knime.core.data.append.AppendedColumnRow;
 import org.knime.core.data.xml.XMLValue;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.CanceledExecutionException;

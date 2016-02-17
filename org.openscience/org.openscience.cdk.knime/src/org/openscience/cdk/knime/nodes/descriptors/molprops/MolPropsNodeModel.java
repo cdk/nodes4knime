@@ -251,6 +251,9 @@ public class MolPropsNodeModel extends CDKNodeModel {
 						} else if (prop
 								.equalsIgnoreCase("org.openscience.cdk.qsar.descriptors.molecular.HBondDonorCountDescriptor")) {
 							params = new Object[] { new Boolean(false) };
+						} else if (prop
+								.equalsIgnoreCase("org.openscience.cdk.qsar.descriptors.molecular.LargestChainDescriptor")) {
+							params = new Object[] { new Boolean(false), new Boolean(true) };
 						}
 						newCells[i] = MolPropsLibrary.getProperty(row.getKey().toString(), mol, prop, params);
 					}
