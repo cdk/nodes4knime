@@ -32,7 +32,8 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.util.ColumnSelectionPanel;
-import org.knime.core.node.util.filter.column.DataColumnSpecFilterPanel;
+import org.knime.core.node.util.filter.NameFilterPanel;
+import org.knime.core.node.util.filter.StringFilterPanel;
 import org.openscience.cdk.knime.commons.CDKNodeUtils;
 
 /**
@@ -43,7 +44,7 @@ import org.openscience.cdk.knime.commons.CDKNodeUtils;
 public class MolPropsNodeDialog extends NodeDialogPane {
 
 	private final ColumnSelectionPanel m_selPanel;
-	private final DataColumnSpecFilterPanel m_filterPanel;
+	private final NameFilterPanel<String> m_filterPanel;
 
 	/**
 	 * Inits GUI.
@@ -52,7 +53,7 @@ public class MolPropsNodeDialog extends NodeDialogPane {
 	MolPropsNodeDialog() {
 
 		m_selPanel = new ColumnSelectionPanel(CDKNodeUtils.ACCEPTED_VALUE_CLASSES);
-		m_filterPanel = new DataColumnSpecFilterPanel(false);
+		m_filterPanel = new StringFilterPanel(false);
 		JPanel panel = new JPanel(new BorderLayout(5, 5));
 		panel.add(m_selPanel, BorderLayout.NORTH);
 		panel.add(m_filterPanel, BorderLayout.CENTER);
