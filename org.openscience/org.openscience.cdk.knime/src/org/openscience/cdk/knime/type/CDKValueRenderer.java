@@ -155,23 +155,24 @@ public class CDKValueRenderer extends AbstractPainterDataValueRenderer {
 			} catch (IllegalArgumentException exception) {
 				m_mol = con;
 			}
-		}
-		switch (numbering) {
-			case SEQUENTIAL:
-				int i = 1;
-				for (IAtom atom : con.atoms()) {
-				    String label = Integer.toString(i++);
-				    atom.setProperty(StandardGenerator.ANNOTATION_LABEL, label);
-				}
-				break;
-			case CANONICAL:
-				for (IAtom atom : con.atoms()) {
-				    String label = atom.getID();
-				    atom.setProperty(StandardGenerator.ANNOTATION_LABEL, label);
-				}
-				break;
-			case NONE:
-				break;
+			
+			switch (numbering) {
+				case SEQUENTIAL:
+					int i = 1;
+					for (IAtom atom : con.atoms()) {
+					    String label = Integer.toString(i++);
+					    atom.setProperty(StandardGenerator.ANNOTATION_LABEL, label);
+					}
+					break;
+				case CANONICAL:
+					for (IAtom atom : con.atoms()) {
+					    String label = atom.getID();
+					    atom.setProperty(StandardGenerator.ANNOTATION_LABEL, label);
+					}
+					break;
+				case NONE:
+					break;
+			}
 		}
 	}
 
