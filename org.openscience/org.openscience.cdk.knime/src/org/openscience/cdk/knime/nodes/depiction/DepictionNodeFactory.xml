@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<knimeNode icon="./pencil.png" type="Manipulator" xmlns="http://knime.org/node/v2.12" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v2.12 http://knime.org/node/v2.12.xsd">
+    <name>Depiction</name>
+    
+    <shortDescription>
+        Depict CDK structures into images
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>This node uses the CDK <a href="http://cdk.github.io/cdk/1.5/docs/api/index.html?org/openscience/cdk/depict/DepictionGenerator.html">depiction api</a> to render
+        the structure as a PNG or an SVG. A variety of options for formatting are provided as well as the ability to highlight atoms and bonds.
+        
+        </intro>
+        
+        <tab name="Options">
+        	<option name="Structure column">The input structure to render, can be any format that is compatible with the CDK adapter cell. 
+        	 When using a format other than a CDK cell you may find the atom numbers update, take this into consideration if highlighting.</option>
+ 		</tab>
+		
+        <tab name="Image settings">
+        	<description>Configure the settings for the image including rendering size. Although KNIME SVG ignores the height and width it is set in the SVG.</description>
+            <option name="Format">The format of the image: PNG or SVG. SVG images scale better, for improved image quality on PNG increase the size.</option>
+            <option name="Width">The width of the image (ignored for SVG)</option>
+            <option name="Height">The height of the image (ignored for SVG)</option>
+            <option name="Fill to fit?">Whether the render should fill the available canvas. Unlikely to be a reason to uncheck this. </option>
+        </tab>
+        
+        <tab name="General">
+ 			<option name="With molecule title?">If checked overlays molecule title. Not currently available.</option>
+ 			<option name="With atom colours?">If checked uses colours atom symbols using typical colours, oxygens are red, nitrogens are blue, etc.</option>
+ 			<option name="With atom numbers?">If checked overlays atom numbers</option>
+ 			<option name="With carbon symbols?">If checked renders all carbon symbols.</option>
+ 			<option name="With terminal carbons?">If checked renders terminal carbons.</option>
+        </tab>
+        
+        <tab name="Highlights">
+        	<description>Highlighting is optional, if a CDK cell is provided the clear existing highlighting option can be used to ensure fresh highlighting</description>
+ 			<option name="Clear existing highlights?">A CDK cell may already contain highlights, check this option to remove these prior to rendering (and adding new highlights if selected)</option>
+ 			<option name="Highlight atoms">Check if atoms are to be highlighted</option>
+ 			<option name="Atom index positions">The index positions to highlight, either provide a single int compatible column or a list of int values. Missing values allowed.</option>
+ 			<option name="Highlight bonds">Check if bonds are to be highlighted</option>
+ 			<option name="Bond index positions">The index positions to highlight, either provide a single int compatible column or a list of int values. Missing values allowed.</option>
+ 			<option name="With out glow?">If selected provides a overlayed highlight surrounding the atom/bond. Otherwise atom/bond is coloured directly. </option>
+ 			<option name="Outer glow width?">The width for the outer glow overlay/</option>
+ 			
+        </tab>
+
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Structures">Structures to depict.</inPort>
+        <!-- possibly more input ports here-->
+        <outPort index="0" name="Depicted structures">Depicted structures appended to input table.</outPort>
+        <!-- possibly more output ports here-->
+    </ports>    
+
+</knimeNode>

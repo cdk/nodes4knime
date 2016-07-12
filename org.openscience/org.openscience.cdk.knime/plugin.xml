@@ -29,6 +29,7 @@
    	  <node category-path="/community/cdk" factory-class="org.openscience.cdk.knime.nodes.symmetrycalculator.SymmetryCalculatorNodeFactory" id="org.openscience.cdk.knime.symmetrycalculator.SymmetryCalculatorNodeFactory"/>
       <node category-path="/community/cdk/ambit" factory-class="ambit2.knime.tautomers.TautomerFactory" id="ambit2.knime.tautomers.TautomerFactory"/>
 	  <node category-path="/community/cdk" factory-class="org.openscience.cdk.knime.nodes.masscalculator.MassCalculatorNodeFactory" id="org.openscience.cdk.knime.masscalculator.MassCalculatorNodeFactory"/>
+<node category-path="/community/cdk" factory-class="org.openscience.cdk.knime.nodes.depiction.DepictionNodeFactory" id="org.openscience.knime.nodes.depiction.DepictionNodeFactory"/>
 </extension>
    	<extension point="org.knime.workbench.repository.categories">
        <category after="" description="Nodes using the Chemistry Development Kit (CDK)" icon="icons/cdk.png" level-id="cdk" name="CDK" path="/community"/>
@@ -44,39 +45,24 @@
       <page category="org.knime.chem.preferences" class="org.openscience.cdk.knime.preferences.CDKPreferencePage" id="org.knime.ext.chem.cdk.preferences" name="CDK"/>
    </extension>
    <extension point="org.knime.product.splashExtension">
-		<splashExtension 
-			icon="icons/cdk_splash_48.png" 
-			icon24="icons/cdk_splash_24.png"
-			icon32="icons/cdk_splash_32.png"
-			id="cdk" 
-			tooltip="CDK">
+		<splashExtension icon="icons/cdk_splash_48.png" icon24="icons/cdk_splash_24.png" icon32="icons/cdk_splash_32.png" id="cdk" tooltip="CDK">
 		</splashExtension>
    </extension>
    <extension point="org.knime.core.DataValueRenderer"> 
 	 <dataValue valueClass="org.openscience.cdk.knime.type.CDKValue"> 
-		 <renderer 
-		 	rendererFactoryClass="org.openscience.cdk.knime.type.CDKValueRenderer$Factory" 
-		 	suggestAsDefault="false"> 
+		 <renderer rendererFactoryClass="org.openscience.cdk.knime.type.CDKValueRenderer$Factory" suggestAsDefault="false"> 
 		 </renderer> 
 	 </dataValue> 
 </extension>
 <extension point="org.knime.core.DataType">
       <DataType cellClass="org.openscience.cdk.knime.type.CDKCell3">
-         <serializer
-               cellClass="org.openscience.cdk.knime.type.CDKCell"
-               serializerClass="org.openscience.cdk.knime.type.CDKCell$CDKSerializer">
+         <serializer cellClass="org.openscience.cdk.knime.type.CDKCell" serializerClass="org.openscience.cdk.knime.type.CDKCell$CDKSerializer">
          </serializer>
-         <serializer
-               cellClass="org.openscience.cdk.knime.type.CDKAdapterCell"
-               serializerClass="org.openscience.cdk.knime.type.CDKAdapterCell$Serializer">
+         <serializer cellClass="org.openscience.cdk.knime.type.CDKAdapterCell" serializerClass="org.openscience.cdk.knime.type.CDKAdapterCell$Serializer">
          </serializer>
-         <serializer
-               cellClass="org.openscience.cdk.knime.type.CDKCell2"
-               serializerClass="org.openscience.cdk.knime.type.CDKCell2$CDKSerializer">
+         <serializer cellClass="org.openscience.cdk.knime.type.CDKCell2" serializerClass="org.openscience.cdk.knime.type.CDKCell2$CDKSerializer">
          </serializer>
-         <serializer
-               cellClass="org.openscience.cdk.knime.type.CDKCell3"
-               serializerClass="org.openscience.cdk.knime.type.CDKCell3$CDKSerializer">
+         <serializer cellClass="org.openscience.cdk.knime.type.CDKCell3" serializerClass="org.openscience.cdk.knime.type.CDKCell3$CDKSerializer">
          </serializer>
       </DataType>
    </extension>

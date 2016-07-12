@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: KNIME CDK Integration
 Bundle-SymbolicName: org.openscience.cdk.knime;singleton:=true
-Bundle-Version: 1.5.500.qualifier
+Bundle-Version: 1.5.600.qualifier
 Bundle-Vendor: KNIME GmbH, Konstanz and EMBL-EBI, Cambridge
 Bundle-ClassPath: knime-cdk.jar,
  lib/cdk-bundle-1.5.13.jar,
@@ -18,7 +18,7 @@ Require-Bundle: org.knime.base;bundle-version="[3.0.0,4.0.0)",
  org.knime.distmatrix;bundle-version="[3.0.0,4.0.0)",
  org.knime.chem.types;bundle-version="[3.0.0,4.0.0)",
  org.knime.ext.chem.moss;bundle-version="[3.0.0,4.0.0)";resolution:=optional,
- org.knime.ext.svg;bundle-version="3.1.0"
+ org.knime.ext.svg;bundle-version="[3.1.0,4.0.0)"
 Export-Package: javax.vecmath,
  org.chemspider.knime,
  org.knime.ext.chem.moss,
