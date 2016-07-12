@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
@@ -29,20 +30,26 @@ import org.knime.core.data.AdapterValue;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataType;
+import org.knime.core.data.MissingCell;
 import org.knime.core.data.append.AppendedColumnRow;
 import org.knime.core.data.collection.CollectionCellFactory;
 import org.knime.core.data.def.IntCell;
+import org.knime.core.data.def.IntCell.IntCellFactory;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.util.MultiThreadWorker;
+import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
+import org.openscience.cdk.interfaces.IBond;
+import org.openscience.cdk.isomorphism.Mappings;
 import org.openscience.cdk.knime.type.CDKCell3;
 import org.openscience.cdk.knime.type.CDKValue;
 import org.openscience.cdk.smiles.smarts.SmartSMARTSQueryTool;
 
-public class SmartsWorker extends MultiThreadWorker<DataRow, DataRow> {
+public class SmartsWorker extends MultiThreadWorker<DataRow, DataRow>
+{
 
 	private final static NodeLogger LOGGER = NodeLogger.getLogger(SmartsWorker.class);
 
@@ -52,12 +59,15 @@ public class SmartsWorker extends MultiThreadWorker<DataRow, DataRow> {
 	private final BufferedDataContainer[] bdc;
 
 	private final boolean count;
-	
+	private final boolean matchedPositions;
+
 	private final SmartSMARTSQueryTool smarts;
 	private final Set<Long> matchedRows;
 
-	public SmartsWorker(final int maxQueueSize, final int maxActiveInstanceSize, final int columnIndex,
-			final long max, final List<String> smarts, final boolean count, final ExecutionContext exec, final BufferedDataContainer[] bdc) {
+	public SmartsWorker(final int maxQueueSize, final int maxActiveInstanceSize, final int columnIndex, final long max,
+			final List<String> smarts, final boolean count, final boolean matchedPositions, final ExecutionContext exec,
+			final BufferedDataContainer[] bdc)
+	{
 
 		super(maxQueueSize, maxActiveInstanceSize);
 		this.exec = exec;
@@ -67,33 +77,76 @@ public class SmartsWorker extends MultiThreadWorker<DataRow, DataRow> {
 		this.smarts = new SmartSMARTSQueryTool(smarts);
 		this.columnIndex = columnIndex;
 		this.matchedRows = Collections.synchronizedSet(new HashSet<Long>());
+		this.matchedPositions = matchedPositions;
 	}
 
 	@Override
-	protected DataRow compute(DataRow row, long index) throws Exception {
+	protected DataRow compute(DataRow row, long index) throws Exception
+	{
 
 		DataCell outCell;
 		List<IntCell> uniqueCounts = new ArrayList<>();
 		DataRow countRow = row;
 		if (row.getCell(columnIndex).isMissing()
-				|| (((AdapterValue) row.getCell(columnIndex)).getAdapterError(CDKValue.class) != null)) {
+				|| (((AdapterValue) row.getCell(columnIndex)).getAdapterError(CDKValue.class) != null))
+		{
 			outCell = DataType.getMissingCell();
-		} else {
+		} else
+		{
 			CDKValue cdkCell = ((AdapterValue) row.getCell(columnIndex)).getAdapter(CDKValue.class);
 			IAtomContainer m = cdkCell.getAtomContainer();
 
-			try {
-				if (smarts.matches(m)) {
+			try
+			{
+				if (smarts.matches(m))
+				{
 					matchedRows.add(index);
-					if (count) {
+					if (count || matchedPositions)
+					{
 						uniqueCounts = smarts.countUnique(m);
-						countRow = new AppendedColumnRow(row, CollectionCellFactory.createListCell(uniqueCounts));
+
+						if (matchedPositions)
+						{
+							List<Mappings> mappings = smarts.getMappings(m);
+
+							List<DataCell> atoms = new ArrayList<DataCell>();
+							List<DataCell> bonds = new ArrayList<DataCell>();
+
+							for (Mappings map : mappings)
+							{
+								for (Map<IAtom, IAtom> current : map.toAtomMap())
+								{
+									for (IAtom atom : current.values())
+									{
+										atoms.add((IntCell) IntCellFactory.create(Integer.parseInt(atom.getID())));
+									}
+								}
+
+								for (Map<IBond, IBond> current : map.toBondMap())
+								{
+									for (IBond bond : current.values())
+									{								
+										bonds.add((IntCell) IntCellFactory.create(m.getBondNumber(bond)));
+									}
+								}
+
+							}
+
+							countRow = new AppendedColumnRow(row, CollectionCellFactory.createListCell(uniqueCounts),
+									CollectionCellFactory.createListCell(atoms),
+									CollectionCellFactory.createListCell(bonds));
+						} else
+						{
+							countRow = new AppendedColumnRow(row, CollectionCellFactory.createListCell(uniqueCounts));
+						}
 					}
 				}
-			} catch (ThreadDeath d) {
+			} catch (ThreadDeath d)
+			{
 				LOGGER.debug("SMARTS Query failed for row \"" + row.getKey() + "\"");
 				throw d;
-			} catch (Throwable t) {
+			} catch (Throwable t)
+			{
 				LOGGER.error(t.getMessage(), t);
 			}
 
@@ -104,24 +157,27 @@ public class SmartsWorker extends MultiThreadWorker<DataRow, DataRow> {
 	}
 
 	@Override
-	protected void processFinished(ComputationTask task) throws ExecutionException, CancellationException,
-			InterruptedException {
+	protected void processFinished(ComputationTask task)
+			throws ExecutionException, CancellationException, InterruptedException
+	{
 
 		DataRow append = task.get();
-		if (matchedRows.contains(task.getIndex())) {
+		if (matchedRows.contains(task.getIndex()))
+		{
 			bdc[0].addRowToTable(append);
-		} else {
+		} else
+		{
 			bdc[1].addRowToTable(append);
 		}
-		
-		exec.setProgress(
-				this.getFinishedCount() / max,
-				this.getFinishedCount() + " (active/submitted: " + this.getActiveCount() + "/"
-						+ (this.getSubmittedCount() - this.getFinishedCount()) + ")");
 
-		try {
+		exec.setProgress(this.getFinishedCount() / max, this.getFinishedCount() + " (active/submitted: "
+				+ this.getActiveCount() + "/" + (this.getSubmittedCount() - this.getFinishedCount()) + ")");
+
+		try
+		{
 			exec.checkCanceled();
-		} catch (CanceledExecutionException cee) {
+		} catch (CanceledExecutionException cee)
+		{
 			throw new CancellationException();
 		}
 	}

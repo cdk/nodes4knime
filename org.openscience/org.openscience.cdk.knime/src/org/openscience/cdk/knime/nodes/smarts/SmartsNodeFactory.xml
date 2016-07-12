@@ -12,7 +12,8 @@
         </intro>
         <option name="Column with molecules">Select the column that contains the molecules.</option>
         <option name="Column with SMARTS">Select the column that contains the SMARTS strings (SMARTSCell type).</option>
-        <option name="Match unique">Appends a list column with unique matches.</option>
+        <option name="Count unique">Appends a list column with unique matches.</option>
+        <option name="Record match positions">Appends the matched atoms and bonds. Does not differentiate between the matches.</option>
     </fullDescription>
     <ports>
         <inPort index="0" name="Molecules">Table that contains at least one column with CDK molecules.</inPort>

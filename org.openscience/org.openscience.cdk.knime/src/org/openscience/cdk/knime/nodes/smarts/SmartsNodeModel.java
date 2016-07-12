@@ -39,18 +39,27 @@ import org.openscience.cdk.knime.commons.CDKNodeUtils;
 import org.openscience.cdk.knime.core.CDKAdapterNodeModel;
 import org.openscience.cdk.knime.type.CDKCell3;
 
-public class SmartsNodeModel extends CDKAdapterNodeModel {
+/**
+ * 
+ * @author Unknown
+ * @author Samuel Webb, Lhasa Limited (added atom and bond match extraction)
+ *
+ */
+public class SmartsNodeModel extends CDKAdapterNodeModel
+{
 
 	private String colSmarts = "";
 	private String colMolecule = "";
 	private boolean count = false;
+	private boolean matchedPositions = false;
 
 	private int smartsIndex = 0;
 
 	/**
 	 * Creates a new model for SMARTS queries.
 	 */
-	public SmartsNodeModel() {
+	public SmartsNodeModel()
+	{
 		super(2, 2, null);
 	}
 
@@ -58,41 +67,49 @@ public class SmartsNodeModel extends CDKAdapterNodeModel {
 	 * {@inheritDoc}
 	 */
 	@Override
-	protected BufferedDataTable[] process(BufferedDataTable[] convertedTables, ExecutionContext exec) throws Exception {
+	protected BufferedDataTable[] process(BufferedDataTable[] convertedTables, ExecutionContext exec) throws Exception
+	{
 
 		List<String> smarts = new ArrayList<String>();
-		for (DataRow row : convertedTables[1]) {
-			if (!row.getCell(smartsIndex).isMissing()) {
+		for (DataRow row : convertedTables[1])
+		{
+			if (!row.getCell(smartsIndex).isMissing())
+			{
 				String smart = ((SmartsCell) row.getCell(smartsIndex)).getSmartsValue();
 				smarts.add(smart);
 			}
 		}
 
 		BufferedDataContainer outputTable[] = new BufferedDataContainer[] {
-				exec.createDataContainer(count 
-						? appendSpecCount(convertedTables[0].getDataTableSpec()) 
+				exec.createDataContainer(count || matchedPositions ? appendSpecCount(convertedTables[0].getDataTableSpec())
 						: appendSpec(convertedTables[0].getDataTableSpec())),
 				exec.createDataContainer(appendSpec(convertedTables[0].getDataTableSpec())) };
 
-		SmartsWorker worker = new SmartsWorker(maxQueueSize, maxParallelWorkers, columnIndex,
-				convertedTables[0].size(), smarts, count, exec, outputTable);
+		SmartsWorker worker = new SmartsWorker(maxQueueSize, maxParallelWorkers, columnIndex, convertedTables[0].size(),
+				smarts, count, matchedPositions, exec, outputTable);
 
-		try {
+		try
+		{
 			worker.run(convertedTables[0]);
-		} catch (InterruptedException e) {
+		} catch (InterruptedException e)
+		{
 			CanceledExecutionException cee = new CanceledExecutionException(e.getMessage());
 			cee.initCause(e);
 			throw cee;
-		} catch (ExecutionException e) {
+		} catch (ExecutionException e)
+		{
 			Throwable cause = e.getCause();
-			if (cause == null) {
+			if (cause == null)
+			{
 				cause = e;
 			}
-			if (cause instanceof RuntimeException) {
+			if (cause instanceof RuntimeException)
+			{
 				throw (RuntimeException) cause;
 			}
 			throw new RuntimeException(cause);
-		} finally {
+		} finally
+		{
 			outputTable[0].close();
 			outputTable[1].close();
 		}
@@ -104,7 +121,8 @@ public class SmartsNodeModel extends CDKAdapterNodeModel {
 	 * {@inheritDoc}
 	 */
 	@Override
-	protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
+	protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException
+	{
 
 		colMolecule = CDKNodeUtils.autoConfigure(inSpecs[0], colMolecule);
 		colSmarts = CDKNodeUtils.autoConfigure(inSpecs[1], colSmarts, SmartsValue.class);
@@ -115,43 +133,62 @@ public class SmartsNodeModel extends CDKAdapterNodeModel {
 		DataTableSpec outSpec = convertTables(new DataTableSpec[] { inSpecs[0] })[0];
 		DataTableSpec outSpecSecond = appendSpec(outSpec);
 		DataTableSpec outSpecFirst = outSpecSecond;
-		if (count) {
+		if (count || matchedPositions)
+		{
 			outSpecFirst = appendSpecCount(outSpec);
 		}
 
 		return new DataTableSpec[] { outSpecFirst, outSpecSecond };
 	}
 
-	private DataTableSpec appendSpec(DataTableSpec spec) {
+	private DataTableSpec appendSpec(DataTableSpec spec)
+	{
 
 		DataColumnSpec[] dcs = new DataColumnSpec[spec.getNumColumns()];
 		int i = 0;
-		for (DataColumnSpec s : spec) {
-			if (i == columnIndex) {
+		for (DataColumnSpec s : spec)
+		{
+			if (i == columnIndex)
+			{
 				String name = spec.getColumnNames()[columnIndex];
 				dcs[i] = new DataColumnSpecCreator(name, CDKCell3.TYPE).createSpec();
-			} else {
+			} else
+			{
 				dcs[i] = s;
 			}
 			i++;
 		}
 		return new DataTableSpec(dcs);
 	}
-	
-	private DataTableSpec appendSpecCount(DataTableSpec spec) {
 
-		DataColumnSpec[] dcs = new DataColumnSpec[spec.getNumColumns() + 1];
+	private DataTableSpec appendSpecCount(DataTableSpec spec)
+	{
+
+		int numAppend = matchedPositions ? 3 : 1;
+		
+		DataColumnSpec[] dcs = new DataColumnSpec[spec.getNumColumns() + numAppend];
 		int i = 0;
-		for (DataColumnSpec s : spec) {
-			if (i == columnIndex) {
+		for (DataColumnSpec s : spec)
+		{
+			if (i == columnIndex)
+			{
 				String name = spec.getColumnNames()[columnIndex];
 				dcs[i] = new DataColumnSpecCreator(name, CDKCell3.TYPE).createSpec();
-			} else {
+			} else
+			{
 				dcs[i] = s;
 			}
 			i++;
 		}
 		dcs[i] = new DataColumnSpecCreator("Unique Count", ListCell.getCollectionType(IntCell.TYPE)).createSpec();
+		
+		if(matchedPositions)
+		{
+			dcs[i + 1] = new DataColumnSpecCreator("Atoms", ListCell.getCollectionType(IntCell.TYPE)).createSpec();
+			dcs[i + 2] = new DataColumnSpecCreator("Bonds", ListCell.getCollectionType(IntCell.TYPE)).createSpec();
+		}
+			
+		
 		return new DataTableSpec(dcs);
 	}
 
@@ -159,37 +196,44 @@ public class SmartsNodeModel extends CDKAdapterNodeModel {
 	 * {@inheritDoc}
 	 */
 	@Override
-	protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
+	protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException
+	{
 
 		colMolecule = settings.getString("Molecule");
 		colSmarts = settings.getString("SMARTS");
 		count = settings.getBoolean("Count Unique");
+		matchedPositions = settings.getBoolean("Record match positions");
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	protected void saveSettingsTo(final NodeSettingsWO settings) {
+	protected void saveSettingsTo(final NodeSettingsWO settings)
+	{
 
 		settings.addString("Molecule", colMolecule);
 		settings.addString("SMARTS", colSmarts);
 		settings.addBoolean("Count Unique", count);
+		settings.addBoolean("Record match positions", matchedPositions);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
+	protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException
+	{
 
 		String colName = settings.getString("Molecule");
-		if ((colName == null) || (colName.length() < 1)) {
+		if ((colName == null) || (colName.length() < 1))
+		{
 			throw new InvalidSettingsException("No column choosen");
 		}
 
 		colName = settings.getString("SMARTS");
-		if ((colName == null) || (colName.length() < 1)) {
+		if ((colName == null) || (colName.length() < 1))
+		{
 			throw new InvalidSettingsException("No column choosen");
 		}
 	}

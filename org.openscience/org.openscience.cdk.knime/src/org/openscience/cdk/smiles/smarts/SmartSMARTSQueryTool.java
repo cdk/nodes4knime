@@ -84,4 +84,27 @@ public class SmartSMARTSQueryTool {
 		
 		return total;
 	}
+	
+	/**
+	 * 
+	 * @param atomContainer
+	 * @return The match mappings of the query to the target
+	 * 
+	 * @since 1.5.600
+	 */
+	public List<Mappings> getMappings(IAtomContainer atomContainer)
+	{
+		List<Mappings> totalMappings = new ArrayList<Mappings>();
+		for (Entry<Pattern, QueryAtomContainer> entry : queries.entrySet()) {
+			Mappings mappings = entry.getKey().matchAll(atomContainer)
+					.filter(new SmartsStereoMatch(entry.getValue(), atomContainer))
+					.filter(new ComponentGrouping(entry.getValue(), atomContainer));
+			
+			totalMappings.add(mappings);
+		}
+		
+		return totalMappings;
+	}
+	
+	
 }

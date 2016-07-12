@@ -42,6 +42,7 @@ public class SmartsNodeFactory extends NodeFactory<SmartsNodeModel> {
 		dialog.addColumnSelection("Molecule", CDKNodeUtils.ACCEPTED_VALUE_CLASSES);
 		dialog.addColumnSelection("SMARTS", 1, SmartsValue.class);
 		dialog.addCustomOption("Count Unique", new JCheckBox("", false));
+		dialog.addCustomOption("Record match positions", new JCheckBox("", false));
 		return dialog.build();
 	}
 
