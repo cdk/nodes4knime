@@ -206,7 +206,7 @@ public abstract class CDKAdapterNodeModel extends NodeModel {
 					rearrangerWorkaround.remove(tableSpec.getNumColumns() - 1);
 					convertedTables[j] = exec.createColumnRearrangeTable(convertedTables[j], rearrangerWorkaround, e);
 				}
-				exec.setMessage(null);
+				exec.setMessage((String)null);
 			}
 		}
 
