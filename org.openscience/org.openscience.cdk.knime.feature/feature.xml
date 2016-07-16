@@ -2,7 +2,7 @@
 <feature
       id="org.openscience.cdk.knime.feature"
       label="KNIME-CDK"
-      version="1.5.400.qualifier"
+      version="1.5.600.qualifier"
       provider-name="University Konstanz and EBI"
       plugin="org.openscience.cdk.knime">
 
