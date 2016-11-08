@@ -75,7 +75,7 @@ public class SmartsNodeModel extends CDKAdapterNodeModel
 		{
 			if (!row.getCell(smartsIndex).isMissing())
 			{
-				String smart = ((SmartsCell) row.getCell(smartsIndex)).getSmartsValue();
+				String smart = ((SmartsValue) row.getCell(smartsIndex)).getSmartsValue();
 				smarts.add(smart);
 			}
 		}
