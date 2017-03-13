@@ -66,4 +66,16 @@
          </serializer>
       </DataType>
    </extension>
+<extension
+      point="org.knime.core.DataCellToJavaConverter">
+   <DataCellToJavaConverter
+         factoryClass="org.openscience.cdk.knime.type.snippets.java.CdkCellToJavaFactory">
+   </DataCellToJavaConverter>
+</extension>
+<extension
+      point="org.knime.core.JavaToDataCellConverter">
+   <JavaToDataCellConverter
+         factoryClass="org.openscience.cdk.knime.type.snippets.java.JavaToCdkCellFactory">
+   </JavaToDataCellConverter>
+</extension>
 </plugin>
