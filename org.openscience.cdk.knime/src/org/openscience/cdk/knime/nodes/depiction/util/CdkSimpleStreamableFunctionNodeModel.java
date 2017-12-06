@@ -35,7 +35,7 @@ import org.openscience.cdk.knime.type.CDKValue;
  * to the input table if not overriding the {@link #createColumnRearranger(DataTableSpec)}. To replace a cell then the 
  * {@link #createColumnRearranger(DataTableSpec)} must also be overridden. 
  * 
- * @TODO move this class should it be adopted outiside of the depiction node
+ * @TODO move this class should it be adopted outside of the depiction node
  *  
  * @author Samuel Webb, Lhasa Limited
  * @since KNIME v3.1, CDK plugin v1.5.500
