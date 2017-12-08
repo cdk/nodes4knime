@@ -2,6 +2,7 @@ CDK Nodes for KNIME
 ===================
 
 Setting up Eclipse
+------------------
 
 1. download the Eclipse KNIME SDK 3.5 (not Eclipse itself!)
 2. import the four plugins
@@ -12,4 +13,6 @@ Setting up Eclipse
 7. Select KNIME & Extensions
 8. Apply the new target platform
 
+Running KNIME
+-------------
 
