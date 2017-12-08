@@ -16,3 +16,4 @@ Setting up Eclipse
 Running KNIME
 -------------
 
+1. Follow [these instructions](https://www.knime.com/test-your-node)
