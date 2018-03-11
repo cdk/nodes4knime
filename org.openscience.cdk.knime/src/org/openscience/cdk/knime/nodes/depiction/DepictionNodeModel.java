@@ -1,6 +1,5 @@
 package org.openscience.cdk.knime.nodes.depiction;
 
-import java.awt.Color;
 import java.awt.Image;
 import java.awt.image.RenderedImage;
 import java.io.ByteArrayOutputStream;
@@ -33,8 +32,6 @@ import org.openscience.cdk.knime.commons.CDKNodeUtils;
 import org.openscience.cdk.knime.nodes.depiction.util.CdkSimpleStreamableFunctionNodeModel;
 import org.openscience.cdk.knime.type.CDKValue;
 import org.openscience.cdk.renderer.generators.standard.StandardGenerator;
-
-import com.google.common.primitives.Ints;
 
 /**
  * This is the model implementation of Depiction. Depict CDK structures into
