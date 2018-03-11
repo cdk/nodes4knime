@@ -17,3 +17,4 @@ Running KNIME
 -------------
 
 1. Follow [these instructions](https://www.knime.com/test-your-node)
+2. The test workflows used by the KNIME integration server can be edited via a released KNIME version and the KNIME Public Server Access
