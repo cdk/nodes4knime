@@ -18,7 +18,11 @@ Require-Bundle: org.knime.base;bundle-version="[3.0.0,5.0.0)",
  org.knime.distmatrix;bundle-version="[3.0.0,5.0.0)",
  org.knime.chem.types;bundle-version="[3.0.0,5.0.0)",
  org.knime.ext.chem.moss;bundle-version="[3.0.0,5.0.0)";resolution:=optional,
- org.knime.ext.svg;bundle-version="[3.1.0,5.0.0)"
+ org.knime.ext.svg;bundle-version="[3.1.0,5.0.0)",
+ org.knime.product;bundle-version="4.2.0",
+ javax.xml.soap;bundle-version="1.2.0",
+ javax.xml.rpc;bundle-version="1.1.0",
+ org.apache.commons.logging;bundle-version="1.2.0"
 Export-Package: javax.vecmath,
  org.chemspider.knime,
  org.knime.ext.chem.moss,
