@@ -5,13 +5,13 @@ Bundle-SymbolicName: org.openscience.cdk.knime;singleton:=true
 Bundle-Version: 1.5.700.qualifier
 Bundle-Vendor: KNIME GmbH, Konstanz and EMBL-EBI, Cambridge
 Bundle-ClassPath: knime-cdk.jar,
- lib/cdk-bundle-1.5.13.jar,
  lib/jmol-10.jar,
  lib/jchempaint-hotfix-3.4.jar,
  lib/ambit2-base-2.6.0-SNAPSHOT.jar,
  lib/ambit2-core-2.6.0-SNAPSHOT.jar,
  lib/ambit2-smarts-2.6.0-SNAPSHOT.jar,
- lib/ambit2-tautomers-2.6.0-SNAPSHOT.jar
+ lib/ambit2-tautomers-2.6.0-SNAPSHOT.jar,
+ lib/cdk-bundle-1.5.13.jar
 Require-Bundle: org.knime.base;bundle-version="[3.0.0,5.0.0)",
  org.eclipse.ui;bundle-version="3.6.1",
  org.knime.workbench.repository;bundle-version="[3.0.0,5.0.0)",
@@ -213,5 +213,6 @@ Export-Package: javax.vecmath,
  signature
 Bundle-Activator: org.openscience.cdk.knime.CDKNodePlugin
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-RequiredExecutionEnvironment: JavaSE-11
 Import-Package: org.w3c.dom.events;version="3.0.0"
+Automatic-Module-Name: org.openscience.cdk.knime
