@@ -118,7 +118,10 @@ public class SSSearchNodeDialog extends NodeDialogPane {
 
 		if (m_settings.getSmiles() != null) {
 			try {
-				m_panel.loadStructures(m_settings.getSmiles());
+				String smiles = m_settings.getSmiles();
+				
+				if(!smiles.isBlank())
+					m_panel.loadStructures(m_settings.getSmiles());
 			} catch (Exception ex) {
 				LOGGER.error(ex.getMessage(), ex);
 				throw new NotConfigurableException(ex.getMessage());
