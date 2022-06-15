@@ -216,13 +216,11 @@ public class DepictionNodeModel extends CdkSimpleStreamableFunctionNodeModel
 			 */
 			private List<Integer> getPositions(DataTableSpec spec, DataRow row, int colIndex)
 			{
-
 				List<Integer> positions = new ArrayList<Integer>();
-//				Integer[] positions = null;
 				
 				if (row.getCell(colIndex).isMissing())
 				{
-					
+					// Nothing to add
 				}
 				else if (spec.getColumnSpec(colIndex).getType().isCompatible(IntValue.class))
 				{
@@ -249,7 +247,6 @@ public class DepictionNodeModel extends CdkSimpleStreamableFunctionNodeModel
 				}
 
 				return positions;
-//				return Ints.toArray(positions);
 			}
 		};
 	}

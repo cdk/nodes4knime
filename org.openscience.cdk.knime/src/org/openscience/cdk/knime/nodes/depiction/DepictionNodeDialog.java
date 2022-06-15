@@ -109,9 +109,6 @@ public class DepictionNodeDialog extends DefaultNodeSettingsPane
 		allowedTypes[0] = IntValue.class;
 		allowedTypes[1] = (Class<? extends DataValue>) ListDataValue.class;
 		
-		// allowedTypes[1] = StringValue.class; // Work around to allow null
-		// selection
-
 		createNewGroup("Highlights");
 		setHorizontalPlacement(false);
 		addDialogComponent(new DialogComponentBoolean(
@@ -127,7 +124,6 @@ public class DepictionNodeDialog extends DefaultNodeSettingsPane
 
 		atomHighlightSetting.addChangeListener(new ChangeListener()
 		{
-
 			@Override
 			public void stateChanged(ChangeEvent e)
 			{
@@ -141,7 +137,7 @@ public class DepictionNodeDialog extends DefaultNodeSettingsPane
 		addDialogComponent(new DialogComponentBoolean(atomHighlightSetting, "Highlight atoms"));
 
 		DialogComponentColumnNameSelection atomHighlight = new DialogComponentColumnNameSelection(atomHighlights,
-				"Atom index positions", 0, allowedTypes);
+				"Atom index positions", 0, false, allowedTypes);
 
 		addDialogComponent(atomHighlight);
 		addDialogComponent(new DialogComponentColorChooser(
@@ -171,7 +167,7 @@ public class DepictionNodeDialog extends DefaultNodeSettingsPane
 
 		addDialogComponent(new DialogComponentBoolean(bondHighlightSetting, "Highlight bonds"));
 		DialogComponentColumnNameSelection bondHighlight = new DialogComponentColumnNameSelection(bondHighlights,
-				"Bond index positions", 0, allowedTypes);
+				"Bond index positions", 0, false, allowedTypes);
 
 		addDialogComponent(bondHighlight);
 		addDialogComponent(new DialogComponentColorChooser(
