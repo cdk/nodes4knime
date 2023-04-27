@@ -97,7 +97,7 @@ public class OpsinNameConverterGenerator implements CellFactory {
 		int i = 0;
 		for (String suffix : urlSuffix) {
 			try {
-				url = new URL("http://opsin.ch.cam.ac.uk/opsin/" + iupacKey + "." + suffix);
+				url = new URL("https://opsin.ch.cam.ac.uk/opsin/" + iupacKey + "." + suffix);
 				if (suffix.equals("inchi")) {
 					reader = new BufferedReader(new InputStreamReader(url.openConnection().getInputStream()));
 					newCells[i] = new StringCell(reader.readLine());
@@ -124,7 +124,7 @@ public class OpsinNameConverterGenerator implements CellFactory {
 					bis.close();
 				} else if (suffix.equals("cdk")) {
 					if (cmlBuilder == null) {
-						url = new URL("http://opsin.ch.cam.ac.uk/opsin/" + iupacKey + ".cml");
+						url = new URL("https://opsin.ch.cam.ac.uk/opsin/" + iupacKey + ".cml");
 						reader = new BufferedReader(new InputStreamReader(url.openConnection().getInputStream()));
 						String line = "";
 						cmlBuilder = new StringBuilder();
